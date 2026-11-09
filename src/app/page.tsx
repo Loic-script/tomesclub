@@ -21,6 +21,6 @@ async function Gate() {
   const profile = await getProfileSummary(user.id);
   if (!profile?.completedAt) redirect("/onboarding");
 
-  redirect("/calls");
+  redirect("/home");
   return null; // jamais atteint : redirect() interrompt l'affichage
 }

@@ -17,5 +17,5 @@ export async function completeOnboarding(
   const error = await saveProfileFromForm(user.id, formData);
   if (error) return { error };
 
-  redirect("/calls");
+  redirect("/home");
 }

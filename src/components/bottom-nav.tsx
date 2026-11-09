@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 // La barre de navigation en bas, style application mobile (pilule en verre).
 const TABS = [
+  { href: "/home", label: "Home", icon: HomeIcon },
   { href: "/calls", label: "Calls", icon: PhoneIcon },
   { href: "/rooms", label: "Rooms", icon: RoomsIcon },
   { href: "/events", label: "Events", icon: CalendarIcon },
@@ -56,6 +57,15 @@ const iconProps = {
   strokeLinecap: "round",
   strokeLinejoin: "round",
 } as const;
+
+function HomeIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M4 11.5 12 4l8 7.5" />
+      <path d="M6 10v10h4.5v-5.5h3V20H18V10" />
+    </svg>
+  );
+}
 
 function PhoneIcon() {
   return (
