@@ -81,7 +81,7 @@ export function AuthFlip() {
         {/* ----- Verso : l'admin ----- */}
         <Face hidden={!flipped} back>
           <span className="mx-auto mb-5 flex size-16 items-center justify-center rounded-full bg-navy/5 text-navy ring-1 ring-navy/15">
-            <LockIcon />
+            <UserKeyIcon />
           </span>
 
           <h2 className="font-display text-3xl font-bold text-navy">Admin</h2>
@@ -131,19 +131,24 @@ function Face({
   );
 }
 
-function LockIcon() {
+/** Personne + clé (l'accès admin), de la même couleur que le titre Admin. */
+function UserKeyIcon() {
   return (
     <svg
-      viewBox="0 0 24 24"
-      className="size-7"
+      viewBox="0 0 48 48"
+      className="size-9"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth="4.2"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <rect x="5" y="11" width="14" height="10" rx="2.5" />
-      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+      {/* La personne */}
+      <circle cx="19" cy="12.5" r="7.3" />
+      <path d="M29 26.5a14.5 14.5 0 0 0-21.5 9V42h13" />
+      {/* La clé */}
+      <circle cx="30" cy="37" r="5.2" />
+      <path d="M34.2 32.8 43.5 23.5M39.5 27.5l3.4 3.4M43.5 23.5l3 3" />
     </svg>
   );
 }
