@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { delay, PageHeader } from "@/components/app-ui";
 import { MemberAvatar } from "@/components/member-avatar";
-import { SignOutButton } from "@/components/sign-out-button";
 import { OCCUPATIONS } from "@/lib/onboarding-options";
 import { getFullProfile } from "@/lib/profile";
 import { requireMember } from "@/lib/session";
@@ -145,9 +144,6 @@ async function ProfileHome() {
           </div>
         </div>
 
-        <div className="anim-rise flex justify-center gap-3 pt-1" style={delay(400)}>
-          <SignOutButton className="neu-sm neu-btn rounded-full px-6 py-2.5 font-semibold text-white/85 disabled:opacity-60" />
-        </div>
       </div>
     </>
   );

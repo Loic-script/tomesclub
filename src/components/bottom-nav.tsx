@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { authClient } from "@/lib/auth-client";
 
 // La barre de navigation en bas, style application mobile (pilule en verre).
 const TABS = [
@@ -14,6 +16,15 @@ const TABS = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function signOut() {
+    setSigningOut(true);
+    await authClient.signOut();
+    router.replace("/login");
+    router.refresh();
+  }
 
   return (
     <nav
@@ -41,6 +52,19 @@ export function BottomNav() {
             </li>
           );
         })}
+
+        {/* Se déconnecter, directement depuis la barre */}
+        <li className="flex-1">
+          <button
+            type="button"
+            onClick={signOut}
+            disabled={signingOut}
+            className="flex w-full flex-col items-center gap-0.5 rounded-full px-3 py-2 text-[11px] font-semibold text-white/60 transition-all duration-300 hover:-translate-y-0.5 hover:text-accent disabled:opacity-60"
+          >
+            <LogoutIcon />
+            {signingOut ? "..." : "Logout"}
+          </button>
+        </li>
       </ul>
     </nav>
   );
@@ -57,6 +81,15 @@ const iconProps = {
   strokeLinecap: "round",
   strokeLinejoin: "round",
 } as const;
+
+function LogoutIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M14 4h4.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14" />
+      <path d="M10 8l-4 4 4 4M6 12h10" />
+    </svg>
+  );
+}
 
 function HomeIcon() {
   return (
