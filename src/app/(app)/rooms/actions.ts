@@ -15,11 +15,12 @@ export async function createRoomAction(
 
   const name = String(formData.get("name") ?? "").trim();
   const topic = String(formData.get("topic") ?? "").trim().slice(0, 80);
+  const isPrivate = formData.get("visibility") === "private";
   if (!name) return { error: "Please give your room a name." };
 
   let roomId: string;
   try {
-    const room = await createRoom(user.id, name, topic || null);
+    const room = await createRoom(user.id, name, topic || null, isPrivate);
     roomId = room.id;
   } catch (error) {
     console.error("[createRoomAction]", error);

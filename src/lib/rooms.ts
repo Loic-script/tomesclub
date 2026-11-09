@@ -17,6 +17,8 @@ export type OpenRoom = {
   topic: string | null;
   hostName: string;
   participants: number;
+  isPrivate: boolean;
+  isMine: boolean;
 };
 
 /** Crée une salle : d'abord dans la base, puis dans LiveKit. */
@@ -24,9 +26,10 @@ export async function createRoom(
   creatorId: string,
   name: string,
   topic: string | null,
+  isPrivate: boolean,
 ): Promise<{ id: string }> {
   const room = await prisma.room.create({
-    data: { name: name.slice(0, 60), topic, createdById: creatorId },
+    data: { name: name.slice(0, 60), topic, isPrivate, createdById: creatorId },
     select: { id: true },
   });
 
@@ -44,8 +47,12 @@ export async function createRoom(
   return room;
 }
 
-/** Les salles encore ouvertes dans LiveKit, avec le nombre de personnes dedans. Null = serveur vidéo injoignable. */
-export async function listOpenRooms(): Promise<OpenRoom[] | null> {
+/**
+ * Les salles encore ouvertes dans LiveKit, avec le nombre de personnes dedans.
+ * Les salles privées des autres sont cachées ; les miennes restent visibles pour moi.
+ * Null = serveur vidéo injoignable.
+ */
+export async function listOpenRooms(viewerId: string): Promise<OpenRoom[] | null> {
   let liveRooms;
   try {
     liveRooms = await createRoomServiceClient().listRooms();
@@ -58,12 +65,17 @@ export async function listOpenRooms(): Promise<OpenRoom[] | null> {
   if (open.length === 0) return [];
 
   const rows = await prisma.room.findMany({
-    where: { id: { in: open.map((room) => room.name.slice(ROOM_PREFIX.length)) } },
+    where: {
+      id: { in: open.map((room) => room.name.slice(ROOM_PREFIX.length)) },
+      OR: [{ isPrivate: false }, { createdById: viewerId }],
+    },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
       name: true,
       topic: true,
+      isPrivate: true,
+      createdById: true,
       createdBy: { select: { name: true, profile: { select: { firstName: true } } } },
     },
   });
@@ -78,6 +90,8 @@ export async function listOpenRooms(): Promise<OpenRoom[] | null> {
     topic: row.topic,
     hostName: row.createdBy.profile?.firstName ?? row.createdBy.name,
     participants: participantsById.get(row.id) ?? 0,
+    isPrivate: row.isPrivate,
+    isMine: row.createdById === viewerId,
   }));
 }
 

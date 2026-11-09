@@ -3,11 +3,17 @@
 import { useActionState, useState } from "react";
 import { createRoomAction, type CreateRoomState } from "./actions";
 
+const VISIBILITIES = [
+  { value: "public", label: "Public", hint: "Everyone sees it in the list." },
+  { value: "private", label: "Private", hint: "Only people with the link can join." },
+] as const;
+
 const initialState: CreateRoomState = { error: null };
 
 // Le formulaire "Create a room", replié derrière un bouton.
 export function CreateRoomForm() {
   const [open, setOpen] = useState(false);
+  const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [state, formAction, pending] = useActionState(createRoomAction, initialState);
 
   const field =
@@ -53,6 +59,39 @@ export function CreateRoomForm() {
                 className={field}
               />
             </label>
+
+            {/* Publique ou privée ? */}
+            <div>
+              <span className="mb-1 block text-sm font-medium text-white/75">Who can see it?</span>
+              <div className="flex gap-2">
+                {VISIBILITIES.map((option) => (
+                  <label
+                    key={option.value}
+                    className={`flex-1 cursor-pointer rounded-xl px-3 py-2 text-center transition-all duration-200 ${
+                      visibility === option.value
+                        ? "neu-inset text-accent"
+                        : "text-white/60 ring-1 ring-white/15 hover:text-white"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="visibility"
+                      value={option.value}
+                      checked={visibility === option.value}
+                      onChange={() => setVisibility(option.value)}
+                      className="sr-only"
+                    />
+                    <span className="flex items-center justify-center gap-1.5 text-sm font-semibold">
+                      {option.value === "private" && <LockIcon />}
+                      {option.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <p className="mt-1.5 text-xs text-white/50">
+                {VISIBILITIES.find((option) => option.value === visibility)?.hint}
+              </p>
+            </div>
             <p aria-live="polite" className="min-h-5 text-sm text-amber-300">
               {state.error}
             </p>
@@ -67,6 +106,23 @@ export function CreateRoomForm() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="size-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="5" y="11" width="14" height="10" rx="2.5" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </svg>
   );
 }
 

@@ -18,8 +18,8 @@ export default function RoomsPage() {
 }
 
 async function RoomsHome() {
-  await requireMember();
-  const rooms = await listOpenRooms();
+  const user = await requireMember();
+  const rooms = await listOpenRooms(user.id);
 
   return (
     <>
@@ -54,9 +54,18 @@ async function RoomsHome() {
                       {room.name[0]?.toUpperCase() ?? "R"}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-semibold text-white">{room.name}</p>
+                      <p className="flex items-center gap-1.5 truncate font-semibold text-white">
+                        {room.name}
+                        {room.isPrivate && (
+                          <span className="flex shrink-0 items-center gap-1 rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
+                            <LockIcon /> Private
+                          </span>
+                        )}
+                      </p>
                       <p className="truncate text-xs text-white/60">
-                        {room.topic ? `${room.topic} · ` : ""}Hosted by {room.hostName}
+                        {room.topic ? `${room.topic} · ` : ""}Hosted by{" "}
+                        {room.isMine ? "you" : room.hostName}
+                        {room.isPrivate && room.isMine ? " · share the link to invite" : ""}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
@@ -83,4 +92,21 @@ async function RoomsHome() {
 
 function PeopleDot() {
   return <span aria-hidden className="size-1.5 rounded-full bg-green-400" />;
+}
+
+function LockIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="size-3"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="5" y="11" width="14" height="10" rx="2.5" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </svg>
+  );
 }
