@@ -68,15 +68,15 @@ export default function LoginPage() {
 
           <div className="anim-pop relative" style={delay(300)}>
             {/* Halo orange qui respire, clin d'œil à l'anneau du logo */}
-            <span aria-hidden className="anim-halo absolute -inset-3 rounded-3xl bg-accent/50 blur-xl" />
-            {/* Logo carré aux coins doux, sans bordure */}
+            <span aria-hidden className="anim-halo absolute -inset-3 rounded-full bg-accent/50 blur-xl" />
+            {/* Le logo rond, juste le cercle (extérieur transparent) */}
             <Image
-              src="/logo.jpeg"
+              src="/logo.png"
               alt="Tomes Club logo"
               width={112}
               height={112}
               preload
-              className="relative rounded-2xl shadow-lg"
+              className="relative rounded-full drop-shadow-lg"
             />
           </div>
 

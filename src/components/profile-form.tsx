@@ -191,7 +191,7 @@ export function ProfileForm({
       {/* ----- En-tête : logo + avancement ----- */}
       <header className="mb-8">
         <div className="anim-rise flex items-center gap-4" style={delay(100)}>
-          <Image src="/logo.jpeg" alt="" width={64} height={64} className="rounded-2xl shadow-md" />
+          <Image src="/logo.png" alt="" width={64} height={64} className="rounded-full drop-shadow-md" />
           <div>
             <p className="font-display text-2xl font-bold leading-tight text-navy">
               {mode === "edit" ? "Edit profile" : "Tomes Club"}

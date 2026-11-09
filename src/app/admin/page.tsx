@@ -31,7 +31,7 @@ async function AdminHome() {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10">
       <header className="mb-8 flex items-center gap-4">
-        <Image src="/logo.jpeg" alt="" width={56} height={56} preload className="rounded-2xl shadow" />
+        <Image src="/logo.png" alt="" width={56} height={56} preload className="rounded-full drop-shadow" />
         <div>
           <h1 className="font-display text-2xl font-bold text-navy">Tomes Club — Admin</h1>
           <p className="text-sm text-zinc-600">Club overview</p>

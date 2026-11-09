@@ -13,7 +13,7 @@ export default function AdminLoginPage() {
   return (
     <div className="anim-rise w-full max-w-md rounded-[2rem] bg-white p-8 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 sm:p-10">
       <div className="anim-rise mb-6 flex flex-col items-center gap-3 text-center" style={{ "--d": "120ms" } as React.CSSProperties}>
-        <Image src="/logo.jpeg" alt="" width={64} height={64} className="rounded-2xl shadow-md" />
+        <Image src="/logo.png" alt="" width={64} height={64} className="rounded-full drop-shadow-md" />
         <div>
           <h1 className="font-display text-2xl font-bold text-navy">Admin area</h1>
           <p className="mt-1 text-sm text-zinc-600">Reserved for the Tomes Club team.</p>
