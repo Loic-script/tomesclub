@@ -29,7 +29,7 @@ export function MemberAvatar({
   return (
     <span
       aria-hidden
-      className={`${size} flex shrink-0 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white`}
+      className={`${size} flex shrink-0 items-center justify-center rounded-full bg-[#e4d6d3] text-sm font-bold text-brand shadow-inner`}
     >
       {initials || "?"}
     </span>
