@@ -205,6 +205,23 @@ body {
     inset -5px -5px 10px #ffffff;
 }
 
+/* Liste déroulante qui s'ouvre (pays). */
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.anim-dropdown {
+  animation: dropdown-in 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: top center;
+}
+
 /* Onde qui s'élargit (recherche d'un partenaire d'appel). */
 @keyframes ping-soft {
   0% {

@@ -10,6 +10,7 @@ import {
   useState,
   type CSSProperties,
 } from "react";
+import { CountrySelect } from "@/components/country-select";
 import { authClient } from "@/lib/auth-client";
 import {
   ENGLISH_LEVELS,
@@ -191,7 +192,10 @@ export function ProfileForm({
       {/* ----- En-tête : logo + avancement ----- */}
       <header className="mb-8">
         <div className="anim-rise flex items-center gap-4" style={delay(100)}>
-          <Image src="/logo.png" alt="" width={96} height={96} className="rounded-full drop-shadow-md" />
+          {/* Le logo posé dans une vignette carrée en relief doux (style icône d'app) */}
+          <span className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-zinc-100 bg-white shadow-[5px_5px_12px_rgba(0,0,0,0.08),-5px_-5px_12px_#ffffff]">
+            <Image src="/logo.png" alt="" width={48} height={48} className="rounded-full" />
+          </span>
           <div>
             <p className="font-display text-2xl font-bold leading-tight text-navy">
               {mode === "edit" ? "Edit profile" : "Tomes Club"}
@@ -244,7 +248,7 @@ export function ProfileForm({
             <TextField label="Last name *" value={lastName} onChange={setLastName} autoComplete="family-name" />
             <TextField label="Date of birth" type="date" value={birthDate} onChange={setBirthDate} max={new Date().toISOString().slice(0, 10)} />
             <TextField label="Phone" type="tel" value={phone} onChange={setPhone} placeholder="+261 34 00 000 00" autoComplete="tel" />
-            <TextField label="Country" value={country} onChange={setCountry} placeholder="e.g. Madagascar" autoComplete="country-name" />
+            <CountrySelect label="Country" value={country} onChange={setCountry} />
             <TextField label="City (where you live)" value={city} onChange={setCity} placeholder="e.g. Antananarivo" autoComplete="address-level2" />
           </div>
         )}
