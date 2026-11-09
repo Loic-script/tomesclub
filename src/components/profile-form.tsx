@@ -489,7 +489,7 @@ function TextField({
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+        className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-zinc-900 shadow-[inset_2px_2px_6px_rgba(0,0,0,0.06),inset_-2px_-2px_6px_#ffffff] outline-none transition placeholder:text-zinc-400 focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
       />
     </label>
   );
@@ -555,12 +555,12 @@ function ChipPicker({
             }
           }}
           placeholder={addPlaceholder}
-          className="w-full max-w-60 rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+          className="w-full max-w-60 rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-1.5 text-sm text-zinc-900 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.06),inset_-2px_-2px_5px_#ffffff] outline-none transition placeholder:text-zinc-400 focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
         />
         <button
           type="button"
           onClick={addDraft}
-          className="rounded-lg border border-zinc-300 px-3 text-sm font-semibold text-zinc-600 transition hover:border-brand hover:text-brand"
+          className="rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-600 transition hover:border-brand hover:text-brand"
         >
           Add
         </button>
