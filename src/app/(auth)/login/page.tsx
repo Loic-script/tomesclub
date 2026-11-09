@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
-import type { CSSProperties } from "react";
-import { GoogleSignInButton } from "./google-button";
+import { Suspense, type CSSProperties } from "react";
+import { AuthFlip } from "./auth-flip";
 
 export const metadata: Metadata = { title: "Sign in" };
 
@@ -84,52 +83,10 @@ export default function LoginPage() {
         <div aria-hidden className="absolute -right-20 -top-20 size-56 rounded-full bg-cream/70 blur-2xl" />
         <div aria-hidden className="absolute -bottom-24 -left-16 size-48 rounded-full bg-accent/10 blur-2xl" />
 
-        <div className="relative w-full max-w-sm text-center">
-          {/* Le logo, bien à sa place au-dessus du titre */}
-          <div className="anim-pop relative mx-auto mb-5 w-fit" style={delay(350)}>
-            <span aria-hidden className="anim-halo absolute -inset-2.5 rounded-full bg-accent/40 blur-lg" />
-            <Image
-              src="/logo.png"
-              alt="Tomes Club logo"
-              width={88}
-              height={88}
-              preload
-              className="relative rounded-full drop-shadow-md"
-            />
-          </div>
-
-          <div className="anim-rise" style={delay(500)}>
-            <h1 className="font-display text-3xl font-bold text-navy">Sign in</h1>
-            {/* Petit trait de la couleur du club sous le titre */}
-            <span
-              aria-hidden
-              className="mx-auto mt-2 block h-1 w-12 rounded-full bg-gradient-to-r from-brand to-accent"
-            />
-            <p className="mt-3 text-sm leading-6 text-zinc-600">
-              One click with your Google account, and your class is waiting.
-            </p>
-          </div>
-
-          <div className="anim-rise mt-7" style={delay(650)}>
-            <GoogleSignInButton />
-          </div>
-
-          <p className="anim-rise text-xs leading-5 text-zinc-500" style={delay(800)}>
-            No password to remember — Google keeps your account safe. By signing in, you agree to
-            the Tomes Club <span className="font-medium text-brand">Terms &amp; Conditions</span>.
-          </p>
-
-          {/* L'accès de l'équipe, séparé par un fin trait */}
-          <p
-            className="anim-rise mt-6 border-t border-zinc-100 pt-4 text-xs text-zinc-400"
-            style={delay(950)}
-          >
-            Club staff?{" "}
-            <Link href="/admin/login" className="font-medium text-navy hover:underline">
-              Admin sign in →
-            </Link>
-          </p>
-        </div>
+        {/* La "page de livre" : recto connexion membre, verso connexion admin */}
+        <Suspense fallback={null}>
+          <AuthFlip />
+        </Suspense>
       </section>
     </div>
   );
