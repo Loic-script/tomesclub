@@ -17,7 +17,21 @@ export default function LoginPage() {
       style={delay(0)}
     >
       {/* ----- Panneau de gauche : la marque ----- */}
-      <section className="anim-gradient relative overflow-hidden bg-[linear-gradient(135deg,#7a082e,#9c0b3b_45%,#b3134b_72%,#7a082e)] px-8 py-14 text-center text-white md:flex md:flex-col md:items-center md:justify-center md:px-10">
+      <section className="relative overflow-hidden px-8 py-14 text-center text-white md:flex md:flex-col md:items-center md:justify-center md:px-10">
+        {/* Photo du coach en arrière-plan */}
+        <Image
+          src="/coach.png"
+          alt=""
+          fill
+          sizes="(min-width: 768px) 28rem, 100vw"
+          className="object-cover object-top"
+        />
+        {/* Voile bordeaux doux par-dessus la photo (la palette reste maîtresse) */}
+        <div
+          aria-hidden
+          className="anim-gradient absolute inset-0 bg-[linear-gradient(135deg,rgba(122,8,46,0.92),rgba(156,11,59,0.78)_45%,rgba(179,19,75,0.72)_72%,rgba(122,8,46,0.9))]"
+        />
+
         {/* Ronds doux en fond, pour la profondeur */}
         <div aria-hidden className="absolute -left-16 -top-16 size-48 rounded-full bg-white/10" />
         <div aria-hidden className="absolute -bottom-20 -left-8 size-56 rounded-full bg-white/5" />
