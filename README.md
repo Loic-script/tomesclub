@@ -79,6 +79,11 @@ Sans ces clés, le bouton affiche « Google sign-in is not set up yet ».
 En développement, l'email + mot de passe reste utilisable par l'API (pour les tests) ;
 en production, il est désactivé.
 
+## Mettre en ligne
+
+Voir [DEPLOY.md](DEPLOY.md) : guide pas à pas pour Railway (site + PostgreSQL)
+avec LiveKit Cloud pour la vidéo.
+
 ## Installer sur un nouvel ordinateur
 
 1. `npm install`
