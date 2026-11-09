@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import type { CSSProperties } from "react";
 import { GoogleSignInButton } from "./google-button";
 
@@ -110,6 +111,13 @@ export default function LoginPage() {
           <p className="anim-rise text-xs leading-5 text-zinc-500" style={delay(800)}>
             No password to remember — Google keeps your account safe. By signing in, you agree to
             the Tomes Club <span className="font-medium text-brand">Terms &amp; Conditions</span>.
+          </p>
+
+          <p className="anim-rise text-xs text-zinc-400" style={delay(950)}>
+            Club staff?{" "}
+            <Link href="/admin/login" className="font-medium text-navy hover:underline">
+              Admin sign in →
+            </Link>
           </p>
         </div>
       </section>
