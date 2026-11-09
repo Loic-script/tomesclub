@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { SignOutButton } from "@/components/sign-out-button";
+import { getProfileSummary } from "@/lib/profile";
 import { getCurrentUser } from "@/lib/session";
 
 // Page d'accueil provisoire (le vrai design viendra plus tard).
@@ -39,9 +41,13 @@ async function UserStatus() {
     );
   }
 
+  // Fiche pas encore remplie → direction le formulaire d'accueil.
+  const profile = await getProfileSummary(user.id);
+  if (!profile?.completedAt) redirect("/onboarding");
+
   return (
     <div className="flex flex-col items-center gap-4">
-      <p className="text-xl font-semibold text-navy">Welcome, {user.name} 👋</p>
+      <p className="text-xl font-semibold text-navy">Welcome, {profile.firstName} 👋</p>
       <Link
         href="/call"
         className="rounded-lg bg-brand px-5 py-2.5 font-semibold text-white hover:bg-brand-dark"

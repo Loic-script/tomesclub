@@ -46,7 +46,7 @@ Ensuite, ouvrir http://localhost:3000
 prisma/schema.prisma    → la structure de la base de données (tables)
 prisma7.config.ts       → configuration de Prisma
 src/app/                → les pages du site
-src/app/(auth)/         → pages /login et /register
+src/app/(auth)/         → pages /login, /register et /onboarding (formulaire d'accueil)
 src/app/call/           → page /call (choisir des membres, lancer un appel)
 src/app/call/[id]/      → la salle vidéo /call/<id> (LiveKit)
 src/lib/calls.ts        → appels vidéo (base de données + LiveKit)

@@ -31,6 +31,9 @@ model User {
   callsCreated      Call[]            @relation("CallsCreated")
   callParticipation CallParticipant[]
 
+  // Fiche remplie après la première connexion
+  profile Profile?
+
   @@map("user")
 }
 
@@ -82,6 +85,35 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+// ===================================================================
+// Fiche membre (formulaire d'accueil après la 1re connexion)
+// ===================================================================
+
+/// Les réponses du formulaire d'accueil d'un membre.
+model Profile {
+  userId       String    @id
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName    String
+  lastName     String
+  birthDate    DateTime?
+  country      String?
+  city         String? // où il habite
+  phone        String?
+  /// Occupations cochées, avec le détail de chacune :
+  /// [{ "kind": "student", "detail": "informatique" }, ...]
+  occupations  Json?
+  languages    String[]  @default([]) // langues parlées
+  englishLevel String? // beginner | elementary | intermediate | advanced
+  interests    String[]  @default([]) // centres d'intérêt
+  photo        Bytes? // la photo du membre (petite image)
+  photoType    String? // ex : image/jpeg
+  completedAt  DateTime? // rempli = formulaire terminé
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
+
+  @@map("profile")
 }
 
 // ===================================================================

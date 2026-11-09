@@ -11,6 +11,12 @@ const extraHosts = (process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? "")
 const nextConfig: NextConfig = {
   // En développement, Next.js bloque les autres adresses par sécurité : on autorise celles du .env.
   allowedDevOrigins: extraHosts,
+  // La photo du formulaire d'accueil passe par une Server Action : on monte la limite à 4 Mo.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "4mb",
+    },
+  },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
