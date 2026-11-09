@@ -34,6 +34,10 @@ model User {
   // Fiche remplie après la première connexion
   profile Profile?
 
+  // Salles de groupe créées + file d'attente "appel au hasard"
+  roomsCreated Room[]      @relation("RoomsCreated")
+  matchQueue   MatchQueue?
+
   @@map("user")
 }
 
@@ -142,4 +146,45 @@ model CallParticipant {
   @@id([callId, userId])
   @@index([userId])
   @@map("call_participant")
+}
+
+// ===================================================================
+// Salles de groupe, événements, recherche d'appel au hasard
+// ===================================================================
+
+/// Une salle de groupe ouverte à tous les membres. Salle LiveKit : "room_<id>".
+model Room {
+  id          String   @id @default(cuid())
+  name        String
+  topic       String?
+  createdById String
+  createdBy   User     @relation("RoomsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([createdById])
+  @@map("room")
+}
+
+/// Un événement du club (cours programmé...) ou une annonce de l'admin.
+model Event {
+  id          String    @id @default(cuid())
+  kind        String // "event" (avec date) | "announcement" (annonce)
+  title       String
+  description String?
+  startsAt    DateTime? // la date du cours/événement (null pour une annonce)
+  image       Bytes? // l'image de la carte (facultative)
+  imageType   String? // ex : image/jpeg
+  createdAt   DateTime  @default(now())
+
+  @@index([kind, startsAt])
+  @@map("event")
+}
+
+/// File d'attente du "practice with a random partner" : une ligne = une personne qui cherche.
+model MatchQueue {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("match_queue")
 }

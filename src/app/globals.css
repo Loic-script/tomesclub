@@ -126,6 +126,22 @@ body {
   animation: gradient-drift 16s ease-in-out infinite alternate;
 }
 
+/* Onde qui s'élargit (recherche d'un partenaire d'appel). */
+@keyframes ping-soft {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+.anim-ping {
+  animation: ping-soft 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
 /* La personne a demandé moins d'animations dans son système : on coupe tout. */
 @media (prefers-reduced-motion: reduce) {
   *,

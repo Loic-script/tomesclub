@@ -1,4 +1,5 @@
 import "server-only";
+import { connection } from "next/server";
 import { createRoomServiceClient } from "@/lib/livekit";
 import { prisma } from "@/lib/prisma";
 
@@ -14,7 +15,15 @@ const EMPTY_TIMEOUT_SECONDS = 5 * 60;
 const RECENT_CALL_MS = 12 * 60 * 60 * 1000;
 
 /** Un membre qu'on peut appeler. (Pas d'email : on ne montre pas les emails aux autres membres.) */
-export type Member = { id: string; name: string };
+export type CallableMember = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  englishLevel: string | null;
+  city: string | null;
+  country: string | null;
+  hasPhoto: boolean;
+};
 
 export type ActiveCall = {
   id: string;
@@ -23,13 +32,42 @@ export type ActiveCall = {
   otherNames: string[];
 };
 
-/** Tous les membres sauf moi, triés par nom. */
-export function listOtherMembers(currentUserId: string): Promise<Member[]> {
-  return prisma.user.findMany({
-    where: { id: { not: currentUserId } },
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
+/** Tous les membres (fiche terminée) sauf moi, triés par prénom. */
+export async function listCallableMembers(currentUserId: string): Promise<CallableMember[]> {
+  const rows = await prisma.user.findMany({
+    where: { id: { not: currentUserId }, profile: { completedAt: { not: null } } },
+    select: {
+      id: true,
+      profile: {
+        select: {
+          firstName: true,
+          lastName: true,
+          englishLevel: true,
+          city: true,
+          country: true,
+          photoType: true,
+        },
+      },
+    },
   });
+
+  return rows
+    .flatMap((row) =>
+      row.profile
+        ? [
+            {
+              id: row.id,
+              firstName: row.profile.firstName,
+              lastName: row.profile.lastName,
+              englishLevel: row.profile.englishLevel,
+              city: row.profile.city,
+              country: row.profile.country,
+              hasPhoto: Boolean(row.profile.photoType),
+            },
+          ]
+        : [],
+    )
+    .sort((a, b) => a.firstName.localeCompare(b.firstName));
 }
 
 /**
@@ -84,6 +122,8 @@ export function getCallForMember(callId: string, userId: string) {
 
 /** Les appels en cours où je suis invité (la salle LiveKit est encore ouverte). */
 export async function listActiveCalls(userId: string): Promise<ActiveCall[]> {
+  // "Récent" dépend de l'heure actuelle : donnée de requête, on le déclare à Next.js.
+  await connection();
   const calls = await prisma.call.findMany({
     where: {
       participants: { some: { userId } },

@@ -3,8 +3,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
+import { MemberAvatar } from "@/components/member-avatar";
 import { DeleteMemberButton } from "./delete-member-button";
-import { MemberAvatar } from "./member-avatar";
 
 export const metadata: Metadata = { title: "Members · Admin" };
 

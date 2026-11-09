@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   startTransition,
@@ -19,7 +20,27 @@ import {
   PHOTO_TYPES,
   type OccupationKind,
 } from "@/lib/onboarding-options";
-import { completeOnboarding, type OnboardingState } from "./actions";
+
+// Le formulaire de fiche en 4 étapes. Deux usages :
+//  - mode "onboarding" : juste après la première connexion ;
+//  - mode "edit" : modifier son profil depuis l'application.
+
+export type ProfileFormState = { error: string | null };
+
+export type ProfileFormInitial = {
+  firstName: string;
+  lastName: string;
+  birthDate: string; // "aaaa-mm-jj" ou ""
+  country: string;
+  city: string;
+  phone: string;
+  occupations: { kind: string; detail: string }[];
+  languages: string[];
+  englishLevel: string;
+  interests: string[];
+  /** L'adresse de la photo déjà enregistrée (mode edit), sinon null. */
+  photoUrl: string | null;
+};
 
 const STEPS = [
   { title: "About you", subtitle: "Tell us who you are. Only your name is required." },
@@ -28,49 +49,54 @@ const STEPS = [
   { title: "Your photo", subtitle: "Last step! Help the club recognize you." },
 ] as const;
 
-const initialState: OnboardingState = { error: null };
+const initialState: ProfileFormState = { error: null };
 const delay = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
 
 type OccupationState = Record<OccupationKind, { on: boolean; detail: string }>;
 
-export function OnboardingForm({
-  defaultFirstName,
-  defaultLastName,
+export function ProfileForm({
+  mode,
+  initial,
+  action,
 }: {
-  defaultFirstName: string;
-  defaultLastName: string;
+  mode: "onboarding" | "edit";
+  initial: ProfileFormInitial;
+  action: (prevState: ProfileFormState, formData: FormData) => Promise<ProfileFormState>;
 }) {
-  const [state, formAction, pending] = useActionState(completeOnboarding, initialState);
+  const [state, formAction, pending] = useActionState(action, initialState);
   const [step, setStep] = useState(0);
   const [stepError, setStepError] = useState<string | null>(null);
 
   // --- Étape 1 ---
-  const [firstName, setFirstName] = useState(defaultFirstName);
-  const [lastName, setLastName] = useState(defaultLastName);
-  const [birthDate, setBirthDate] = useState("");
-  const [country, setCountry] = useState("");
-  const [city, setCity] = useState("");
-  const [phone, setPhone] = useState("");
+  const [firstName, setFirstName] = useState(initial.firstName);
+  const [lastName, setLastName] = useState(initial.lastName);
+  const [birthDate, setBirthDate] = useState(initial.birthDate);
+  const [country, setCountry] = useState(initial.country);
+  const [city, setCity] = useState(initial.city);
+  const [phone, setPhone] = useState(initial.phone);
 
   // --- Étape 2 ---
   const [occupations, setOccupations] = useState<OccupationState>(
     () =>
       Object.fromEntries(
-        OCCUPATIONS.map((occupation) => [occupation.kind, { on: false, detail: "" }]),
+        OCCUPATIONS.map((occupation) => {
+          const saved = initial.occupations.find((entry) => entry.kind === occupation.kind);
+          return [occupation.kind, { on: Boolean(saved), detail: saved?.detail ?? "" }];
+        }),
       ) as OccupationState,
   );
 
   // --- Étape 3 ---
-  const [languages, setLanguages] = useState<string[]>([]);
+  const [languages, setLanguages] = useState<string[]>(initial.languages);
   const [languageDraft, setLanguageDraft] = useState("");
-  const [englishLevel, setEnglishLevel] = useState("");
-  const [interests, setInterests] = useState<string[]>([]);
+  const [englishLevel, setEnglishLevel] = useState(initial.englishLevel);
+  const [interests, setInterests] = useState<string[]>(initial.interests);
   const [interestDraft, setInterestDraft] = useState("");
 
   // --- Étape 4 ---
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(initial.photoUrl);
 
   function validateStep(index: number): string | null {
     if (index === 0 && (!firstName.trim() || !lastName.trim())) {
@@ -116,7 +142,7 @@ export function OnboardingForm({
       return;
     }
     setStepError(null);
-    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    if (photoPreview?.startsWith("blob:")) URL.revokeObjectURL(photoPreview);
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
   }
@@ -157,6 +183,8 @@ export function OnboardingForm({
 
   const isLastStep = step === STEPS.length - 1;
   const error = stepError ?? state.error;
+  const finishLabel =
+    mode === "edit" ? "Save changes" : photoFile ? "Finish" : "Finish without photo";
 
   return (
     <div className="anim-rise w-full max-w-2xl rounded-[2rem] bg-white p-6 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 sm:p-10">
@@ -165,12 +193,23 @@ export function OnboardingForm({
         <div className="anim-rise flex items-center gap-4" style={delay(100)}>
           <Image src="/logo.jpeg" alt="" width={64} height={64} className="rounded-2xl shadow-md" />
           <div>
-            <p className="font-display text-2xl font-bold leading-tight text-navy">Tomes Club</p>
+            <p className="font-display text-2xl font-bold leading-tight text-navy">
+              {mode === "edit" ? "Edit profile" : "Tomes Club"}
+            </p>
             <p className="text-sm text-zinc-500">
               Step {step + 1} of {STEPS.length}
             </p>
           </div>
-          <BackToSignIn />
+          {mode === "onboarding" ? (
+            <BackToSignIn />
+          ) : (
+            <Link
+              href="/profile"
+              className="ml-auto self-start text-sm font-medium text-zinc-400 transition hover:text-brand"
+            >
+              ← Profile
+            </Link>
+          )}
         </div>
 
         {/* Barre d'avancement : une part par étape */}
@@ -328,7 +367,7 @@ export function OnboardingForm({
               style={delay(150)}
             >
               {photoPreview ? (
-                // eslint-disable-next-line @next/next/no-img-element -- aperçu local (blob:), pas une URL du site
+                // eslint-disable-next-line @next/next/no-img-element -- aperçu local ou photo privée de l'API
                 <img src={photoPreview} alt="Your photo" className="size-full object-cover" />
               ) : (
                 <span className="flex flex-col items-center gap-2 text-zinc-500 transition-colors group-hover:text-brand">
@@ -339,9 +378,9 @@ export function OnboardingForm({
             </button>
 
             <p className="text-sm text-zinc-600">
-              {photoFile ? (
+              {photoPreview ? (
                 <>
-                  Looking good! You can{" "}
+                  {photoFile ? "Looking good! You can" : "Your current photo. You can"}{" "}
                   <button
                     type="button"
                     onClick={() => photoInputRef.current?.click()}
@@ -381,7 +420,7 @@ export function OnboardingForm({
             disabled={pending}
             className="rounded-full bg-brand px-7 py-2.5 font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lg active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {pending ? "Saving..." : photoFile ? "Finish" : "Finish without photo"}
+            {pending ? "Saving..." : finishLabel}
           </button>
         ) : (
           <button

@@ -1,4 +1,5 @@
 import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
+import { headers } from "next/headers";
 
 // ⚠️ Ce fichier est uniquement pour le SERVEUR (route API, Server Action...).
 // Il utilise LIVEKIT_API_SECRET, qui ne doit jamais aller dans le navigateur.
@@ -48,4 +49,21 @@ export async function createParticipantToken(options: {
     canSubscribe: true,
   });
   return token.toJwt();
+}
+
+/**
+ * L'adresse LiveKit à donner au navigateur.
+ * Si le .env dit "localhost", on la remplace par l'adresse utilisée pour ouvrir le site
+ * (ex : 192.168.1.82) : sur un autre PC, "localhost" voudrait dire "cet autre PC".
+ */
+export async function getBrowserLiveKitUrl(): Promise<string> {
+  const configured = process.env.NEXT_PUBLIC_LIVEKIT_URL;
+  if (!configured) throw new Error("NEXT_PUBLIC_LIVEKIT_URL est absent du fichier .env");
+
+  const url = new URL(configured);
+  if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+    const host = (await headers()).get("host"); // ex : "192.168.1.82:3000"
+    if (host) url.hostname = new URL(`http://${host}`).hostname;
+  }
+  return url.toString().replace(/\/$/, "");
 }

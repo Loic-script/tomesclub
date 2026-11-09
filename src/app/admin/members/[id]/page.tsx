@@ -5,8 +5,8 @@ import { Suspense } from "react";
 import { requireAdmin } from "@/lib/admin";
 import { OCCUPATIONS } from "@/lib/onboarding-options";
 import { prisma } from "@/lib/prisma";
+import { MemberAvatar } from "@/components/member-avatar";
 import { DeleteMemberButton } from "../delete-member-button";
-import { MemberAvatar } from "../member-avatar";
 
 export const metadata: Metadata = { title: "Member profile · Admin" };
 

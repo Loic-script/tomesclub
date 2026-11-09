@@ -1,0 +1,72 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Suspense } from "react";
+import { delay, GlassCard, PageHeader } from "@/components/app-ui";
+import { listActiveCalls, listCallableMembers } from "@/lib/calls";
+import { requireMember } from "@/lib/session";
+import { MembersCallList } from "./members-call-list";
+import { RandomSearchCard } from "./random-search";
+
+export const metadata: Metadata = { title: "Calls" };
+
+// Page /calls : appeler un membre, ou se faire appeler par le hasard.
+export default function CallsPage() {
+  return (
+    <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
+      <CallsHome />
+    </Suspense>
+  );
+}
+
+async function CallsHome() {
+  const user = await requireMember();
+  const [members, activeCalls] = await Promise.all([
+    listCallableMembers(user.id),
+    listActiveCalls(user.id),
+  ]);
+
+  return (
+    <>
+      <PageHeader title="Calls" subtitle={`Ready to speak English, ${user.firstName}?`} />
+
+      <div className="space-y-5">
+        <div className="anim-rise" style={delay(150)}>
+          <RandomSearchCard />
+        </div>
+
+        {activeCalls.length > 0 && (
+          <GlassCard className="anim-rise" style={delay(250)}>
+            <h2 className="mb-3 font-display text-lg font-bold text-white">Calls in progress</h2>
+            <ul className="space-y-2.5">
+              {activeCalls.map((call) => (
+                <li
+                  key={call.id}
+                  className="flex items-center justify-between gap-3 rounded-2xl bg-white/10 px-3.5 py-2.5"
+                >
+                  <div className="min-w-0 text-sm">
+                    <p className="font-semibold text-white">
+                      {call.startedByMe ? "Started by you" : `${call.startedByName} is calling you`}
+                    </p>
+                    <p className="truncate text-white/60">With {call.otherNames.join(", ")}</p>
+                  </div>
+                  <Link
+                    href={`/call/${call.id}`}
+                    className="shrink-0 rounded-full bg-accent px-4 py-2 text-sm font-bold text-brand-dark shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                  >
+                    Join
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </GlassCard>
+        )}
+
+        <GlassCard className="anim-rise" style={delay(350)}>
+          <h2 className="font-display text-lg font-bold text-white">Members</h2>
+          <p className="mb-2 text-sm text-white/60">Pick someone and start a video call.</p>
+          <MembersCallList members={members} />
+        </GlassCard>
+      </div>
+    </>
+  );
+}

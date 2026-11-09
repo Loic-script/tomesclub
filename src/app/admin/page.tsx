@@ -52,18 +52,20 @@ async function AdminHome() {
         <StatCard label="Video calls created" value={calls} />
       </div>
 
-      <div className="mt-8">
+      <div className="mt-8 flex flex-wrap gap-3">
         <Link
           href="/admin/members"
           className="inline-block rounded-lg bg-navy px-5 py-2.5 font-semibold text-white transition hover:bg-navy/90"
         >
           Manage members →
         </Link>
+        <Link
+          href="/admin/events"
+          className="inline-block rounded-lg bg-brand px-5 py-2.5 font-semibold text-white transition hover:bg-brand-dark"
+        >
+          Events & announcements →
+        </Link>
       </div>
-
-      <p className="mt-8 text-sm text-zinc-500">
-        More admin tools (classes, schedules) will appear here.
-      </p>
     </div>
   );
 }

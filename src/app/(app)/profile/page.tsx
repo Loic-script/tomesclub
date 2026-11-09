@@ -1,0 +1,144 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Suspense } from "react";
+import { delay, GlassCard, PageHeader } from "@/components/app-ui";
+import { MemberAvatar } from "@/components/member-avatar";
+import { SignOutButton } from "@/components/sign-out-button";
+import { OCCUPATIONS } from "@/lib/onboarding-options";
+import { getFullProfile } from "@/lib/profile";
+import { requireMember } from "@/lib/session";
+
+export const metadata: Metadata = { title: "Profile" };
+
+// Page /profile : ma fiche, avec le bouton pour la modifier.
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
+      <ProfileHome />
+    </Suspense>
+  );
+}
+
+async function ProfileHome() {
+  const user = await requireMember();
+  const profile = await getFullProfile(user.id);
+  if (!profile) return null; // impossible en pratique : requireMember vérifie déjà
+
+  const occupations = Array.isArray(profile.occupations)
+    ? (profile.occupations as { kind?: string; detail?: string }[]).map((entry) => ({
+        label:
+          OCCUPATIONS.find((occupation) => occupation.kind === entry.kind)?.label ??
+          entry.kind ??
+          "?",
+        detail: entry.detail ?? "",
+      }))
+    : [];
+
+  const birthDate = profile.birthDate
+    ? new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "long", year: "numeric" }).format(
+        profile.birthDate,
+      )
+    : null;
+
+  return (
+    <>
+      <PageHeader
+        title="Profile"
+        right={
+          <Link
+            href="/profile/edit"
+            className="rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/25"
+          >
+            Edit
+          </Link>
+        }
+      />
+
+      <div className="space-y-5">
+        {/* La carte d'identité */}
+        <GlassCard className="anim-rise flex items-center gap-4" style={delay(150)}>
+          <MemberAvatar
+            userId={user.id}
+            name={`${profile.firstName} ${profile.lastName}`}
+            hasPhoto={Boolean(profile.photoType)}
+            size="size-20"
+          />
+          <div className="min-w-0">
+            <h2 className="truncate font-display text-xl font-bold text-white">
+              {profile.firstName} {profile.lastName}
+            </h2>
+            <p className="truncate text-sm text-white/60">{user.email}</p>
+            {profile.englishLevel && (
+              <span className="mt-1.5 inline-block rounded-full bg-accent/90 px-2.5 py-0.5 text-xs font-bold capitalize text-brand-dark">
+                {profile.englishLevel}
+              </span>
+            )}
+          </div>
+        </GlassCard>
+
+        {/* Les infos */}
+        <GlassCard className="anim-rise" style={delay(250)}>
+          <h3 className="mb-3 font-display text-lg font-bold text-white">About</h3>
+          <dl className="space-y-2.5">
+            <InfoRow label="Date of birth" value={birthDate} />
+            <InfoRow label="Phone" value={profile.phone} />
+            <InfoRow label="Country" value={profile.country} />
+            <InfoRow label="City" value={profile.city} />
+            <InfoRow
+              label="What I do"
+              value={
+                occupations.length > 0
+                  ? occupations.map((entry) => `${entry.label} — ${entry.detail}`).join(" · ")
+                  : null
+              }
+            />
+          </dl>
+        </GlassCard>
+
+        {(profile.languages.length > 0 || profile.interests.length > 0) && (
+          <GlassCard className="anim-rise space-y-4" style={delay(350)}>
+            {profile.languages.length > 0 && (
+              <ChipGroup label="Languages" values={profile.languages} />
+            )}
+            {profile.interests.length > 0 && (
+              <ChipGroup label="Interests" values={profile.interests} />
+            )}
+          </GlassCard>
+        )}
+
+        <div className="anim-rise flex justify-center pt-2" style={delay(450)}>
+          <SignOutButton className="rounded-full border border-white/30 px-6 py-2.5 font-semibold text-white/80 transition hover:bg-white/10 hover:text-white disabled:opacity-60" />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4">
+      <dt className="shrink-0 text-sm text-white/50">{label}</dt>
+      <dd className="text-right text-sm font-medium text-white">
+        {value || <span className="text-white/30">—</span>}
+      </dd>
+    </div>
+  );
+}
+
+function ChipGroup({ label, values }: { label: string; values: string[] }) {
+  return (
+    <div>
+      <h3 className="mb-2 font-display text-lg font-bold text-white">{label}</h3>
+      <div className="flex flex-wrap gap-2">
+        {values.map((value) => (
+          <span
+            key={value}
+            className="rounded-full bg-white/10 px-3 py-1 text-sm font-medium text-white/85 ring-1 ring-white/15"
+          >
+            {value}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { ProfileForm } from "@/components/profile-form";
 import { getProfileSummary } from "@/lib/profile";
 import { requireUser } from "@/lib/session";
-import { OnboardingForm } from "./onboarding-form";
+import { completeOnboarding } from "./actions";
 
 export const metadata: Metadata = { title: "Welcome" };
 
@@ -26,11 +27,29 @@ export default function OnboardingPage() {
 async function OnboardingGate() {
   const user = await requireUser();
 
-  // Formulaire déjà rempli → retour à l'accueil.
+  // Formulaire déjà rempli → direction l'application.
   const profile = await getProfileSummary(user.id);
-  if (profile?.completedAt) redirect("/");
+  if (profile?.completedAt) redirect("/calls");
 
   // On pré-remplit le prénom et le nom à partir du nom Google.
   const [firstGuess = "", ...rest] = user.name.trim().split(/\s+/);
-  return <OnboardingForm defaultFirstName={firstGuess} defaultLastName={rest.join(" ")} />;
+  return (
+    <ProfileForm
+      mode="onboarding"
+      action={completeOnboarding}
+      initial={{
+        firstName: firstGuess,
+        lastName: rest.join(" "),
+        birthDate: "",
+        country: "",
+        city: "",
+        phone: "",
+        occupations: [],
+        languages: [],
+        englishLevel: "",
+        interests: [],
+        photoUrl: null,
+      }}
+    />
+  );
 }

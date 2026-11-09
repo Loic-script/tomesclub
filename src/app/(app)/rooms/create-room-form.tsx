@@ -1,0 +1,86 @@
+"use client";
+
+import { useActionState, useState } from "react";
+import { createRoomAction, type CreateRoomState } from "./actions";
+
+const initialState: CreateRoomState = { error: null };
+
+// Le formulaire "Create a room", replié derrière un bouton.
+export function CreateRoomForm() {
+  const [open, setOpen] = useState(false);
+  const [state, formAction, pending] = useActionState(createRoomAction, initialState);
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex w-full items-center justify-center gap-2 rounded-full bg-accent px-5 py-3 font-bold text-brand-dark shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 active:scale-[0.98]"
+      >
+        <PlusIcon rotated={open} />
+        {open ? "Close" : "Create a room"}
+      </button>
+
+      {/* Le formulaire se déplie sous le bouton */}
+      <div
+        className={`grid transition-all duration-300 ease-out ${
+          open ? "mt-4 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <form
+            action={formAction}
+            className="space-y-3 rounded-3xl bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur-md"
+          >
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-white/80">Room name *</span>
+              <input
+                name="name"
+                type="text"
+                required
+                maxLength={60}
+                placeholder="e.g. Morning conversation club"
+                className="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white placeholder:text-white/40 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-white/80">Topic (optional)</span>
+              <input
+                name="topic"
+                type="text"
+                maxLength={80}
+                placeholder="e.g. Talk about your week"
+                className="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white placeholder:text-white/40 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30"
+              />
+            </label>
+            <p aria-live="polite" className="min-h-5 text-sm text-amber-200">
+              {state.error}
+            </p>
+            <button
+              type="submit"
+              disabled={pending}
+              className="w-full rounded-full bg-white px-5 py-2.5 font-bold text-brand shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 disabled:opacity-60"
+            >
+              {pending ? "Opening the room..." : "Open the room"}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PlusIcon({ rotated }: { rotated: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={`size-5 transition-transform duration-300 ${rotated ? "rotate-45" : ""}`}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+    >
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
