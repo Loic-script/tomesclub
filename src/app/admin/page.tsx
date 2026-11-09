@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
-import { adminSignOut } from "../(auth)/admin/login/actions";
 
 export const metadata: Metadata = { title: "Admin" };
 
 // Page /admin : le tableau de bord de l'équipe (protégé par la session admin).
 export default function AdminPage() {
   return (
-    <main className="flex flex-1 flex-col bg-cream">
-      <Suspense fallback={<p className="m-auto text-zinc-500">Loading...</p>}>
-        <AdminHome />
-      </Suspense>
-    </main>
+    <Suspense fallback={<p className="m-auto text-zinc-500">Loading...</p>}>
+      <AdminHome />
+    </Suspense>
   );
 }
 
@@ -30,21 +26,7 @@ async function AdminHome() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10">
-      <header className="mb-8 flex items-center gap-4">
-        <Image src="/logo.png" alt="" width={56} height={56} preload className="rounded-full drop-shadow" />
-        <div>
-          <h1 className="font-display text-2xl font-bold text-navy">Tomes Club — Admin</h1>
-          <p className="text-sm text-zinc-600">Club overview</p>
-        </div>
-        <form action={adminSignOut} className="ml-auto">
-          <button
-            type="submit"
-            className="rounded-lg border border-brand px-4 py-2 text-sm font-semibold text-brand transition hover:bg-brand hover:text-white"
-          >
-            Sign out
-          </button>
-        </form>
-      </header>
+      <h1 className="mb-6 font-display text-2xl font-bold text-navy">Club overview</h1>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Members" value={members} />

@@ -13,13 +13,11 @@ export const metadata: Metadata = { title: "Member profile · Admin" };
 // Page /admin/members/<id> : la fiche complète d'un membre.
 export default function MemberProfilePage({ params }: PageProps<"/admin/members/[id]">) {
   return (
-    <main className="flex flex-1 flex-col bg-cream">
-      <Suspense fallback={<p className="m-auto text-zinc-500">Loading...</p>}>
-        {params.then(({ id }) => (
-          <MemberProfile userId={id} />
-        ))}
-      </Suspense>
-    </main>
+    <Suspense fallback={<p className="m-auto text-zinc-500">Loading...</p>}>
+      {params.then(({ id }) => (
+        <MemberProfile userId={id} />
+      ))}
+    </Suspense>
   );
 }
 

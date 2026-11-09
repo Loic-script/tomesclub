@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
@@ -11,11 +10,9 @@ export const metadata: Metadata = { title: "Events · Admin" };
 // Page /admin/events : publier et gérer les événements et annonces du club.
 export default function AdminEventsPage() {
   return (
-    <main className="flex flex-1 flex-col bg-cream">
-      <Suspense fallback={<p className="m-auto text-zinc-500">Loading...</p>}>
-        <AdminEvents />
-      </Suspense>
-    </main>
+    <Suspense fallback={<p className="m-auto text-zinc-500">Loading...</p>}>
+      <AdminEvents />
+    </Suspense>
   );
 }
 
@@ -38,12 +35,7 @@ async function AdminEvents() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10">
-      <header className="mb-6">
-        <Link href="/admin" className="text-sm font-semibold text-brand hover:underline">
-          ← Dashboard
-        </Link>
-        <h1 className="mt-2 font-display text-2xl font-bold text-navy">Events & announcements</h1>
-      </header>
+      <h1 className="mb-6 font-display text-2xl font-bold text-navy">Events &amp; announcements</h1>
 
       <CreateEventForm />
 
