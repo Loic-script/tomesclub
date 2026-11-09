@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
@@ -51,8 +52,17 @@ async function AdminHome() {
         <StatCard label="Video calls created" value={calls} />
       </div>
 
+      <div className="mt-8">
+        <Link
+          href="/admin/members"
+          className="inline-block rounded-lg bg-navy px-5 py-2.5 font-semibold text-white transition hover:bg-navy/90"
+        >
+          Manage members →
+        </Link>
+      </div>
+
       <p className="mt-8 text-sm text-zinc-500">
-        More admin tools (classes, schedules, members management) will appear here.
+        More admin tools (classes, schedules) will appear here.
       </p>
     </div>
   );
