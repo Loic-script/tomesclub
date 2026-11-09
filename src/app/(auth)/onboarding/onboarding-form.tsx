@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   startTransition,
   useActionState,
@@ -8,6 +9,7 @@ import {
   useState,
   type CSSProperties,
 } from "react";
+import { authClient } from "@/lib/auth-client";
 import {
   ENGLISH_LEVELS,
   INTEREST_OPTIONS,
@@ -168,6 +170,7 @@ export function OnboardingForm({
               Step {step + 1} of {STEPS.length}
             </p>
           </div>
+          <BackToSignIn />
         </div>
 
         {/* Barre d'avancement : une part par étape */}
@@ -395,6 +398,30 @@ export function OnboardingForm({
 }
 
 /* ---------- Petits morceaux réutilisés ---------- */
+
+/** Retour à la page d'authentification : on déconnecte d'abord, sinon on reviendrait ici. */
+function BackToSignIn() {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+
+  async function handleClick() {
+    setPending(true);
+    await authClient.signOut();
+    router.replace("/login");
+    router.refresh();
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={pending}
+      className="ml-auto self-start text-sm font-medium text-zinc-400 transition hover:text-brand disabled:opacity-60"
+    >
+      {pending ? "Please wait..." : "← Back to sign in"}
+    </button>
+  );
+}
 
 function toggleItem(list: string[], value: string): string[] {
   return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
