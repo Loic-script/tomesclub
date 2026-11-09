@@ -84,7 +84,7 @@ export function AuthFlip() {
             <LockIcon />
           </span>
 
-          <h2 className="font-display text-3xl font-bold text-navy">Admin area</h2>
+          <h2 className="font-display text-3xl font-bold text-navy">Admin</h2>
           <span
             aria-hidden
             className="mx-auto mt-2 block h-1 w-12 rounded-full bg-gradient-to-r from-navy to-brand"

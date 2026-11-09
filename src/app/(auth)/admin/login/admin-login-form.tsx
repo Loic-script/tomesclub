@@ -8,27 +8,39 @@ const initialState: AdminSignInState = { error: null };
 export function AdminLoginForm() {
   const [state, formAction, pending] = useActionState(adminSignIn, initialState);
 
+  // Champ "creusé" en relief doux, avec l'étiquette à l'intérieur (placeholder).
+  const field =
+    "w-full rounded-2xl border border-zinc-200 bg-zinc-50 py-3 pl-11 pr-4 text-sm text-zinc-900 placeholder:text-zinc-400 shadow-[inset_2px_2px_6px_rgba(0,0,0,0.06),inset_-2px_-2px_6px_#ffffff] outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/20";
+
   return (
-    <form action={formAction} className="anim-rise space-y-4" style={{ "--d": "250ms" } as React.CSSProperties}>
-      <label className="block">
-        <span className="mb-1 block text-sm font-medium text-zinc-700">Admin user</span>
+    <form action={formAction} className="space-y-3.5">
+      <label className="relative block">
+        <span className="sr-only">Admin user</span>
+        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
+          <UserIcon />
+        </span>
         <input
           name="username"
           type="text"
           required
           autoComplete="username"
-          className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+          placeholder="Admin user"
+          className={field}
         />
       </label>
 
-      <label className="block">
-        <span className="mb-1 block text-sm font-medium text-zinc-700">Password</span>
+      <label className="relative block">
+        <span className="sr-only">Password</span>
+        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
+          <KeyIcon />
+        </span>
         <input
           name="password"
           type="password"
           required
           autoComplete="current-password"
-          className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+          placeholder="Password"
+          className={field}
         />
       </label>
 
@@ -44,5 +56,33 @@ export function AdminLoginForm() {
         {pending ? "Please wait..." : "Sign in as admin"}
       </button>
     </form>
+  );
+}
+
+const iconProps = {
+  viewBox: "0 0 24 24",
+  className: "size-4",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.8,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+} as const;
+
+function UserIcon() {
+  return (
+    <svg {...iconProps}>
+      <circle cx="12" cy="8" r="3.6" />
+      <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+    </svg>
+  );
+}
+
+function KeyIcon() {
+  return (
+    <svg {...iconProps}>
+      <circle cx="8" cy="14" r="4" />
+      <path d="M11 11 20 2M16 6l3 3" />
+    </svg>
   );
 }
