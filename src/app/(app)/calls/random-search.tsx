@@ -74,13 +74,13 @@ export function RandomSearchCard() {
               className="anim-ping absolute inset-0 rounded-full bg-accent/30"
               style={{ animationDelay: "0.5s" }}
             />
-            <span className="neu-inset relative flex size-16 items-center justify-center rounded-full text-brand">
+            <span className="neu-inset relative flex size-16 items-center justify-center rounded-full text-accent">
               <SearchPhoneIcon />
             </span>
           </span>
           <div>
-            <p className="font-display text-lg font-bold text-navy">Looking for a partner...</p>
-            <p className="text-sm text-zinc-500">
+            <p className="font-display text-lg font-bold text-white">Looking for a partner...</p>
+            <p className="text-sm text-white/65">
               The call starts as soon as someone else searches too.
             </p>
           </div>
@@ -88,19 +88,19 @@ export function RandomSearchCard() {
             type="button"
             onClick={cancel}
             disabled={pending}
-            className="neu-sm neu-btn rounded-full px-5 py-2 text-sm font-semibold text-zinc-600 disabled:opacity-60"
+            className="neu-sm neu-btn rounded-full px-5 py-2 text-sm font-semibold text-white/80 disabled:opacity-60"
           >
             Cancel
           </button>
         </div>
       ) : (
         <div className="flex items-center gap-4">
-          <span className="neu-inset flex size-14 shrink-0 items-center justify-center rounded-2xl text-brand">
+          <span className="neu-inset flex size-14 shrink-0 items-center justify-center rounded-2xl text-accent">
             <SearchPhoneIcon />
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-lg font-bold text-navy">Random partner</h2>
-            <p className="text-sm text-zinc-500">
+            <h2 className="font-display text-lg font-bold text-white">Random partner</h2>
+            <p className="text-sm text-white/65">
               Practice English with a surprise member of the club.
             </p>
           </div>
@@ -115,7 +115,7 @@ export function RandomSearchCard() {
         </div>
       )}
 
-      <p aria-live="polite" className="mt-3 min-h-5 text-center text-sm text-red-600">
+      <p aria-live="polite" className="mt-3 min-h-5 text-center text-sm text-amber-300">
         {message}
       </p>
     </section>

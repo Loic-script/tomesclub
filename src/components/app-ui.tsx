@@ -35,8 +35,8 @@ export function PageHeader({
   return (
     <header className="anim-rise mb-6 flex items-center gap-4" style={delay(50)}>
       <div className="min-w-0 flex-1">
-        <h1 className="font-display text-3xl font-bold tracking-tight text-navy">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-zinc-500">{subtitle}</p>}
+        <h1 className="font-display text-3xl font-bold tracking-tight text-white">{title}</h1>
+        {subtitle && <p className="mt-1 text-sm text-white/65">{subtitle}</p>}
       </div>
       {right}
     </header>

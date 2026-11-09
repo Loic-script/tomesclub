@@ -11,14 +11,14 @@ export function CreateRoomForm() {
   const [state, formAction, pending] = useActionState(createRoomAction, initialState);
 
   const field =
-    "neu-inset w-full rounded-xl px-3 py-2 text-zinc-900 placeholder:text-zinc-400 outline-none transition focus:ring-2 focus:ring-brand/30";
+    "neu-inset w-full rounded-xl px-3 py-2 text-white placeholder:text-white/40 outline-none transition focus:ring-2 focus:ring-accent/40";
 
   return (
     <div>
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="neu neu-btn flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 font-bold text-brand"
+        className="neu neu-btn flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 font-bold text-white"
       >
         <PlusIcon rotated={open} />
         {open ? "Close" : "Create a room"}
@@ -33,7 +33,7 @@ export function CreateRoomForm() {
         <div className="overflow-hidden p-1">
           <form action={formAction} className="neu space-y-3 rounded-3xl p-5">
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-zinc-600">Room name *</span>
+              <span className="mb-1 block text-sm font-medium text-white/75">Room name *</span>
               <input
                 name="name"
                 type="text"
@@ -44,7 +44,7 @@ export function CreateRoomForm() {
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-zinc-600">Topic (optional)</span>
+              <span className="mb-1 block text-sm font-medium text-white/75">Topic (optional)</span>
               <input
                 name="topic"
                 type="text"
@@ -53,7 +53,7 @@ export function CreateRoomForm() {
                 className={field}
               />
             </label>
-            <p aria-live="polite" className="min-h-5 text-sm text-red-600">
+            <p aria-live="polite" className="min-h-5 text-sm text-amber-300">
               {state.error}
             </p>
             <button

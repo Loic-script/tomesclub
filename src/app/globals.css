@@ -153,6 +153,36 @@ body {
     inset -5px -5px 10px #ffffff;
 }
 
+/* Sur le fond sombre de l'app, les surfaces prennent la couleur du fond
+   (verre sombre) et le relief se fait avec des ombres noires + un fin liseré clair. */
+.on-dark .neu {
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 22px 45px -15px rgba(0, 0, 0, 0.6);
+}
+
+.on-dark .neu-sm {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.5);
+}
+
+.on-dark .neu-inset {
+  background: rgba(0, 0, 0, 0.22);
+  box-shadow:
+    inset 4px 4px 10px rgba(0, 0, 0, 0.45),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.05);
+}
+
+.on-dark .neu.neu-btn:active,
+.on-dark .neu-sm.neu-btn:active {
+  box-shadow:
+    inset 4px 4px 10px rgba(0, 0, 0, 0.45),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.05);
+}
+
 /* Bouton : se soulève au survol, s'enfonce quand on appuie. */
 .neu-btn {
   transition:

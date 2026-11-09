@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Rooms" };
 // Page /rooms : les salles de groupe ouvertes, et en créer une.
 export default function RoomsPage() {
   return (
-    <Suspense fallback={<p className="pt-20 text-center text-zinc-400">Loading...</p>}>
+    <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
       <RoomsHome />
     </Suspense>
   );
@@ -31,17 +31,17 @@ async function RoomsHome() {
         </div>
 
         <div className="anim-rise space-y-3" style={delay(280)}>
-          <h2 className="px-1 font-display text-lg font-bold text-navy">Open rooms</h2>
+          <h2 className="px-1 font-display text-lg font-bold text-white">Open rooms</h2>
 
           {rooms === null ? (
             <GlassCard>
-              <p className="text-sm text-amber-700">
+              <p className="text-sm text-amber-300">
                 The video server is not running, so rooms are unavailable right now.
               </p>
             </GlassCard>
           ) : rooms.length === 0 ? (
             <GlassCard>
-              <p className="text-center text-sm text-zinc-500">
+              <p className="text-center text-sm text-white/60">
                 No open room right now. Be the first to create one!
               </p>
             </GlassCard>
@@ -54,13 +54,13 @@ async function RoomsHome() {
                       {room.name[0]?.toUpperCase() ?? "R"}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-semibold text-zinc-900">{room.name}</p>
-                      <p className="truncate text-xs text-zinc-500">
+                      <p className="truncate font-semibold text-white">{room.name}</p>
+                      <p className="truncate text-xs text-white/60">
                         {room.topic ? `${room.topic} · ` : ""}Hosted by {room.hostName}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
-                      <span className="neu-inset flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold text-zinc-600">
+                      <span className="neu-inset flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold text-white/75">
                         <PeopleDot /> {room.participants}
                       </span>
                       <Link

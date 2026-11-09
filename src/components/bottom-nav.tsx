@@ -30,8 +30,8 @@ export function BottomNav() {
                 aria-current={active ? "page" : undefined}
                 className={`flex flex-col items-center gap-0.5 rounded-full px-3 py-2 text-[11px] font-semibold transition-all duration-300 ${
                   active
-                    ? "neu-inset text-brand"
-                    : "text-zinc-400 hover:-translate-y-0.5 hover:text-brand"
+                    ? "neu-inset text-accent"
+                    : "text-white/60 hover:-translate-y-0.5 hover:text-white"
                 }`}
               >
                 <Icon />

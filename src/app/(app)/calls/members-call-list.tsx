@@ -14,7 +14,7 @@ export function MembersCallList({ members }: { members: CallableMember[] }) {
 
   if (members.length === 0) {
     return (
-      <p className="py-4 text-center text-sm text-zinc-500">
+      <p className="py-4 text-center text-sm text-white/60">
         No other members yet. Invite your friends to join the club!
       </p>
     );
@@ -77,7 +77,7 @@ export function MembersCallList({ members }: { members: CallableMember[] }) {
                 </span>
                 <span
                   className={`max-w-16 truncate text-xs font-medium ${
-                    calling ? "text-brand" : "text-zinc-600"
+                    calling ? "text-accent" : "text-white/80"
                   }`}
                 >
                   {calling ? "Calling..." : member.firstName}

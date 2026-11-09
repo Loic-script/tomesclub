@@ -53,26 +53,26 @@ export function SideClock({ className = "" }: { className?: string }) {
             >
               <span
                 className={`mt-3 block w-0.5 rounded-full ${
-                  index % 3 === 0 ? "h-3.5 bg-brand" : "h-2 bg-zinc-400/70"
+                  index % 3 === 0 ? "h-3.5 bg-accent" : "h-2 bg-white/35"
                 }`}
               />
             </span>
           ))}
 
           {/* Heures, minutes, trotteuse */}
-          <Hand rotation={hours * 30} className="h-[26%] w-1.5 bg-navy" />
-          <Hand rotation={minutes * 6} className="h-[36%] w-1 bg-zinc-700" />
+          <Hand rotation={hours * 30} className="h-[26%] w-1.5 bg-white" />
+          <Hand rotation={minutes * 6} className="h-[36%] w-1 bg-white/70" />
           <Hand rotation={seconds * 6} className="h-[40%] w-0.5 bg-accent" />
 
           {/* Le centre */}
-          <span className="absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand shadow" />
+          <span className="absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent shadow" />
         </div>
 
         {/* L'heure digitale */}
-        <p className="mt-5 text-center font-display text-3xl font-bold tabular-nums text-navy">
+        <p className="mt-5 text-center font-display text-3xl font-bold tabular-nums text-white">
           {digital}
         </p>
-        <p className="text-center text-sm text-zinc-500">{dateLine}</p>
+        <p className="text-center text-sm text-white/60">{dateLine}</p>
       </div>
     </aside>
   );
