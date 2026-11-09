@@ -1,0 +1,113 @@
+// Structure de la base de données (les tables).
+// Après une modification : npm run db:migrate
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ===================================================================
+// Authentification (tables utilisées par Better Auth)
+// Ne pas renommer ces champs : Better Auth les utilise tels quels.
+// ===================================================================
+
+/// Un utilisateur de l'application
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  // Appels vidéo
+  callsCreated      Call[]            @relation("CallsCreated")
+  callParticipation CallParticipant[]
+
+  @@map("user")
+}
+
+/// Une connexion active (un navigateur connecté)
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+/// Une façon de se connecter (ici : email + mot de passe chiffré)
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+/// Codes temporaires (vérification d'email, mot de passe oublié...)
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ===================================================================
+// Appels vidéo
+// ===================================================================
+
+/// Un appel vidéo. Son id sert aussi de nom de salle dans LiveKit.
+model Call {
+  id           String            @id @default(cuid())
+  createdById  String
+  createdBy    User              @relation("CallsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt    DateTime          @default(now())
+  participants CallParticipant[]
+
+  @@index([createdById])
+  @@map("call")
+}
+
+/// Une personne qui a le droit d'entrer dans l'appel (le créateur aussi).
+model CallParticipant {
+  callId String
+  call   Call   @relation(fields: [callId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([callId, userId])
+  @@index([userId])
+  @@map("call_participant")
+}

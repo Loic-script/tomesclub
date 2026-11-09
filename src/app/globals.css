@@ -5,6 +5,18 @@
   --foreground: #171717;
 }
 
+/* Couleurs du logo Tomes Club → classes Tailwind : bg-brand, text-navy, bg-cream... */
+@theme {
+  --color-brand: #9c0b3b;
+  --color-brand-dark: #7a082e;
+  --color-navy: #2e3192;
+  --color-accent: #f7944a;
+  --color-cream: #fbe7e1;
+
+  /* Police des titres (classe Tailwind : font-display) */
+  --font-display: var(--font-bricolage), var(--font-geist-sans), sans-serif;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -23,4 +35,104 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ---------- Animations de la page de connexion ---------- */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  70% {
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes gradient-drift {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: 100% 100%;
+  }
+}
+
+@keyframes halo-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.12);
+  }
+}
+
+/* Entrée en fondu + glissée vers le haut. Le retard se règle avec --d. */
+.anim-rise {
+  animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms) both;
+}
+
+/* Entrée avec un petit rebond (logo). */
+.anim-pop {
+  animation: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) var(--d, 0ms) both;
+}
+
+/* Bulle ou tuile : entre en fondu, puis flotte doucement sans fin (vitesse : --float). */
+.anim-bubble {
+  animation-name: rise-in, float-soft;
+  animation-duration: 0.7s, var(--float, 7s);
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1), ease-in-out;
+  animation-delay: var(--d, 0ms), calc(var(--d, 0ms) + 0.9s);
+  animation-iteration-count: 1, infinite;
+  animation-fill-mode: both, none;
+}
+
+/* Halo orange qui "respire" derrière le logo. */
+.anim-halo {
+  animation: halo-breathe 5s ease-in-out 1.5s infinite;
+}
+
+/* Dégradé qui bouge très lentement. */
+.anim-gradient {
+  background-size: 180% 180%;
+  animation: gradient-drift 16s ease-in-out infinite alternate;
+}
+
+/* La personne a demandé moins d'animations dans son système : on coupe tout. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

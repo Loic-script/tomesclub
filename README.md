@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tomes Club — application web d'appel vidéo
 
-## Getting Started
+## Les outils
 
-First, run the development server:
+| Outil | Version | À quoi ça sert |
+|---|---|---|
+| Next.js | 16.4.5 | Le site web (pages + serveur) |
+| React | 19.3 | Les composants de l'interface |
+| TypeScript | 5.9 | Le langage (JavaScript avec des types) |
+| Tailwind CSS | 4 | Le design (couleurs, tailles...) |
+| LiveKit | serveur 1.13.11 | Les appels vidéo |
+| PostgreSQL | 17 | La base de données |
+| Prisma | 7.10.1 | Parler à PostgreSQL depuis le code |
+| Better Auth | 1.7 | Connexion avec Google, sessions |
+
+## Démarrer (développement)
+
+Il faut **2 terminaux** :
 
 ```bash
+# Terminal 1 : le serveur vidéo LiveKit
+npm run livekit:dev
+
+# Terminal 2 : le site web
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ensuite, ouvrir http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Commandes utiles
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Commande | Ce qu'elle fait |
+|---|---|
+| `npm run dev` | Lance le site en mode développement |
+| `npm run livekit:dev` | Lance le serveur vidéo LiveKit local |
+| `npm run check:setup` | Vérifie que PostgreSQL et LiveKit marchent |
+| `npm run db:migrate` | Applique les changements de `prisma/schema.prisma` dans la base |
+| `npm run db:studio` | Ouvre une page pour voir les données de la base |
+| `npm run build` | Prépare le site pour la production |
 
-## Learn More
+## Les fichiers importants
 
-To learn more about Next.js, take a look at the following resources:
+```
+.env                    → mots de passe et clés (SECRET, jamais sur GitHub)
+.env.example            → modèle du .env, sans les secrets
+prisma/schema.prisma    → la structure de la base de données (tables)
+prisma7.config.ts       → configuration de Prisma
+src/app/                → les pages du site
+src/app/(auth)/         → pages /login et /register
+src/app/call/           → page /call (choisir des membres, lancer un appel)
+src/app/call/[id]/      → la salle vidéo /call/<id> (LiveKit)
+src/lib/calls.ts        → appels vidéo (base de données + LiveKit)
+src/lib/session.ts      → lire l'utilisateur connecté (serveur)
+src/app/api/auth/       → API d'authentification (Better Auth)
+src/lib/auth.ts         → configuration de l'authentification (serveur)
+src/lib/auth-client.ts  → authentification côté navigateur
+src/lib/prisma.ts       → connexion à la base de données
+src/lib/livekit.ts      → outils LiveKit côté serveur (tokens, salles)
+scripts/check-setup.ts  → script de vérification
+tools/livekit/          → serveur LiveKit pour Windows (non envoyé sur GitHub)
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Activer la connexion avec Google
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Le site se connecte **uniquement avec Google**. Pour que le bouton marche, il faut 2 clés :
 
-## Deploy on Vercel
+1. Va sur https://console.cloud.google.com et crée un projet (ex : « Tomes Club »).
+2. Menu **APIs & Services → OAuth consent screen** : choisis **External**, donne le nom
+   « Tomes Club », ton email, et enregistre.
+3. Menu **APIs & Services → Credentials → Create credentials → OAuth client ID** :
+   - Type : **Web application**
+   - **Authorized JavaScript origins** : `http://localhost:3000`
+   - **Authorized redirect URIs** : `http://localhost:3000/api/auth/callback/google`
+   (quand le site sera en ligne, ajouter aussi l'adresse du site, en https)
+4. Copie le **Client ID** et le **Client secret** dans `.env` :
+   `GOOGLE_CLIENT_ID="..."` et `GOOGLE_CLIENT_SECRET="..."`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Sans ces clés, le bouton affiche « Google sign-in is not set up yet ».
+En développement, l'email + mot de passe reste utilisable par l'API (pour les tests) ;
+en production, il est désactivé.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Installer sur un nouvel ordinateur
+
+1. `npm install`
+2. Copier `.env.example` en `.env` et mettre le mot de passe PostgreSQL
+3. Créer la base : `CREATE DATABASE tomes_club;`
+4. Télécharger le serveur LiveKit Windows sur https://github.com/livekit/livekit/releases
+   et mettre `livekit-server.exe` dans `tools/livekit/`
+5. `npm run check:setup`
