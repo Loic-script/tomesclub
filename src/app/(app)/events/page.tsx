@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Events" };
 // Page /events : les cours/événements programmés par l'admin, et ses annonces.
 export default function EventsPage() {
   return (
-    <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
+    <Suspense fallback={<p className="pt-20 text-center text-zinc-400">Loading...</p>}>
       <EventsHome />
     </Suspense>
   );
@@ -26,10 +26,10 @@ async function EventsHome() {
 
       <div className="space-y-6">
         <section className="anim-rise space-y-3" style={delay(150)}>
-          <h2 className="px-1 font-display text-lg font-bold text-white">Upcoming</h2>
+          <h2 className="px-1 font-display text-lg font-bold text-navy">Upcoming</h2>
           {upcoming.length === 0 ? (
             <GlassCard>
-              <p className="text-center text-sm text-white/60">
+              <p className="text-center text-sm text-zinc-500">
                 No class scheduled yet. Check back soon!
               </p>
             </GlassCard>
@@ -38,7 +38,7 @@ async function EventsHome() {
               {upcoming.map((event, index) => (
                 <li key={event.id} className="anim-rise" style={delay(200 + index * 90)}>
                   {/* Carte à image, comme un plan de voyage */}
-                  <article className="group relative h-44 overflow-hidden rounded-3xl shadow-xl ring-1 ring-white/15">
+                  <article className="group relative h-44 overflow-hidden rounded-3xl shadow-[9px_9px_20px_#d9cac7,-9px_-9px_20px_#ffffff]">
                     {event.imageType ? (
                       // eslint-disable-next-line @next/next/no-img-element -- image privée servie par notre API
                       <img
@@ -74,25 +74,25 @@ async function EventsHome() {
         </section>
 
         <section className="anim-rise space-y-3" style={delay(350)}>
-          <h2 className="px-1 font-display text-lg font-bold text-white">Announcements</h2>
+          <h2 className="px-1 font-display text-lg font-bold text-navy">Announcements</h2>
           {announcements.length === 0 ? (
             <GlassCard>
-              <p className="text-center text-sm text-white/60">No announcement right now.</p>
+              <p className="text-center text-sm text-zinc-500">No announcement right now.</p>
             </GlassCard>
           ) : (
-            <ul className="space-y-3">
+            <ul className="space-y-4">
               {announcements.map((event) => (
                 <li key={event.id}>
                   <GlassCard className="flex gap-3.5">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-navy/60 text-white">
+                    <span className="neu-inset flex size-10 shrink-0 items-center justify-center rounded-xl text-brand">
                       <MegaphoneIcon />
                     </span>
                     <div className="min-w-0">
-                      <p className="font-semibold text-white">{event.title}</p>
+                      <p className="font-semibold text-zinc-900">{event.title}</p>
                       {event.description && (
-                        <p className="mt-0.5 text-sm leading-5 text-white/65">{event.description}</p>
+                        <p className="mt-0.5 text-sm leading-5 text-zinc-600">{event.description}</p>
                       )}
-                      <p className="mt-1 text-xs text-white/40">{formatDay(event.createdAt)}</p>
+                      <p className="mt-1 text-xs text-zinc-400">{formatDay(event.createdAt)}</p>
                     </div>
                   </GlassCard>
                 </li>

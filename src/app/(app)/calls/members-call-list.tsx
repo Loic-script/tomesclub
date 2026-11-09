@@ -14,7 +14,7 @@ export function MembersCallList({ members }: { members: CallableMember[] }) {
 
   if (members.length === 0) {
     return (
-      <p className="py-4 text-center text-sm text-white/60">
+      <p className="py-4 text-center text-sm text-zinc-500">
         No other members yet. Invite your friends to join the club!
       </p>
     );
@@ -50,13 +50,13 @@ export function MembersCallList({ members }: { members: CallableMember[] }) {
                 <span className="relative">
                   {/* Onde quand l'appel part */}
                   {calling && (
-                    <span aria-hidden className="anim-ping absolute inset-0 rounded-full bg-accent/60" />
+                    <span aria-hidden className="anim-ping absolute inset-0 rounded-full bg-brand/30" />
                   )}
                   <span
-                    className={`relative block rounded-full p-0.5 ring-2 transition-all duration-200 ${
+                    className={`neu-sm relative block rounded-full p-1 transition-all duration-200 ${
                       calling
-                        ? "ring-accent"
-                        : "ring-white/20 group-hover:-translate-y-0.5 group-hover:ring-accent"
+                        ? "ring-2 ring-accent"
+                        : "group-hover:-translate-y-0.5 group-hover:ring-2 group-hover:ring-accent"
                     }`}
                   >
                     <MemberAvatar
@@ -75,7 +75,11 @@ export function MembersCallList({ members }: { members: CallableMember[] }) {
                     <CallIcon />
                   </span>
                 </span>
-                <span className="max-w-16 truncate text-xs font-medium text-white/85">
+                <span
+                  className={`max-w-16 truncate text-xs font-medium ${
+                    calling ? "text-brand" : "text-zinc-600"
+                  }`}
+                >
                   {calling ? "Calling..." : member.firstName}
                 </span>
               </button>
@@ -83,7 +87,7 @@ export function MembersCallList({ members }: { members: CallableMember[] }) {
           );
         })}
       </ul>
-      <p aria-live="polite" className="mt-2 min-h-5 text-sm text-amber-200">
+      <p aria-live="polite" className="mt-2 min-h-5 text-sm text-red-600">
         {error}
       </p>
     </div>

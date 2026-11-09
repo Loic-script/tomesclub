@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Calls" };
 // Page /calls : appeler un membre, ou se faire appeler par le hasard.
 export default function CallsPage() {
   return (
-    <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
+    <Suspense fallback={<p className="pt-20 text-center text-zinc-400">Loading...</p>}>
       <CallsHome />
     </Suspense>
   );
@@ -36,22 +36,22 @@ async function CallsHome() {
 
         {activeCalls.length > 0 && (
           <GlassCard className="anim-rise" style={delay(250)}>
-            <h2 className="mb-3 font-display text-lg font-bold text-white">Calls in progress</h2>
-            <ul className="space-y-2.5">
+            <h2 className="mb-3 font-display text-lg font-bold text-navy">Calls in progress</h2>
+            <ul className="space-y-3">
               {activeCalls.map((call) => (
                 <li
                   key={call.id}
-                  className="flex items-center justify-between gap-3 rounded-2xl bg-white/10 px-3.5 py-2.5"
+                  className="neu-inset flex items-center justify-between gap-3 rounded-2xl px-3.5 py-2.5"
                 >
                   <div className="min-w-0 text-sm">
-                    <p className="font-semibold text-white">
+                    <p className="font-semibold text-zinc-800">
                       {call.startedByMe ? "Started by you" : `${call.startedByName} is calling you`}
                     </p>
-                    <p className="truncate text-white/60">With {call.otherNames.join(", ")}</p>
+                    <p className="truncate text-zinc-500">With {call.otherNames.join(", ")}</p>
                   </div>
                   <Link
                     href={`/call/${call.id}`}
-                    className="shrink-0 rounded-full bg-accent px-4 py-2 text-sm font-bold text-brand-dark shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                    className="neu-btn shrink-0 rounded-full bg-brand px-4 py-2 text-sm font-bold text-white shadow-md"
                   >
                     Join
                   </Link>
@@ -62,8 +62,8 @@ async function CallsHome() {
         )}
 
         <GlassCard className="anim-rise" style={delay(350)}>
-          <h2 className="font-display text-lg font-bold text-white">Members</h2>
-          <p className="mb-2 text-sm text-white/60">Pick someone and start a video call.</p>
+          <h2 className="font-display text-lg font-bold text-navy">Members</h2>
+          <p className="mb-2 text-sm text-zinc-500">Pick someone and start a video call.</p>
           <MembersCallList members={members} />
         </GlassCard>
       </div>

@@ -63,26 +63,24 @@ export function RandomSearchCard() {
   }
 
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand to-brand-dark p-6 text-white shadow-xl ring-1 ring-white/15">
-      <div aria-hidden className="absolute -right-10 -top-10 size-36 rounded-full bg-white/10" />
-
+    <section className="neu rounded-3xl p-6">
       {searching ? (
-        <div className="relative flex flex-col items-center gap-4 py-2 text-center">
+        <div className="flex flex-col items-center gap-4 py-2 text-center">
           {/* Les ondes qui pulsent autour du téléphone */}
           <span className="relative flex size-20 items-center justify-center">
-            <span aria-hidden className="anim-ping absolute inset-0 rounded-full bg-accent/50" />
+            <span aria-hidden className="anim-ping absolute inset-0 rounded-full bg-brand/25" />
             <span
               aria-hidden
-              className="anim-ping absolute inset-0 rounded-full bg-accent/40"
+              className="anim-ping absolute inset-0 rounded-full bg-accent/30"
               style={{ animationDelay: "0.5s" }}
             />
-            <span className="relative flex size-16 items-center justify-center rounded-full bg-white/15 backdrop-blur">
+            <span className="neu-inset relative flex size-16 items-center justify-center rounded-full text-brand">
               <SearchPhoneIcon />
             </span>
           </span>
           <div>
-            <p className="font-display text-lg font-bold">Looking for a partner...</p>
-            <p className="text-sm text-white/70">
+            <p className="font-display text-lg font-bold text-navy">Looking for a partner...</p>
+            <p className="text-sm text-zinc-500">
               The call starts as soon as someone else searches too.
             </p>
           </div>
@@ -90,19 +88,19 @@ export function RandomSearchCard() {
             type="button"
             onClick={cancel}
             disabled={pending}
-            className="rounded-full border border-white/40 px-5 py-2 text-sm font-semibold transition hover:bg-white/10 disabled:opacity-60"
+            className="neu-sm neu-btn rounded-full px-5 py-2 text-sm font-semibold text-zinc-600 disabled:opacity-60"
           >
             Cancel
           </button>
         </div>
       ) : (
-        <div className="relative flex items-center gap-4">
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/15">
+        <div className="flex items-center gap-4">
+          <span className="neu-inset flex size-14 shrink-0 items-center justify-center rounded-2xl text-brand">
             <SearchPhoneIcon />
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-lg font-bold">Random partner</h2>
-            <p className="text-sm text-white/70">
+            <h2 className="font-display text-lg font-bold text-navy">Random partner</h2>
+            <p className="text-sm text-zinc-500">
               Practice English with a surprise member of the club.
             </p>
           </div>
@@ -110,14 +108,14 @@ export function RandomSearchCard() {
             type="button"
             onClick={start}
             disabled={pending}
-            className="shrink-0 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-brand shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.97] disabled:opacity-60"
+            className="neu-btn shrink-0 rounded-full bg-brand px-5 py-2.5 text-sm font-bold text-white shadow-md disabled:opacity-60"
           >
             {pending ? "..." : "Search"}
           </button>
         </div>
       )}
 
-      <p aria-live="polite" className="relative mt-3 min-h-5 text-center text-sm text-amber-200">
+      <p aria-live="polite" className="mt-3 min-h-5 text-center text-sm text-red-600">
         {message}
       </p>
     </section>
@@ -128,7 +126,7 @@ function SearchPhoneIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="size-7 text-white"
+      className="size-7"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"

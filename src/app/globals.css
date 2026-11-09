@@ -15,6 +15,9 @@
 
   /* Police des titres (classe Tailwind : font-display) */
   --font-display: var(--font-bricolage), var(--font-geist-sans), sans-serif;
+
+  /* Fond clair du mode application (style relief doux) */
+  --color-surface: #f3eae8;
 }
 
 @theme inline {
@@ -124,6 +127,52 @@ body {
 .anim-gradient {
   background-size: 180% 180%;
   animation: gradient-drift 16s ease-in-out infinite alternate;
+}
+
+/* ---------- Relief doux ("neumorphisme") du mode application ---------- */
+/* Une carte posée sur le fond : lumière en haut à gauche, ombre en bas à droite. */
+.neu {
+  background: var(--color-surface);
+  box-shadow:
+    9px 9px 20px #d9cac7,
+    -9px -9px 20px #ffffff;
+}
+
+.neu-sm {
+  background: var(--color-surface);
+  box-shadow:
+    5px 5px 12px #d9cac7,
+    -5px -5px 12px #ffffff;
+}
+
+/* Creusé dans le fond (champs de texte, état actif). */
+.neu-inset {
+  background: var(--color-surface);
+  box-shadow:
+    inset 5px 5px 10px #dccecb,
+    inset -5px -5px 10px #ffffff;
+}
+
+/* Bouton : se soulève au survol, s'enfonce quand on appuie. */
+.neu-btn {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.neu-btn:hover {
+  transform: translateY(-2px);
+}
+
+.neu-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.neu-sm.neu-btn:active,
+.neu.neu-btn:active {
+  box-shadow:
+    inset 5px 5px 10px #dccecb,
+    inset -5px -5px 10px #ffffff;
 }
 
 /* Onde qui s'élargit (recherche d'un partenaire d'appel). */

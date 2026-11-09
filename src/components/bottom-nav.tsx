@@ -17,7 +17,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-4 bottom-4 z-20 mx-auto max-w-md rounded-full bg-white/10 p-2 shadow-2xl ring-1 ring-white/15 backdrop-blur-xl"
+      className="neu fixed inset-x-4 bottom-4 z-20 mx-auto max-w-md rounded-full p-2"
     >
       <ul className="flex items-center justify-between gap-1">
         {TABS.map((tab) => {
@@ -30,8 +30,8 @@ export function BottomNav() {
                 aria-current={active ? "page" : undefined}
                 className={`flex flex-col items-center gap-0.5 rounded-full px-3 py-2 text-[11px] font-semibold transition-all duration-300 ${
                   active
-                    ? "bg-brand text-white shadow-lg"
-                    : "text-white/60 hover:bg-white/10 hover:text-white"
+                    ? "neu-inset text-brand"
+                    : "text-zinc-400 hover:-translate-y-0.5 hover:text-brand"
                 }`}
               >
                 <Icon />
