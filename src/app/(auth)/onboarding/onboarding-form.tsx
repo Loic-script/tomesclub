@@ -160,11 +160,11 @@ export function OnboardingForm({
     <div className="anim-rise w-full max-w-2xl rounded-[2rem] bg-white p-6 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 sm:p-10">
       {/* ----- En-tête : logo + avancement ----- */}
       <header className="mb-8">
-        <div className="anim-rise flex items-center gap-3" style={delay(100)}>
-          <Image src="/logo.jpeg" alt="" width={44} height={44} className="rounded-xl shadow" />
+        <div className="anim-rise flex items-center gap-4" style={delay(100)}>
+          <Image src="/logo.jpeg" alt="" width={64} height={64} className="rounded-2xl shadow-md" />
           <div>
-            <p className="font-display text-lg font-bold leading-tight text-navy">Tomes Club</p>
-            <p className="text-xs text-zinc-500">
+            <p className="font-display text-2xl font-bold leading-tight text-navy">Tomes Club</p>
+            <p className="text-sm text-zinc-500">
               Step {step + 1} of {STEPS.length}
             </p>
           </div>
