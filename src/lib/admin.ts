@@ -8,7 +8,7 @@ import { connection } from "next/server";
 // Le cookie contient une date de fin + une signature : impossible à fabriquer sans la clé secrète.
 
 const COOKIE_NAME = "tomes_admin";
-const SESSION_SECONDS = 60 * 60 * 24; // 24 heures
+const SESSION_SECONDS = 60 * 60 * 24 * 30; // 30 jours
 
 function secretKey(): string {
   const secret = process.env.BETTER_AUTH_SECRET;
@@ -66,7 +66,10 @@ export async function isAdmin(): Promise<boolean> {
   return received.length === expected.length && timingSafeEqual(received, expected);
 }
 
-/** À appeler en haut des pages admin : renvoie vers /admin/login si besoin. */
+/**
+ * À appeler en haut des pages admin. Sans session valide, on va droit au
+ * formulaire admin (la carte déjà retournée), avec un message d'explication.
+ */
 export async function requireAdmin(): Promise<void> {
-  if (!(await isAdmin())) redirect("/admin/login");
+  if (!(await isAdmin())) redirect("/login?admin=1&expired=1");
 }

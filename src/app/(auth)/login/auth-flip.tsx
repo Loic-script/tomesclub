@@ -14,6 +14,8 @@ const delay = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
 export function AuthFlip() {
   const searchParams = useSearchParams();
   const [flipped, setFlipped] = useState(searchParams.get("admin") === "1");
+  // Arrivé ici parce que la session admin n'était plus valide ?
+  const expired = searchParams.get("expired") === "1";
 
   function turnTo(admin: boolean) {
     setFlipped(admin);
@@ -89,7 +91,15 @@ export function AuthFlip() {
             aria-hidden
             className="mx-auto mt-2 block h-1 w-12 rounded-full bg-gradient-to-r from-navy to-brand"
           />
-          <p className="mb-6 mt-3 text-sm text-zinc-600">Reserved for the Tomes Club team.</p>
+          <p className="mt-3 text-sm text-zinc-600">Reserved for the Tomes Club team.</p>
+
+          {expired && (
+            <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-amber-200">
+              Your admin session expired. Please sign in again.
+            </p>
+          )}
+
+          <div className="mb-6" />
 
           <AdminLoginForm />
 
