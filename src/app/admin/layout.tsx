@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import { adminSignOut } from "../(auth)/admin/login/actions";
 import { AdminNav } from "./admin-nav";
 
+export const dynamic = "force-dynamic";
+
 // Le cadre commun de l'espace admin : en-tête, onglets, déconnexion.
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
