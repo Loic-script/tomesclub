@@ -1,15 +1,15 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { FollowButton } from "@/components/follow-button";
-import { MemberAvatar } from "@/components/member-avatar";
+import { SideMembersList } from "@/components/side-members-list";
 import { listMembers } from "@/lib/members";
 import { getCurrentUser } from "@/lib/session";
 
 // Le panneau de droite : les membres du club.
-// Point vert = en ligne, bouton pour suivre, et on touche le nom pour voir la fiche.
+// Point vert = en ligne, bouton pour suivre, recherche par nom, et on touche le nom pour voir la fiche.
 export async function SideMembers({ className = "" }: { className?: string }) {
   const user = await getCurrentUser();
-  const members = user ? await listMembers(user.id) : [];
+  // Tous les membres (0 = pas de limite) : la recherche se fait dans le panneau.
+  const members = user ? await listMembers(user.id, 0) : [];
   const onlineCount = members.filter((member) => member.online).length;
 
   return (
@@ -35,58 +35,7 @@ export async function SideMembers({ className = "" }: { className?: string }) {
           </span>
         </header>
 
-        {members.length === 0 ? (
-          <p className="py-6 text-center text-sm text-white/55">
-            No other members yet.
-          </p>
-        ) : (
-          <ul className="-mr-2 flex-1 space-y-2 overflow-y-auto pr-2">
-            {members.map((member, index) => (
-              <li
-                key={member.id}
-                className="anim-rise"
-                style={{ "--d": `${350 + Math.min(index, 8) * 60}ms` } as CSSProperties}
-              >
-                <div className="neu-sm flex items-center gap-2.5 rounded-2xl p-2">
-                  {/* La photo + le point vert, cliquables : ça ouvre la fiche */}
-                  <Link
-                    href={`/members/${member.id}`}
-                    aria-label={`See ${member.firstName}'s profile`}
-                    className="relative shrink-0 transition-transform duration-200 hover:-translate-y-0.5"
-                  >
-                    <MemberAvatar
-                      userId={member.id}
-                      name={`${member.firstName} ${member.lastName}`}
-                      hasPhoto={member.hasPhoto}
-                      size="size-10"
-                    />
-                    <span
-                      aria-label={member.online ? "Online" : "Offline"}
-                      className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-[#2b1538] ${
-                        member.online ? "bg-emerald-400" : "bg-white/30"
-                      }`}
-                    />
-                  </Link>
-
-                  <Link href={`/members/${member.id}`} className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-white">
-                      {member.firstName}
-                    </span>
-                    <span className="block truncate text-[11px] text-white/50">
-                      {member.online ? "Online now" : (member.country ?? member.englishLevel ?? "Member")}
-                    </span>
-                  </Link>
-
-                  <FollowButton
-                    memberId={member.id}
-                    following={member.following}
-                    followsMe={member.followsMe}
-                  />
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+        <SideMembersList members={members} />
 
         <Link
           href="/calls"

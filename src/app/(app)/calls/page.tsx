@@ -6,7 +6,6 @@ import { listActiveCalls } from "@/lib/calls";
 import { listMembers, type MemberCard } from "@/lib/members";
 import { requireMember } from "@/lib/session";
 import { MembersCallList } from "./members-call-list";
-import { MembersSearch } from "./members-search";
 import { RandomSearchCard } from "./random-search";
 
 export const metadata: Metadata = { title: "Calls" };
@@ -32,8 +31,6 @@ async function CallsHome() {
   const nearby = members
     .filter((member) => member.online || member.following)
     .sort((a, b) => priority(a) - priority(b) || a.firstName.localeCompare(b.firstName));
-  // La deuxième carte : tout le monde, par ordre alphabétique.
-  const everyone = [...members].sort((a, b) => a.firstName.localeCompare(b.firstName));
 
   return (
     <>
@@ -80,12 +77,6 @@ async function CallsHome() {
             members={nearby}
             emptyText="Nobody online yet. Follow members to keep them here."
           />
-        </GlassCard>
-
-        <GlassCard className="anim-rise" style={delay(430)}>
-          <h2 className="font-display text-lg font-bold text-white">All members</h2>
-          <p className="text-sm text-white/60">Everyone in the club.</p>
-          <MembersSearch members={everyone} />
         </GlassCard>
       </div>
     </>
