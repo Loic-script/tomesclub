@@ -3,13 +3,19 @@ import { PrismaClient } from "@/generated/prisma/client";
 
 // Connexion unique à PostgreSQL pour toute l'application.
 //
-// En développement, Next.js recharge le code à chaque modification.
-// Sans cette astuce, chaque rechargement ouvrirait une nouvelle connexion
-// et PostgreSQL finirait par refuser ("too many connections").
+// En développement, Next.js recharge le code à chaque modification, et
+// "prisma generate" peut réécrire le client pendant que le serveur tourne.
+// Deux versions du code vivent alors en même temps. On garde donc UN client
+// par version (la clé = la classe PrismaClient), et on ferme les anciens
+// seulement après un petit délai : une requête en cours a le temps de finir.
+// Sans ce délai, on fermait un client encore utilisé, d'où l'erreur
+// "Cannot use a pool after calling end on the pool".
 const globalForPrisma = globalThis as unknown as {
-  prisma?: PrismaClient;
-  prismaClass?: typeof PrismaClient;
+  prismaClients?: Map<typeof PrismaClient, PrismaClient>;
 };
+
+/** Temps laissé aux requêtes en cours avant de fermer un ancien client. */
+const CLOSE_OLD_AFTER_MS = 30_000;
 
 function createPrismaClient(): PrismaClient {
   const connectionString = process.env.DATABASE_URL;
@@ -20,22 +26,39 @@ function createPrismaClient(): PrismaClient {
 }
 
 function getPrismaClient(): PrismaClient {
-  // On réutilise le client gardé en mémoire... sauf si Prisma a été régénéré
-  // (nouvelle table après "prisma migrate") : l'ancien client ne connaît pas les nouvelles tables.
-  if (globalForPrisma.prisma && globalForPrisma.prismaClass === PrismaClient) {
-    return globalForPrisma.prisma;
+  const clients = (globalForPrisma.prismaClients ??= new Map());
+
+  const existing = clients.get(PrismaClient);
+  if (existing) return existing;
+
+  const fresh = createPrismaClient();
+
+  // En production le code ne change jamais : il n'y a qu'un seul client.
+  if (process.env.NODE_ENV === "production") {
+    clients.set(PrismaClient, fresh);
+    return fresh;
   }
-  void globalForPrisma.prisma?.$disconnect();
-  return createPrismaClient();
+
+  // En développement : nouvelle version du client → on programme la fermeture
+  // des anciennes, sans les couper tout de suite.
+  const outdated = [...clients.entries()];
+  clients.clear();
+  clients.set(PrismaClient, fresh);
+
+  for (const [, old] of outdated) {
+    const timer = setTimeout(() => {
+      void old.$disconnect().catch(() => {});
+    }, CLOSE_OLD_AFTER_MS);
+    // Ce minuteur ne doit pas retenir le processus ouvert.
+    timer.unref?.();
+  }
+
+  return fresh;
 }
 
 export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
   get(_target, prop, receiver) {
     const client = getPrismaClient();
-    if (process.env.NODE_ENV !== "production") {
-      globalForPrisma.prisma = client;
-      globalForPrisma.prismaClass = PrismaClient;
-    }
     const value = Reflect.get(client, prop, receiver);
     return typeof value === "function" ? value.bind(client) : value;
   },
