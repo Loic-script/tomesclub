@@ -28,6 +28,8 @@ export type OpenRoom = {
   level: string | null;
   /** Fin prévue (texte ISO) : création + durée. Null si pas de durée. */
   endsAt: string | null;
+  /** Le nombre de places (null = ancienne salle sans limite choisie). */
+  maxParticipants: number | null;
 };
 
 /** La fin prévue d'une salle (en ms), ou null si elle n'a pas de durée. */
@@ -55,6 +57,17 @@ export async function closeRoom(id: string): Promise<void> {
   await prisma.room.deleteMany({ where: { id } });
 }
 
+/** Les personnes dans la salle LiveKit (leurs identifiants). Null = serveur injoignable. */
+export async function listRoomPeople(id: string): Promise<string[] | null> {
+  try {
+    const people = await createRoomServiceClient().listParticipants(`${ROOM_PREFIX}${id}`);
+    return people.map((person) => person.identity);
+  } catch (error) {
+    console.warn("[listRoomPeople]", error);
+    return null;
+  }
+}
+
 /** Ce que l'hôte choisit en créant la salle. */
 export type NewRoom = {
   name: string;
@@ -65,6 +78,7 @@ export type NewRoom = {
   format: string | null;
   level: string | null;
   durationMin: number | null;
+  maxParticipants: number;
 };
 
 /** Crée une salle : d'abord dans la base, puis dans LiveKit. */
@@ -80,6 +94,7 @@ export async function createRoom(creatorId: string, input: NewRoom): Promise<{ i
       format: input.format,
       level: input.level,
       durationMin: input.durationMin,
+      maxParticipants: input.maxParticipants,
       createdById: creatorId,
     },
     select: { id: true },
@@ -89,7 +104,8 @@ export async function createRoom(creatorId: string, input: NewRoom): Promise<{ i
     await createRoomServiceClient().createRoom({
       name: `${ROOM_PREFIX}${room.id}`,
       emptyTimeout: EMPTY_TIMEOUT_SECONDS,
-      maxParticipants: MAX_PARTICIPANTS,
+      // LiveKit refuse lui-même les personnes en trop.
+      maxParticipants: Math.min(input.maxParticipants, MAX_PARTICIPANTS),
     });
   } catch (error) {
     await prisma.room.delete({ where: { id: room.id } });
@@ -153,6 +169,7 @@ export async function listOpenRooms(viewerId: string): Promise<OpenRoom[] | null
       format: true,
       durationMin: true,
       level: true,
+      maxParticipants: true,
       createdAt: true,
       createdById: true,
       createdBy: { select: { name: true, profile: { select: { firstName: true } } } },
@@ -184,6 +201,7 @@ export async function listOpenRooms(viewerId: string): Promise<OpenRoom[] | null
     durationMin: row.durationMin,
     level: row.level,
     endsAt: row.durationMin ? new Date(roomEndsAt(row)!).toISOString() : null,
+    maxParticipants: row.maxParticipants,
   }));
 }
 
@@ -200,6 +218,7 @@ export function getRoom(id: string) {
       format: true,
       level: true,
       durationMin: true,
+      maxParticipants: true,
       createdAt: true,
     },
   });

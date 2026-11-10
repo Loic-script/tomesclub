@@ -13,9 +13,14 @@ export type RoomActivity = {
   formats: string[];
 };
 
-/** La durée d'une salle, en minutes. */
-export const ROOM_DURATIONS = [5, 10, 15, 20, 25, 30] as const;
+/** La durée d'une salle, en minutes (1 min : pour faire un test). */
+export const ROOM_DURATIONS = [1, 5, 10, 15, 20, 25, 30] as const;
 export const DEFAULT_DURATION = 15;
+
+/** Le nombre de personnes maximum dans une salle (choisi par l'hôte). */
+export const ROOM_MIN_PEOPLE = 2;
+export const ROOM_MAX_PEOPLE = 20;
+export const DEFAULT_PEOPLE = 10;
 
 /** Le niveau d'anglais visé par la salle. */
 export const ROOM_LEVELS = [

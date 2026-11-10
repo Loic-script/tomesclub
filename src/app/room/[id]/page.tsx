@@ -6,7 +6,14 @@ import { Suspense } from "react";
 import { VideoRoom } from "@/components/video-room";
 import { createParticipantToken, getBrowserLiveKitUrl } from "@/lib/livekit";
 import { findActivity, levelLabel } from "@/lib/room-activities";
-import { closeRoom, getRoom, ROOM_PREFIX, roomEndsAt, roomIsOver } from "@/lib/rooms";
+import {
+  closeRoom,
+  getRoom,
+  listRoomPeople,
+  ROOM_PREFIX,
+  roomEndsAt,
+  roomIsOver,
+} from "@/lib/rooms";
 import { requireMember } from "@/lib/session";
 import { endRoomIfOver } from "./actions";
 
@@ -66,6 +73,31 @@ async function Room({ roomId }: { roomId: string }) {
 
   // Ce que la barre du haut affiche : l'activité, le thème, le temps restant.
   const activity = findActivity(room.activity);
+  // La salle est pleine ? (Je peux revenir si j'y suis déjà, par exemple après un rechargement.)
+  if (room.maxParticipants !== null) {
+    const people = await listRoomPeople(room.id);
+    if (people && people.length >= room.maxParticipants && !people.includes(user.id)) {
+      return (
+        <div className="m-auto max-w-sm px-6 text-center">
+          <p className="text-4xl" aria-hidden>
+            🚪
+          </p>
+          <h1 className="mt-3 font-display text-2xl font-bold text-white">This room is full</h1>
+          <p className="mt-2 text-sm text-white/60">
+            {people.length}/{room.maxParticipants} people are already inside. Try another room or
+            open your own!
+          </p>
+          <Link
+            href="/rooms"
+            className="mt-6 inline-block rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white"
+          >
+            Back to rooms
+          </Link>
+        </div>
+      );
+    }
+  }
+
   const endsAtMs = roomEndsAt(room);
   const endsAt = endsAtMs !== null ? new Date(endsAtMs).toISOString() : null;
 

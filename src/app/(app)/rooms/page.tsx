@@ -60,6 +60,8 @@ async function RoomsHome() {
               {rooms.map((room, index) => {
                 const activity = findActivity(room.activity);
                 const level = levelLabel(room.level);
+                const isFull =
+                  room.maxParticipants !== null && room.participants >= room.maxParticipants;
                 const chips = [
                   level,
                   room.format,
@@ -110,7 +112,12 @@ async function RoomsHome() {
                             <span>Hosted by {room.isMine ? "you" : room.hostName}</span>
                             <span aria-hidden>·</span>
                             <span className="inline-flex items-center gap-1.5">
-                              <PeopleDot /> {room.participants} in the room
+                              <PeopleDot />
+                              <span className={isFull ? "font-semibold text-accent" : ""}>
+                                {room.participants}
+                                {room.maxParticipants !== null && `/${room.maxParticipants}`}
+                              </span>{" "}
+                              {isFull ? "· full" : "in the room"}
                             </span>
                           </p>
                         </div>
@@ -144,12 +151,18 @@ async function RoomsHome() {
                             </p>
                           )}
                         </div>
-                        <Link
-                          href={`/room/${room.id}`}
-                          className="neu-btn shrink-0 rounded-full bg-brand px-5 py-2 text-sm font-bold text-white shadow-md"
-                        >
-                          Join
-                        </Link>
+                        {isFull ? (
+                          <span className="shrink-0 rounded-full bg-white/10 px-5 py-2 text-sm font-bold text-white/50">
+                            Full
+                          </span>
+                        ) : (
+                          <Link
+                            href={`/room/${room.id}`}
+                            className="neu-btn shrink-0 rounded-full bg-brand px-5 py-2 text-sm font-bold text-white shadow-md"
+                          >
+                            Join
+                          </Link>
+                        )}
                       </div>
 
                       {room.endsAt && room.durationMin && (

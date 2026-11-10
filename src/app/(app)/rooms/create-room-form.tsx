@@ -3,6 +3,9 @@
 import { useActionState, useState, type ReactNode } from "react";
 import {
   DEFAULT_DURATION,
+  DEFAULT_PEOPLE,
+  ROOM_MAX_PEOPLE,
+  ROOM_MIN_PEOPLE,
   ROOM_ACTIVITIES,
   ROOM_DURATIONS,
   ROOM_LEVELS,
@@ -132,6 +135,7 @@ function RoomOptions({
   const [format, setFormat] = useState(activity.formats[0] ?? "");
   const [level, setLevel] = useState("all");
   const [duration, setDuration] = useState<number>(DEFAULT_DURATION);
+  const [people, setPeople] = useState(DEFAULT_PEOPLE);
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   // Thème proposé → description écrite pour l'hôte (et mise à jour avec les options).
   // Thème écrit par l'hôte → il écrit sa propre description.
@@ -312,7 +316,7 @@ function RoomOptions({
       <div>
         <fieldset>
           <legend className={labelText}>Duration</legend>
-          <div className="grid grid-cols-6 gap-1.5">
+          <div className="grid grid-cols-7 gap-1.5">
             {ROOM_DURATIONS.map((minutes) => (
               <ChoiceChip
                 key={minutes}
@@ -325,6 +329,48 @@ function RoomOptions({
             ))}
           </div>
         </fieldset>
+        {duration === 1 && (
+          <p className="mt-1.5 text-xs text-white/50">1 minute: handy to test the room.</p>
+        )}
+      </div>
+
+      {/* ----- Le nombre de personnes ----- */}
+      <div>
+        <span id="people-label" className={labelText}>
+          Maximum people
+        </span>
+        <input type="hidden" name="maxParticipants" value={people} />
+        <div className="flex items-center gap-3">
+          <div
+            role="group"
+            aria-labelledby="people-label"
+            className="neu-inset flex items-center gap-1 rounded-full p-1"
+          >
+            <StepButton
+              label="One person less"
+              disabled={people <= ROOM_MIN_PEOPLE}
+              onClick={() => setPeople((value) => Math.max(ROOM_MIN_PEOPLE, value - 1))}
+            >
+              −
+            </StepButton>
+            <output
+              aria-live="polite"
+              className="w-10 text-center font-display text-lg font-bold tabular-nums text-white"
+            >
+              {people}
+            </output>
+            <StepButton
+              label="One person more"
+              disabled={people >= ROOM_MAX_PEOPLE}
+              onClick={() => setPeople((value) => Math.min(ROOM_MAX_PEOPLE, value + 1))}
+            >
+              +
+            </StepButton>
+          </div>
+          <span className="text-xs text-white/50">
+            people, you included (max {ROOM_MAX_PEOPLE})
+          </span>
+        </div>
       </div>
 
       {/* ----- Le nom et la visibilité ----- */}
@@ -375,7 +421,8 @@ function RoomOptions({
           {topic ? ` — ${topic}` : ""}
         </p>
         <p className="mt-1 text-xs text-white/60">
-          {format} · {levelName} · {duration} min · {visibility === "private" ? "Private" : "Public"}
+          {format} · {levelName} · {duration} min · {people} people max ·{" "}
+          {visibility === "private" ? "Private" : "Public"}
         </p>
         {!topic.trim() && (
           <p className="mt-1 text-xs text-amber-300">Choose or write a theme first.</p>
@@ -397,6 +444,30 @@ function RoomOptions({
 }
 
 /* ---------- Petits morceaux ---------- */
+
+function StepButton({
+  label,
+  disabled,
+  onClick,
+  children,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className="flex size-9 items-center justify-center rounded-full bg-brand text-lg font-bold leading-none text-white shadow-md transition hover:bg-accent hover:text-ink disabled:bg-white/10 disabled:text-white/30 disabled:shadow-none"
+    >
+      {children}
+    </button>
+  );
+}
 
 function StepTitle({ step, title, hint }: { step: number; title: string; hint: string }) {
   return (

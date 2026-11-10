@@ -1,7 +1,14 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { findActivity, ROOM_DURATIONS, ROOM_LEVELS } from "@/lib/room-activities";
+import {
+  DEFAULT_PEOPLE,
+  findActivity,
+  ROOM_DURATIONS,
+  ROOM_LEVELS,
+  ROOM_MAX_PEOPLE,
+  ROOM_MIN_PEOPLE,
+} from "@/lib/room-activities";
 import { createRoom } from "@/lib/rooms";
 import { requireMember } from "@/lib/session";
 
@@ -36,7 +43,13 @@ export async function createRoomAction(
 
   const minutes = Number(formData.get("duration"));
   const durationMin = (ROOM_DURATIONS as readonly number[]).includes(minutes) ? minutes : null;
-  if (durationMin === null) return { error: "Please choose a duration between 5 and 30 minutes." };
+  if (durationMin === null) return { error: "Please choose a duration between 1 and 30 minutes." };
+
+  // La limite de personnes : un nombre entre 2 et 20.
+  const people = Math.round(Number(formData.get("maxParticipants")));
+  const maxParticipants = Number.isFinite(people)
+    ? Math.min(ROOM_MAX_PEOPLE, Math.max(ROOM_MIN_PEOPLE, people))
+    : DEFAULT_PEOPLE;
 
   let roomId: string;
   try {
@@ -49,6 +62,7 @@ export async function createRoomAction(
       format,
       level,
       durationMin,
+      maxParticipants,
     });
     roomId = room.id;
   } catch (error) {
