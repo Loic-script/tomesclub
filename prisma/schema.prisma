@@ -36,6 +36,7 @@ model User {
 
   // Salles de groupe créées + file d'attente "appel au hasard"
   roomsCreated Room[]      @relation("RoomsCreated")
+  eventResponses EventResponse[]
   matchQueue   MatchQueue?
 
   // Les notifications reçues (appels, événements, annonces)
@@ -198,9 +199,25 @@ model Event {
   image       Bytes? // l'image de la carte (facultative)
   imageType   String? // ex : image/jpeg
   createdAt   DateTime  @default(now())
+  responses   EventResponse[]
 
   @@index([kind, startsAt])
   @@map("event")
+}
+
+/// Un membre participe ("going") ou est intéressé ("interested") par un événement.
+/// Une seule réponse par membre et par événement.
+model EventResponse {
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    String // going | interested
+  createdAt DateTime @default(now())
+
+  @@id([eventId, userId])
+  @@index([userId])
+  @@map("event_response")
 }
 
 /// File d'attente du "practice with a random partner" : une ligne = une personne qui cherche.

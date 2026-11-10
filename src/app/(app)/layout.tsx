@@ -2,6 +2,7 @@ import { Suspense, type ReactNode } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { PresencePing } from "@/components/presence-ping";
 import { SideCalendar } from "@/components/side-calendar";
+import { SideCalendarWithEvents } from "@/components/side-calendar-events";
 import { SideMembers, SideMembersFallback } from "@/components/side-members";
 
 // La coque de l'application membre : le fond sombre de la page d'authentification,
@@ -37,7 +38,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         style={{ "--d": "1000ms", "--float": "8s" } as React.CSSProperties}
       />
 
-      <SideCalendar className="fixed left-10 top-1/2 z-10 hidden -translate-y-1/2 xl:block" />
+      {/* Le calendrier marque les jours d'événement : lu au moment de la requête → <Suspense>. */}
+      <Suspense
+        fallback={
+          <SideCalendar className="fixed left-10 top-1/2 z-10 hidden -translate-y-1/2 xl:block" />
+        }
+      >
+        <SideCalendarWithEvents className="fixed left-10 top-1/2 z-10 hidden -translate-y-1/2 xl:block" />
+      </Suspense>
 
       {/* Colonne centrale, largeur "téléphone" même sur grand écran */}
       <div className="relative z-10 mx-auto w-full max-w-lg flex-1 px-4 pb-32 pt-8">{children}</div>

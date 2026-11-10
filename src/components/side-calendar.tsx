@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useSyncExternalStore, type CSSProperties } from "react";
 
 // Le calendrier du panneau de gauche : mois navigable, "aujourd'hui" en bordeaux.
@@ -11,7 +12,19 @@ function subscribeEveryMinute(onTick: () => void) {
   return () => clearInterval(timer);
 }
 
-export function SideCalendar({ className = "" }: { className?: string }) {
+/** Un événement à marquer dans le calendrier (date en texte ISO). */
+export type CalendarEvent = { id: string; startsAt: string; title: string };
+
+const dayKey = (date: Date) => `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+
+export function SideCalendar({
+  className = "",
+  events = [],
+}: {
+  className?: string;
+  /** Les jours avec un événement sont en orange et mènent à l'événement. */
+  events?: CalendarEvent[];
+}) {
   const tick = useSyncExternalStore(
     subscribeEveryMinute,
     () => Math.floor(Date.now() / 60000),
@@ -33,6 +46,13 @@ export function SideCalendar({ className = "" }: { className?: string }) {
     month: "long",
     year: "numeric",
   }).format(firstDay);
+
+  // Le premier événement de chaque jour (heure locale du membre).
+  const eventByDay = new Map<string, CalendarEvent>();
+  for (const event of events) {
+    const key = dayKey(new Date(event.startsAt));
+    if (!eventByDay.has(key)) eventByDay.set(key, event);
+  }
 
   const isToday = (day: number) =>
     today.getDate() === day &&
@@ -85,10 +105,32 @@ export function SideCalendar({ className = "" }: { className?: string }) {
           ))}
           {Array.from({ length: daysInMonth }, (_, index) => {
             const day = index + 1;
+            const event = eventByDay.get(dayKey(new Date(shown.year, shown.month, day)));
+            const base = "mx-auto flex size-8 items-center justify-center rounded-full text-sm transition-colors";
+
+            // Un jour avec un événement : orange, et un clic ouvre l'événement.
+            if (event) {
+              return (
+                <Link
+                  key={day}
+                  href={`/events?event=${event.id}`}
+                  title={event.title}
+                  aria-label={`${day}: ${event.title}`}
+                  className={`${base} font-bold ${
+                    isToday(day)
+                      ? "bg-brand text-white ring-2 ring-accent"
+                      : "bg-accent text-ink shadow-md hover:scale-110 hover:bg-accent/90"
+                  }`}
+                >
+                  {day}
+                </Link>
+              );
+            }
+
             return (
               <span
                 key={day}
-                className={`mx-auto flex size-8 items-center justify-center rounded-full text-sm transition-colors ${
+                className={`${base} ${
                   isToday(day)
                     ? "bg-brand font-bold text-white shadow-md ring-1 ring-white/30"
                     : "font-medium text-white/80 hover:bg-white/10"
