@@ -205,8 +205,8 @@ model Event {
   @@map("event")
 }
 
-/// Un membre participe ("going") ou est intéressé ("interested") par un événement.
-/// Une seule réponse par membre et par événement.
+/// Un membre participe ("going") et/ou est intéressé ("interested") par un événement.
+/// Les deux sont possibles en même temps (une ligne pour chacun).
 model EventResponse {
   eventId   String
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -215,7 +215,7 @@ model EventResponse {
   status    String // going | interested
   createdAt DateTime @default(now())
 
-  @@id([eventId, userId])
+  @@id([eventId, userId, status])
   @@index([userId])
   @@map("event_response")
 }

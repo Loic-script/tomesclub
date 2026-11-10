@@ -52,7 +52,11 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                 const responses = responsesById.get(event.id);
                 const going = responses?.going ?? [];
                 const interested = responses?.interested ?? [];
-                const everyone = [...going, ...interested];
+                // Une personne peut être dans les deux listes : une seule photo par personne.
+                const everyone = [...going, ...interested].filter(
+                  (person, position, list) =>
+                    list.findIndex((other) => other.id === person.id) === position,
+                );
                 return (
                   <li
                     key={event.id}
@@ -100,7 +104,7 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                       <div className="space-y-3 p-4">
                         <EventResponseButtons
                           eventId={event.id}
-                          mine={responses?.mine ?? null}
+                          mine={responses?.mine ?? { going: false, interested: false }}
                           goingCount={going.length}
                           interestedCount={interested.length}
                         />
