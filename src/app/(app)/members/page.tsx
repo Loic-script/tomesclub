@@ -26,6 +26,7 @@ async function MembersHome() {
   return (
     <>
       <PageHeader
+        eyebrow="Community"
         title="Members"
         subtitle={`Everyone in the club · ${onlineCount} online`}
         members={false}

@@ -28,6 +28,7 @@ async function RoomsHome() {
   return (
     <>
       <PageHeader
+        eyebrow="Group practice"
         title="Rooms"
         subtitle="Group conversations, open to every member."
       />

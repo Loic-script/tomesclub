@@ -45,7 +45,12 @@ async function HomeDashboard() {
   return (
     <>
       <PageHeader
-        title={`Hello, ${user.firstName}!`}
+        eyebrow="Welcome back"
+        title={
+          <>
+            Hello, <span className="text-highlight">{user.firstName}</span>
+          </>
+        }
         subtitle="Ready to practice your English today?"
         right={
           <Link href="/profile" aria-label="My profile" className="neu-sm neu-btn rounded-full p-1">

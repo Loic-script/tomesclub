@@ -57,12 +57,15 @@ function MembersLink() {
 /** L'en-tête d'une page de l'application. */
 export function PageHeader({
   title,
+  eyebrow,
   subtitle,
   right,
   bell = true,
   members = true,
 }: {
-  title: string;
+  title: ReactNode;
+  /** Le petit mot orange au-dessus du titre (ex : "Speaking practice"). */
+  eyebrow?: string;
   subtitle?: string;
   right?: ReactNode;
   /** La cloche des notifications (cachée sur la page Notifications elle-même). */
@@ -73,8 +76,20 @@ export function PageHeader({
   return (
     <header className="anim-rise mb-6 flex items-center gap-3" style={delay(50)}>
       <div className="min-w-0 flex-1">
-        <h1 className="font-display text-3xl font-bold tracking-tight text-white">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-white/65">{subtitle}</p>}
+        {eyebrow && (
+          <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
+            <span aria-hidden className="h-px w-5 rounded-full bg-accent/70" />
+            {eyebrow}
+          </p>
+        )}
+        <h1 className="text-headline font-display text-[2rem] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[2.5rem]">
+          {title}
+        </h1>
+        {subtitle && (
+          <p className="mt-2 max-w-xl text-[15px] font-medium leading-relaxed text-white/60">
+            {subtitle}
+          </p>
+        )}
       </div>
       {members && <MembersLink />}
       {bell && (

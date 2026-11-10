@@ -54,6 +54,7 @@ async function MemberView({ params }: { params: Promise<{ id: string }> }) {
   return (
     <>
       <PageHeader
+        eyebrow="Member"
         title={member.firstName}
         subtitle={member.online ? "Online now" : "Member of the club"}
         right={

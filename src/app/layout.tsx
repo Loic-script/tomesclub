@@ -16,6 +16,8 @@ const geistMono = Geist_Mono({
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
+  // Taille optique + largeur : les grands titres ont un dessin plus "affiche".
+  axes: ["opsz", "wdth"],
 });
 
 export const metadata: Metadata = {

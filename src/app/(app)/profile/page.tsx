@@ -42,6 +42,7 @@ async function ProfileHome() {
   return (
     <>
       <PageHeader
+        eyebrow="Your member card"
         title="Profile"
         right={
           <Link

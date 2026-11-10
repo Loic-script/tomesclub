@@ -34,7 +34,7 @@ async function CallsHome() {
 
   return (
     <>
-      <PageHeader title="Calls" subtitle={`Ready to speak English, ${user.firstName}?`} />
+      <PageHeader eyebrow="One-to-one" title="Calls" subtitle={`Ready to speak English, ${user.firstName}?`} />
 
       <div className="space-y-5">
         <div className="anim-rise" style={delay(150)}>

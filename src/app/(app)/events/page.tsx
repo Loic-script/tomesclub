@@ -34,7 +34,7 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
 
   return (
     <>
-      <PageHeader title="Events" subtitle="Classes and news from the club." />
+      <PageHeader eyebrow="Club agenda" title="Events" subtitle="Classes and news from the club." />
       {focusId && <ScrollToEvent id={focusId} />}
 
       <div className="space-y-6">

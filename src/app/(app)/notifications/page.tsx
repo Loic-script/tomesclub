@@ -33,6 +33,7 @@ async function NotificationsHome() {
   return (
     <>
       <PageHeader
+        eyebrow="Inbox"
         bell={false}
         title="Notifications"
         subtitle={
