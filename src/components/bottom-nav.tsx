@@ -29,9 +29,9 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="neu fixed inset-x-4 bottom-4 z-20 mx-auto max-w-md rounded-full p-2"
+      className="neu fixed inset-x-2 bottom-4 z-20 mx-auto max-w-md rounded-full p-1.5 sm:inset-x-4 sm:p-2"
     >
-      <ul className="flex items-center justify-between gap-1">
+      <ul className="flex items-center justify-between gap-0 sm:gap-1">
         {TABS.map((tab) => {
           const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
           const Icon = tab.icon;
@@ -40,7 +40,7 @@ export function BottomNav() {
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center gap-0.5 rounded-full px-3 py-2 text-[11px] font-semibold transition-all duration-300 ${
+                className={`flex flex-col items-center gap-0.5 rounded-full px-1 py-2 text-[10px] font-semibold leading-tight transition-all duration-300 sm:px-3 sm:text-[11px] ${
                   active
                     ? "neu-inset text-accent"
                     : "text-white/60 hover:-translate-y-0.5 hover:text-white"
@@ -59,7 +59,7 @@ export function BottomNav() {
             type="button"
             onClick={signOut}
             disabled={signingOut}
-            className="flex w-full flex-col items-center gap-0.5 rounded-full px-3 py-2 text-[11px] font-semibold text-white/60 transition-all duration-300 hover:-translate-y-0.5 hover:text-accent disabled:opacity-60"
+            className="flex w-full flex-col items-center gap-0.5 rounded-full px-1 py-2 text-[10px] font-semibold leading-tight text-white/60 transition-all duration-300 hover:-translate-y-0.5 hover:text-accent disabled:opacity-60 sm:px-3 sm:text-[11px]"
           >
             <LogoutIcon />
             {signingOut ? "..." : "Logout"}
