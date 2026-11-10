@@ -124,6 +124,8 @@ model Profile {
   /// Réglages des notifications (le membre peut les couper)
   notifyCalls  Boolean   @default(true) // quand on m'appelle
   notifyEvents Boolean   @default(true) // nouveaux événements et annonces
+  notifyFollows Boolean  @default(true) // quand quelqu'un m'ajoute (follow)
+  notifyRooms   Boolean  @default(true) // quand une salle de groupe s'ouvre
   /// Dernier signe de vie du navigateur : sert à afficher le point vert "en ligne"
   lastSeenAt   DateTime?
   createdAt    DateTime  @default(now())

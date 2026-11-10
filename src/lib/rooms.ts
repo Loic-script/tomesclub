@@ -1,5 +1,6 @@
 import "server-only";
 import { createRoomServiceClient } from "@/lib/livekit";
+import { notifyAllMembers } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 
 // Les salles de groupe (rooms), ouvertes à tous les membres.
@@ -42,6 +43,25 @@ export async function createRoom(
   } catch (error) {
     await prisma.room.delete({ where: { id: room.id } });
     throw error;
+  }
+
+  // Une salle ouverte à tous : on prévient les membres (les salles privées, non).
+  if (!isPrivate) {
+    const host = await prisma.user.findUnique({
+      where: { id: creatorId },
+      select: { name: true },
+    });
+    await notifyAllMembers(
+      {
+        kind: "room",
+        title: `New room: ${name.slice(0, 60)}`,
+        body: topic
+          ? `${host?.name ?? "A member"} · ${topic}`
+          : `${host?.name ?? "A member"} opened a room. Come and practice!`,
+        link: `/room/${room.id}`,
+      },
+      creatorId,
+    );
   }
 
   return room;

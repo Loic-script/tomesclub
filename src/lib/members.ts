@@ -1,5 +1,6 @@
 import "server-only";
 import { connection } from "next/server";
+import { notifyMembers } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 
 // Les autres membres : qui est en ligne, qui suit qui, et leur fiche publique.
@@ -200,10 +201,24 @@ export async function followMember(followerId: string, followingId: string): Pro
   });
   if (!target) return;
 
-  await prisma.follow.upsert({
+  const existing = await prisma.follow.findUnique({
     where: { followerId_followingId: { followerId, followingId } },
-    create: { followerId, followingId },
-    update: {},
+    select: { createdAt: true },
+  });
+  if (existing) return; // déjà suivi : on ne prévient pas deux fois
+
+  await prisma.follow.create({ data: { followerId, followingId } });
+
+  // On prévient la personne suivie.
+  const follower = await prisma.user.findUnique({
+    where: { id: followerId },
+    select: { name: true },
+  });
+  await notifyMembers([followingId], {
+    kind: "follow",
+    title: `${follower?.name ?? "A member"} started following you`,
+    body: "Open their profile to follow back.",
+    link: `/members/${followerId}`,
   });
 }
 

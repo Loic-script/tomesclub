@@ -6,6 +6,7 @@ import {
   getNotificationSettings,
   listMyNotifications,
   type MemberNotification,
+  type NotificationSetting,
 } from "@/lib/notifications";
 import { requireMember } from "@/lib/session";
 import { clearAllAction, markAllReadAction, toggleSettingAction } from "./actions";
@@ -66,6 +67,20 @@ async function NotificationsHome() {
               hint="When a member calls you"
               value={settings.notifyCalls}
               icon={<PhoneIcon />}
+            />
+            <SettingRow
+              field="notifyFollows"
+              label="New followers"
+              hint="When a member starts following you"
+              value={settings.notifyFollows}
+              icon={<UserPlusIcon />}
+            />
+            <SettingRow
+              field="notifyRooms"
+              label="Group rooms"
+              hint="When a member opens a public room"
+              value={settings.notifyRooms}
+              icon={<RoomsIcon />}
             />
             <SettingRow
               field="notifyEvents"
@@ -176,7 +191,7 @@ function SettingRow({
   value,
   icon,
 }: {
-  field: "notifyCalls" | "notifyEvents";
+  field: NotificationSetting;
   label: string;
   hint: string;
   value: boolean;
@@ -230,8 +245,31 @@ const iconProps = {
 
 function KindIcon({ kind }: { kind: string }) {
   if (kind === "call") return <PhoneIcon />;
+  if (kind === "follow") return <UserPlusIcon />;
+  if (kind === "room") return <RoomsIcon />;
   if (kind === "event") return <CalendarIcon />;
   return <MegaphoneIcon />;
+}
+
+function UserPlusIcon() {
+  return (
+    <svg {...iconProps}>
+      <circle cx="9" cy="8" r="3.4" />
+      <path d="M2.8 20a6.2 6.2 0 0 1 12.4 0" />
+      <path d="M18 8v6M15 11h6" />
+    </svg>
+  );
+}
+
+function RoomsIcon() {
+  return (
+    <svg {...iconProps}>
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M2.8 19a6.2 6.2 0 0 1 12.4 0" />
+      <circle cx="17" cy="9.5" r="2.4" />
+      <path d="M15.6 14.5a4.9 4.9 0 0 1 5.6 4.5" />
+    </svg>
+  );
 }
 
 function PhoneIcon() {

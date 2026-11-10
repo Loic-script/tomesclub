@@ -3,8 +3,17 @@ import { prisma } from "@/lib/prisma";
 
 // Tout ce qui concerne les notifications des membres.
 
-/** Les trois sortes de notifications. */
-export type NotificationKind = "call" | "event" | "announcement";
+/** Les sortes de notifications. */
+export type NotificationKind = "call" | "follow" | "room" | "event" | "announcement";
+
+/** Les quatre réglages que le membre peut allumer ou éteindre. */
+export type NotificationSetting =
+  | "notifyCalls"
+  | "notifyFollows"
+  | "notifyRooms"
+  | "notifyEvents";
+
+export type NotificationSettings = Record<NotificationSetting, boolean>;
 
 /** On garde seulement les 50 dernières notifications à l'écran. */
 const MAX_SHOWN = 50;
@@ -20,8 +29,11 @@ export type MemberNotification = {
 };
 
 /** Le réglage du profil qui autorise (ou non) cette sorte de notification. */
-function preferenceField(kind: NotificationKind): "notifyCalls" | "notifyEvents" {
-  return kind === "call" ? "notifyCalls" : "notifyEvents";
+function preferenceField(kind: NotificationKind): NotificationSetting {
+  if (kind === "call") return "notifyCalls";
+  if (kind === "follow") return "notifyFollows";
+  if (kind === "room") return "notifyRooms";
+  return "notifyEvents"; // "event" et "announcement"
 }
 
 /**
@@ -53,15 +65,19 @@ export async function notifyMembers(
   });
 }
 
-/** Envoie une notification à tous les membres (fiche terminée). */
-export async function notifyAllMembers(notification: {
-  kind: NotificationKind;
-  title: string;
-  body?: string;
-  link?: string;
-}): Promise<void> {
+/**
+ * Envoie une notification à tous les membres (fiche terminée).
+ * `exceptUserId` : la personne qui vient de faire l'action (on ne se prévient pas soi-même).
+ */
+export async function notifyAllMembers(
+  notification: { kind: NotificationKind; title: string; body?: string; link?: string },
+  exceptUserId?: string,
+): Promise<void> {
   const members = await prisma.profile.findMany({
-    where: { completedAt: { not: null } },
+    where: {
+      completedAt: { not: null },
+      ...(exceptUserId ? { userId: { not: exceptUserId } } : {}),
+    },
     select: { userId: true },
   });
   await notifyMembers(
@@ -109,23 +125,33 @@ export async function clearMyNotifications(userId: string): Promise<void> {
 }
 
 /** Mes réglages de notifications. */
-export async function getNotificationSettings(
-  userId: string,
-): Promise<{ notifyCalls: boolean; notifyEvents: boolean }> {
+export async function getNotificationSettings(userId: string): Promise<NotificationSettings> {
   const profile = await prisma.profile.findUnique({
     where: { userId },
-    select: { notifyCalls: true, notifyEvents: true },
+    select: { notifyCalls: true, notifyFollows: true, notifyRooms: true, notifyEvents: true },
   });
   return {
     notifyCalls: profile?.notifyCalls ?? true,
+    notifyFollows: profile?.notifyFollows ?? true,
+    notifyRooms: profile?.notifyRooms ?? true,
     notifyEvents: profile?.notifyEvents ?? true,
   };
+}
+
+/** Est-ce un nom de réglage valide ? (le formulaire ne vaut pas confiance) */
+export function isNotificationSetting(value: string): value is NotificationSetting {
+  return (
+    value === "notifyCalls" ||
+    value === "notifyFollows" ||
+    value === "notifyRooms" ||
+    value === "notifyEvents"
+  );
 }
 
 /** Allume ou éteint une sorte de notification. */
 export async function setNotificationSetting(
   userId: string,
-  field: "notifyCalls" | "notifyEvents",
+  field: NotificationSetting,
   value: boolean,
 ): Promise<void> {
   await prisma.profile.update({ where: { userId }, data: { [field]: value } });

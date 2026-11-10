@@ -2,6 +2,7 @@
 
 import {
   clearMyNotifications,
+  isNotificationSetting,
   markAllRead,
   setNotificationSetting,
 } from "@/lib/notifications";
@@ -26,7 +27,7 @@ export async function toggleSettingAction(formData: FormData): Promise<void> {
   const user = await requireMember();
 
   const field = String(formData.get("field") ?? "");
-  if (field !== "notifyCalls" && field !== "notifyEvents") return;
+  if (!isNotificationSetting(field)) return;
 
   // Le formulaire envoie la valeur voulue ("on" = allumer).
   const value = formData.get("value") === "on";
