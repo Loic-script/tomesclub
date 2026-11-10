@@ -22,8 +22,11 @@ export type OpenRoom = {
   isPrivate: boolean;
   isMine: boolean;
   activity: string | null;
+  format: string | null;
   durationMin: number | null;
   level: string | null;
+  /** Fin prévue (texte ISO) : création + durée. Null si pas de durée. */
+  endsAt: string | null;
 };
 
 /** Ce que l'hôte choisit en créant la salle. */
@@ -121,8 +124,10 @@ export async function listOpenRooms(viewerId: string): Promise<OpenRoom[] | null
       topic: true,
       isPrivate: true,
       activity: true,
+      format: true,
       durationMin: true,
       level: true,
+      createdAt: true,
       createdById: true,
       createdBy: { select: { name: true, profile: { select: { firstName: true } } } },
     },
@@ -141,8 +146,12 @@ export async function listOpenRooms(viewerId: string): Promise<OpenRoom[] | null
     isPrivate: row.isPrivate,
     isMine: row.createdById === viewerId,
     activity: row.activity,
+    format: row.format,
     durationMin: row.durationMin,
     level: row.level,
+    endsAt: row.durationMin
+      ? new Date(row.createdAt.getTime() + row.durationMin * 60 * 1000).toISOString()
+      : null,
   }));
 }
 

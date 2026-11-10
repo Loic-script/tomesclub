@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { delay, GlassCard, PageHeader } from "@/components/app-ui";
+import { RoomProgress, RoomTimeLeft } from "@/components/room-timer";
 import { findActivity, levelLabel } from "@/lib/room-activities";
 import { listOpenRooms } from "@/lib/rooms";
 import { requireMember } from "@/lib/session";
@@ -59,58 +60,102 @@ async function RoomsHome() {
               {rooms.map((room, index) => {
                 const activity = findActivity(room.activity);
                 const level = levelLabel(room.level);
-                const details = [
-                  `Hosted by ${room.isMine ? "you" : room.hostName}`,
-                  room.durationMin ? `${room.durationMin} min` : null,
+                const chips = [
                   level,
-                  room.isPrivate && room.isMine ? "share the link to invite" : null,
-                ].filter(Boolean);
+                  room.format,
+                  room.durationMin ? `${room.durationMin} min` : null,
+                ].filter((chip): chip is string => Boolean(chip));
                 return (
                   <li key={room.id} className="anim-rise" style={delay(320 + index * 80)}>
-                    <GlassCard className="flex items-center gap-4">
-                      <span
-                        title={activity?.name}
-                        className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-brand font-display text-lg font-bold text-white shadow-md"
-                      >
-                        {activity ? (
-                          <span aria-hidden className="text-2xl leading-none">
-                            {activity.icon}
-                          </span>
-                        ) : (
-                          (room.name[0]?.toUpperCase() ?? "R")
-                        )}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="flex items-center gap-1.5 truncate font-semibold text-white">
-                          {room.name}
-                          {room.isPrivate && (
-                            <span className="flex shrink-0 items-center gap-1 rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
-                              <LockIcon /> Private
+                    <article className="neu group overflow-hidden rounded-3xl transition duration-300 hover:-translate-y-0.5">
+                      <div className="flex gap-4 p-5 pb-4">
+                        {/* L activité, en grande icône */}
+                        <span
+                          title={activity?.name}
+                          className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-brand font-display text-xl font-bold text-white shadow-lg ring-1 ring-white/20"
+                        >
+                          {activity ? (
+                            <span aria-hidden className="text-3xl leading-none drop-shadow">
+                              {activity.icon}
                             </span>
+                          ) : (
+                            (room.name[0]?.toUpperCase() ?? "R")
                           )}
-                        </p>
-                        {activity && (
-                          <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-accent">
-                            {activity.name}
-                          </p>
-                        )}
-                        {room.topic && (
-                          <p className="line-clamp-2 text-sm text-white/85">{room.topic}</p>
-                        )}
-                        <p className="mt-0.5 truncate text-xs text-white/60">{details.join(" · ")}</p>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <span className="neu-inset flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold text-white/75">
-                          <PeopleDot /> {room.participants}
                         </span>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {activity && (
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-accent">
+                                {activity.name}
+                              </span>
+                            )}
+                            {room.isPrivate && (
+                              <span className="flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
+                                <LockIcon /> Private
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="break-words font-display text-lg font-bold leading-snug text-white">
+                            {room.name}
+                          </h3>
+                          {room.topic && (
+                            <p className="mt-1 line-clamp-2 text-sm leading-5 text-white/80">
+                              <span aria-hidden className="text-accent">“</span>
+                              {room.topic}
+                              <span aria-hidden className="text-accent">”</span>
+                            </p>
+                          )}
+                          <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-xs text-white/55">
+                            <span>Hosted by {room.isMine ? "you" : room.hostName}</span>
+                            <span aria-hidden>·</span>
+                            <span className="inline-flex items-center gap-1.5">
+                              <PeopleDot /> {room.participants} in the room
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Le niveau, le format, la durée */}
+                      {chips.length > 0 && (
+                        <ul className="flex flex-wrap gap-1.5 px-5 pb-4">
+                          {chips.map((chip) => (
+                            <li
+                              key={chip}
+                              className="rounded-full bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/75 ring-1 ring-white/10"
+                            >
+                              {chip}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      {/* Le temps restant et le bouton */}
+                      <div className="flex items-center gap-3 border-t border-white/10 bg-white/[0.03] px-5 py-3">
+                        <div className="min-w-0 flex-1">
+                          {room.endsAt ? (
+                            <RoomTimeLeft endsAt={room.endsAt} />
+                          ) : (
+                            <span className="text-xs text-white/50">No time limit</span>
+                          )}
+                          {room.isPrivate && room.isMine && (
+                            <p className="mt-1 truncate text-[11px] text-white/45">
+                              Share the room link to invite people.
+                            </p>
+                          )}
+                        </div>
                         <Link
                           href={`/room/${room.id}`}
-                          className="neu-btn rounded-full bg-brand px-4 py-2 text-sm font-bold text-white shadow-md"
+                          className="neu-btn shrink-0 rounded-full bg-brand px-5 py-2 text-sm font-bold text-white shadow-md"
                         >
                           Join
                         </Link>
                       </div>
-                    </GlassCard>
+
+                      {room.endsAt && room.durationMin && (
+                        <RoomProgress endsAt={room.endsAt} durationMin={room.durationMin} />
+                      )}
+                    </article>
                   </li>
                 );
               })}

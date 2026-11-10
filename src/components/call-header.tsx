@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
+import { RoomTimeLeft } from "@/components/room-timer";
 
 // La fine barre en haut de l'appel vidéo : le logo du club,
 // et pour une salle de groupe : l'activité, le thème et le temps restant.
@@ -18,20 +19,6 @@ export type RoomInfo = {
   /** Fin prévue de la salle (texte ISO), pour le compte à rebours. */
   endsAt: string | null;
 };
-
-/** L'heure du navigateur, mise à jour chaque seconde (null côté serveur). */
-function subscribeEverySecond(onTick: () => void) {
-  const timer = setInterval(onTick, 1000);
-  return () => clearInterval(timer);
-}
-
-function useNow(): number | null {
-  return useSyncExternalStore(
-    subscribeEverySecond,
-    () => Math.floor(Date.now() / 1000),
-    () => null,
-  );
-}
 
 export function CallHeader({ room }: { room?: RoomInfo }) {
   const [showDetails, setShowDetails] = useState(false);
@@ -91,7 +78,7 @@ export function CallHeader({ room }: { room?: RoomInfo }) {
               )}
             </button>
 
-            {room.endsAt && <Countdown endsAt={room.endsAt} />}
+            {room.endsAt && <RoomTimeLeft endsAt={room.endsAt} />}
           </>
         )}
       </div>
@@ -118,40 +105,5 @@ export function CallHeader({ room }: { room?: RoomInfo }) {
         </div>
       )}
     </header>
-  );
-}
-
-/** Le temps restant : "12:34 left", puis "Time's up". */
-function Countdown({ endsAt }: { endsAt: string }) {
-  const now = useNow();
-  if (now === null) {
-    return (
-      <span className="shrink-0 rounded-full bg-white/10 px-3 py-1 text-xs text-white/60">--:--</span>
-    );
-  }
-
-  const left = Math.floor(new Date(endsAt).getTime() / 1000) - now;
-  if (left <= 0) {
-    return (
-      <span className="shrink-0 rounded-full bg-accent/20 px-3 py-1 text-xs font-semibold text-accent">
-        Time&apos;s up
-      </span>
-    );
-  }
-
-  const minutes = Math.floor(left / 60);
-  const seconds = String(left % 60).padStart(2, "0");
-  const lastMinute = left <= 60;
-  return (
-    <span
-      role="timer"
-      aria-label={`${minutes} minutes ${seconds} seconds left`}
-      className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold tabular-nums ${
-        lastMinute ? "bg-accent/20 text-accent" : "bg-white/10 text-white/85"
-      }`}
-    >
-      {minutes}:{seconds}
-      <span className="hidden sm:inline"> left</span>
-    </span>
   );
 }
