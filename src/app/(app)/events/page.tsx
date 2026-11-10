@@ -1,171 +1,107 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import {
-  Card,
-  DateBlock,
-  delay,
-  EmptyState,
-  PageHeader,
-  PageSkeleton,
-  SectionHeader,
-} from "@/components/app-ui";
-import { CalendarIcon, ClockIcon, MegaphoneIcon } from "@/components/icons";
-import { SideCalendar } from "@/components/side-calendar";
+import { delay, GlassCard, PageHeader } from "@/components/app-ui";
 import { prisma } from "@/lib/prisma";
 import { requireMember } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Events" };
 
-// Page /events : les cours et événements programmés par le coach, et ses annonces.
+// Page /events : les cours/événements programmés par l'admin, et ses annonces.
 export default function EventsPage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={<p className="pt-20 text-center text-mute">Loading...</p>}>
       <EventsHome />
     </Suspense>
   );
 }
 
-type ClubEvent = Awaited<ReturnType<typeof loadEvents>>[number][number];
-
 async function EventsHome() {
   await requireMember();
   const [upcoming, announcements] = await loadEvents();
-  const [featured, ...others] = upcoming;
-  const eventDates = upcoming.flatMap((event) =>
-    event.startsAt ? [event.startsAt.toISOString()] : [],
-  );
 
   return (
     <>
       <PageHeader title="Events" subtitle="Classes and news from the club." />
 
-      <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_var(--spacing-rail)]">
-        <div className="min-w-0 space-y-10">
-          {/* ----- Les cours à venir ----- */}
-          <section aria-labelledby="upcoming" className="anim-rise" style={delay(80)}>
-            <SectionHeader id="upcoming" title="Upcoming" count={upcoming.length} />
-            {featured === undefined ? (
-              <EmptyState
-                icon={<CalendarIcon />}
-                title="No class scheduled yet"
-                description="New classes from the coach will appear here. Check back soon!"
-              />
-            ) : (
-              <div className="space-y-4">
-                <EventCard event={featured} featured />
-                {others.length > 0 && (
-                  <ul className="grid gap-4 sm:grid-cols-2">
-                    {others.map((event, index) => (
-                      <li
-                        key={event.id}
-                        className="anim-rise flex"
-                        style={delay(140 + Math.min(index, 6) * 60)}
-                      >
-                        <EventCard event={event} />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
-          </section>
+      <div className="space-y-6">
+        <section className="anim-rise space-y-3" style={delay(150)}>
+          <h2 className="px-1 font-display text-lg font-bold text-ink">Upcoming</h2>
+          {upcoming.length === 0 ? (
+            <GlassCard>
+              <p className="text-center text-sm text-mute">
+                No class scheduled yet. Check back soon!
+              </p>
+            </GlassCard>
+          ) : (
+            <ul className="space-y-4">
+              {upcoming.map((event, index) => (
+                <li key={event.id} className="anim-rise" style={delay(200 + index * 90)}>
+                  {/* Carte à image, comme un plan de voyage */}
+                  <article className="group relative h-44 overflow-hidden rounded-3xl shadow-[0_22px_45px_-18px_rgba(92,4,35,0.3)]">
+                    {event.imageType ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- image privée servie par notre API
+                      <img
+                        src={`/api/event/image/${event.id}`}
+                        alt=""
+                        className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-[linear-gradient(135deg,#930a39,#5c0423_55%,#7a0730)]" />
+                    )}
+                    {/* Voile sombre pour lire le texte */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/5" />
 
-          {/* ----- Les annonces ----- */}
-          <section aria-labelledby="announcements" className="anim-rise" style={delay(200)}>
-            <SectionHeader id="announcements" title="Announcements" count={announcements.length} />
-            {announcements.length === 0 ? (
-              <EmptyState icon={<MegaphoneIcon />} title="No announcement right now" />
-            ) : (
-              <Card padded={false}>
-                <ul className="divide-y divide-line">
-                  {announcements.map((event) => (
-                    <li key={event.id} className="flex gap-4 p-5">
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand">
-                        <MegaphoneIcon />
+                    {event.startsAt && (
+                      <span className="absolute left-4 top-4 rounded-full bg-blush px-3 py-1 text-xs font-bold text-ink ring-1 ring-line backdrop-blur-sm">
+                        {formatChip(event.startsAt)}
                       </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                          <h3 className="font-semibold text-ink">{event.title}</h3>
-                          <time
-                            dateTime={event.createdAt.toISOString()}
-                            className="text-xs text-mute"
-                          >
-                            {formatDay(event.createdAt)}
-                          </time>
-                        </div>
-                        {event.description && (
-                          <p className="mt-1 whitespace-pre-line text-sm leading-6 text-mute">
-                            {event.description}
-                          </p>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            )}
-          </section>
-        </div>
+                    )}
 
-        {/* ----- Le calendrier : les jours de cours y sont marqués ----- */}
-        <aside className="anim-rise min-w-0 max-xl:hidden xl:sticky xl:top-10" style={delay(160)}>
-          <SideCalendar eventDates={eventDates} />
-        </aside>
+                    <div className="absolute inset-x-4 bottom-4">
+                      <h3 className="font-display text-xl font-bold uppercase tracking-wide text-ink drop-shadow">
+                        {event.title}
+                      </h3>
+                      {event.description && (
+                        <p className="mt-0.5 truncate text-sm text-mute">{event.description}</p>
+                      )}
+                    </div>
+                  </article>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="anim-rise space-y-3" style={delay(350)}>
+          <h2 className="px-1 font-display text-lg font-bold text-ink">Announcements</h2>
+          {announcements.length === 0 ? (
+            <GlassCard>
+              <p className="text-center text-sm text-mute">No announcement right now.</p>
+            </GlassCard>
+          ) : (
+            <ul className="space-y-4">
+              {announcements.map((event) => (
+                <li key={event.id}>
+                  <GlassCard className="flex gap-3.5">
+                    <span className="neu-inset flex size-10 shrink-0 items-center justify-center rounded-xl text-brand">
+                      <MegaphoneIcon />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-ink">{event.title}</p>
+                      {event.description && (
+                        <p className="mt-0.5 text-sm leading-5 text-mute">{event.description}</p>
+                      )}
+                      <p className="mt-1 text-xs text-mute">{formatDay(event.createdAt)}</p>
+                    </div>
+                  </GlassCard>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
     </>
-  );
-}
-
-/** Une carte d'événement : l'image en haut, le texte sur fond blanc (toujours lisible). */
-function EventCard({ event, featured = false }: { event: ClubEvent; featured?: boolean }) {
-  return (
-    <article
-      className={`card group flex w-full flex-col overflow-hidden ${featured ? "md:flex-row" : ""}`}
-    >
-      {/* L image seulement si le coach en a mis une : pas de bloc vide. */}
-      {event.imageType && (
-        <div
-          className={`relative shrink-0 overflow-hidden bg-brand-50 ${
-            featured ? "aspect-video md:aspect-auto md:min-h-64 md:w-1/2" : "aspect-video"
-          }`}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element -- image privée servie par notre API */}
-          <img
-            src={`/api/event/image/${event.id}`}
-            alt=""
-            className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-          />
-        </div>
-      )}
-
-      <div className={`flex flex-1 gap-4 p-5 ${featured ? "md:p-7" : ""}`}>
-        {event.startsAt && <DateBlock date={event.startsAt} size={featured ? "lg" : "md"} />}
-        <div className="min-w-0 flex-1">
-          {featured && <p className="eyebrow mb-1 text-brand">Next class</p>}
-          <h3
-            className={`break-words font-display font-semibold leading-snug text-ink ${
-              featured ? "text-xl sm:text-2xl" : "text-lg"
-            }`}
-          >
-            {event.title}
-          </h3>
-          {event.startsAt && (
-            <p className="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-mute">
-              <ClockIcon className="size-4" />
-              <time dateTime={event.startsAt.toISOString()}>{formatWhen(event.startsAt)}</time>
-            </p>
-          )}
-          {event.description && (
-            <p
-              className={`mt-3 text-sm leading-6 text-mute ${featured ? "line-clamp-5" : "line-clamp-3"}`}
-            >
-              {event.description}
-            </p>
-          )}
-        </div>
-      </div>
-    </article>
   );
 }
 
@@ -199,21 +135,30 @@ async function loadEvents() {
   ]);
 }
 
-/** "Saturday 16 Nov · 18:00" */
-function formatWhen(date: Date): string {
-  const day = new Intl.DateTimeFormat("en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "short",
-  }).format(date);
+/** La pastille de la carte : "16 Nov · 18:00". */
+function formatChip(date: Date): string {
+  const day = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(date);
   const time = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(date);
   return `${day} · ${time}`;
 }
 
 function formatDay(date: Date): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date);
+  return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(date);
+}
+
+function MegaphoneIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="size-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 11v3a1 1 0 0 0 1 1h2l3.5 4a1 1 0 0 0 1.5-.8V6.8a1 1 0 0 0-1.5-.8L6 10H4a1 1 0 0 0-1 1Z" />
+      <path d="M14 8.5a5 5 0 0 1 0 7M17.5 6a9 9 0 0 1 0 12" />
+    </svg>
+  );
 }

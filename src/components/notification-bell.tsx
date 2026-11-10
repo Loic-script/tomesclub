@@ -1,31 +1,42 @@
 import Link from "next/link";
-import { cache } from "react";
-import { BellIcon } from "@/components/icons";
 import { countUnread } from "@/lib/notifications";
 import { getCurrentUser } from "@/lib/session";
 
-// Le nombre de notifications non lues.
-// cache() : lu une seule fois par requête, même si la cloche et le menu l'affichent.
-const unreadForCurrentUser = cache(async (): Promise<number> => {
-  const user = await getCurrentUser();
-  return user ? countUnread(user.id) : 0;
-});
-
-/** La cloche de la barre du haut (téléphone), avec la pastille des non lues. */
+// La cloche affichée dans l'en-tête de chaque page de l'application.
+// Elle montre une pastille avec le nombre de notifications non lues.
 export async function NotificationBell() {
-  const unread = await unreadForCurrentUser();
+  const user = await getCurrentUser();
+  const unread = user ? await countUnread(user.id) : 0;
 
   return (
     <Link
       href="/notifications"
       aria-label={unread > 0 ? `Notifications (${unread} new)` : "Notifications"}
-      className="btn btn-ghost btn-icon relative text-ink"
+      className="neu-sm neu-btn relative flex size-11 shrink-0 items-center justify-center rounded-full text-mute transition hover:text-brand"
     >
-      <BellIcon />
+      <svg
+        viewBox="0 0 24 24"
+        className="size-5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6" />
+        <path d="M10.5 20a2 2 0 0 0 3 0" />
+      </svg>
+
       {unread > 0 && (
-        <span className="absolute right-1 top-1 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-brand px-1 text-[0.625rem] font-bold leading-none text-white ring-2 ring-cream">
-          {unread > 9 ? "9+" : unread}
-        </span>
+        <>
+          <span
+            aria-hidden
+            className="anim-ping absolute -right-0.5 -top-0.5 size-5 rounded-full bg-accent/60"
+          />
+          <span className="absolute -right-0.5 -top-0.5 flex min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-navy">
+            {unread > 9 ? "9+" : unread}
+          </span>
+        </>
       )}
     </Link>
   );
@@ -33,22 +44,5 @@ export async function NotificationBell() {
 
 /** La place que prend la cloche pendant le chargement. */
 export function NotificationBellFallback() {
-  return (
-    <span aria-hidden className="btn btn-ghost btn-icon text-ink">
-      <BellIcon />
-    </span>
-  );
-}
-
-/** Le compteur à côté de "Notifications" dans la barre latérale. */
-export async function UnreadBadge() {
-  const unread = await unreadForCurrentUser();
-  if (unread === 0) return null;
-  return (
-    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-xs font-semibold leading-none text-white">
-      <span className="sr-only">, </span>
-      {unread > 99 ? "99+" : unread}
-      <span className="sr-only"> unread</span>
-    </span>
-  );
+  return <span className="neu-sm size-11 shrink-0 rounded-full" />;
 }

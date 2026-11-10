@@ -1,31 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense, type ReactNode } from "react";
-import { Card, delay, LevelMeter, PageHeader, PageSkeleton, SectionHeader } from "@/components/app-ui";
-import {
-  BriefcaseIcon,
-  CakeIcon,
-  ChatIcon,
-  HeartIcon,
-  LogoutIcon,
-  MailIcon,
-  MapPinIcon,
-  PencilIcon,
-  PhoneIcon,
-} from "@/components/icons";
+import { Suspense } from "react";
+import { delay, PageHeader } from "@/components/app-ui";
 import { MemberAvatar } from "@/components/member-avatar";
-import { SignOutButton } from "@/components/sign-out-button";
-import { ENGLISH_LEVELS, OCCUPATIONS } from "@/lib/onboarding-options";
+import { OCCUPATIONS } from "@/lib/onboarding-options";
 import { getFullProfile } from "@/lib/profile";
 import { requireMember } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Profile" };
 
-// Page /profile : ma carte de membre (à gauche sur ordinateur),
-// mes informations (à droite), et les boutons Edit / Sign out.
+// Page /profile : ma fiche, avec le bouton pour la modifier.
 export default function ProfilePage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Suspense fallback={<p className="pt-20 text-center text-mute">Loading...</p>}>
       <ProfileHome />
     </Suspense>
   );
@@ -51,192 +38,137 @@ async function ProfileHome() {
         profile.birthDate,
       )
     : null;
-  const place = [profile.city, profile.country].filter(Boolean).join(", ") || null;
-  const fullName = `${profile.firstName} ${profile.lastName}`;
-  const levelLabel = ENGLISH_LEVELS.find((entry) => entry.value === profile.englishLevel)?.label;
 
   return (
     <>
       <PageHeader
         title="Profile"
-        subtitle="Your member card and what the club knows about you."
-        actions={
-          <>
-            <Link href="/profile/edit" className="btn btn-primary">
-              <PencilIcon className="size-4" />
-              Edit profile
-            </Link>
-            <SignOutButton className="btn btn-secondary" icon={<LogoutIcon className="size-4" />} />
-          </>
+        right={
+          <Link
+            href="/profile/edit"
+            className="neu-sm neu-btn rounded-full px-4 py-2 text-sm font-semibold text-ink"
+          >
+            Edit
+          </Link>
         }
       />
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,21rem)_minmax(0,1fr)]">
-        {/* ----- La carte de membre du club ----- */}
-        <div className="anim-rise lg:sticky lg:top-10" style={delay(80)}>
-          <article
-            aria-label="Member card"
-            className="card mx-auto w-full max-w-sm overflow-hidden text-center lg:max-w-none"
-          >
-            {/* Le bandeau aux couleurs du club */}
-            <div aria-hidden className="relative h-24 overflow-hidden bg-brand">
-              <svg viewBox="0 0 320 96" preserveAspectRatio="none" className="absolute inset-0 size-full">
-                <polygon points="0,96 320,20 320,96" className="fill-brand-dark/60" />
-                <polygon points="210,0 320,0 320,44" className="fill-accent" />
-              </svg>
-              <span className="absolute left-1/2 top-3 h-2 w-14 -translate-x-1/2 rounded-full bg-white/25" />
+      <div className="space-y-6">
+        {/* ----- Le badge de membre, comme une carte d'identité du club ----- */}
+        <div className="anim-pop mx-auto w-full max-w-xs" style={delay(150)}>
+          <div className="relative overflow-hidden rounded-[1.75rem] bg-white pb-6 text-ink shadow-[0_26px_55px_-20px_rgba(92,4,35,0.35)] ring-1 ring-line">
+            {/* La fente du badge (pour le cordon) */}
+            <div className="relative z-10 pt-4">
+              <div className="mx-auto h-2.5 w-16 rounded-full bg-zinc-200 shadow-inner" />
             </div>
 
-            <div className="-mt-14 flex justify-center">
-              <span className="relative rounded-full bg-surface p-1.5 shadow-card">
+            {/* Le bandeau diagonal aux couleurs du club */}
+            <svg
+              aria-hidden
+              viewBox="0 0 320 130"
+              preserveAspectRatio="none"
+              className="absolute inset-x-0 top-0 h-32 w-full"
+            >
+              <polygon points="0,0 320,0 320,52 0,118" fill="#9c0b3b" />
+              <polygon points="0,0 320,0 320,30 0,86" fill="#2e3192" opacity="0.92" />
+              <polygon points="210,0 320,0 320,66" fill="#f7944a" />
+            </svg>
+
+            {/* La photo */}
+            <div className="relative z-10 mt-10 flex justify-center">
+              <span className="rounded-full bg-white p-1.5 shadow-lg">
                 <MemberAvatar
                   userId={user.id}
-                  name={fullName}
+                  name={`${profile.firstName} ${profile.lastName}`}
                   hasPhoto={Boolean(profile.photoType)}
                   size="size-28"
                 />
               </span>
             </div>
 
-            <div className="px-6 pb-6 pt-3">
-              <h2 className="break-words font-display text-2xl font-semibold text-ink">{fullName}</h2>
-              <p className="eyebrow mt-1">Tomes Club member</p>
-              {levelLabel && (
-                <span className="mt-3 inline-flex rounded-full bg-accent px-3 py-1 text-xs font-semibold text-ink">
-                  {levelLabel} English
+            {/* Nom, rôle, niveau */}
+            <div className="relative z-10 mt-3 px-6 text-center">
+              <h2 className="truncate font-display text-2xl font-bold text-navy">
+                {profile.firstName} {profile.lastName}
+              </h2>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-zinc-400">
+                Tomes Club member
+              </p>
+              {profile.englishLevel && (
+                <span className="mt-2 inline-block rounded-full bg-accent px-3 py-0.5 text-xs font-bold capitalize text-ink shadow-sm">
+                  {profile.englishLevel} english
                 </span>
               )}
+            </div>
 
-              <dl className="mt-5 flex items-center justify-center gap-3 border-t border-line pt-4 text-sm">
-                <dt className="eyebrow">ID No</dt>
-                <dd className="font-mono font-medium text-ink">{user.id.slice(0, 8).toUpperCase()}</dd>
-              </dl>
+            {/* Les infos, en lignes de badge */}
+            <dl className="relative z-10 mt-5 space-y-2 border-t border-zinc-100 px-6 pt-4">
+              <BadgeRow label="ID No" value={user.id.slice(0, 8).toUpperCase()} mono />
+              <BadgeRow label="Email" value={user.email} />
+              <BadgeRow label="Phone" value={profile.phone} />
+              <BadgeRow
+                label="Lives in"
+                value={[profile.city, profile.country].filter(Boolean).join(", ") || null}
+              />
+              <BadgeRow label="Born" value={birthDate} />
+              <BadgeRow
+                label="Does"
+                value={
+                  occupations.length > 0
+                    ? occupations.map((entry) => `${entry.label} — ${entry.detail}`).join(" · ")
+                    : null
+                }
+              />
+              <BadgeRow
+                label="Speaks"
+                value={profile.languages.length > 0 ? profile.languages.join(", ") : null}
+              />
+              <BadgeRow
+                label="Likes"
+                value={profile.interests.length > 0 ? profile.interests.join(", ") : null}
+              />
+            </dl>
 
-              {/* Le code-barres du membre */}
-              <div className="mt-4 px-4">
-                <Barcode seed={user.id} />
-                <p className="mt-1.5 font-mono text-xs tracking-[0.3em] text-mute">
-                  {user.id.slice(0, 12).toUpperCase()}
-                </p>
-              </div>
-
-              <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-brand">
-                Motivate · Activate · Develop
+            {/* Le code-barres du membre */}
+            <div className="relative z-10 mt-5 px-10">
+              <Barcode seed={user.id} />
+              <p className="mt-1 text-center font-mono text-[10px] tracking-[0.3em] text-zinc-400">
+                {user.id.slice(0, 12).toUpperCase()}
               </p>
             </div>
-          </article>
-        </div>
 
-        {/* ----- Mes informations ----- */}
-        <div className="min-w-0 space-y-6">
-          <Card className="anim-rise" style={delay(120)}>
-            <SectionHeader title="About me" />
-            <dl className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-              <InfoItem icon={<MailIcon className="size-4" />} label="Email" value={user.email} />
-              <InfoItem icon={<PhoneIcon className="size-4" />} label="Phone" value={profile.phone} />
-              <InfoItem icon={<MapPinIcon className="size-4" />} label="Lives in" value={place} />
-              <InfoItem icon={<CakeIcon className="size-4" />} label="Born" value={birthDate} />
-            </dl>
-          </Card>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card className="anim-rise" style={delay(160)}>
-              <SectionHeader title="English level" />
-              {levelLabel ? <LevelMeter level={profile.englishLevel} /> : <NotSet />}
-            </Card>
-
-            <Card className="anim-rise" style={delay(200)}>
-              <SectionHeader title="What I do" />
-              {occupations.length > 0 ? (
-                <ul className="space-y-3">
-                  {occupations.map((entry) => (
-                    <li key={`${entry.label}-${entry.detail}`} className="flex gap-3">
-                      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand">
-                        <BriefcaseIcon className="size-4" />
-                      </span>
-                      <span className="min-w-0 text-sm">
-                        <span className="block font-semibold text-ink">{entry.label}</span>
-                        {entry.detail && (
-                          <span className="block break-words text-mute">{entry.detail}</span>
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <NotSet />
-              )}
-            </Card>
+            {/* Pied du badge */}
+            <p className="relative z-10 mt-3 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-brand/70">
+              Motivate · Activate · Develop
+            </p>
           </div>
-
-          <Card className="anim-rise" style={delay(240)}>
-            <div className="grid gap-6 md:grid-cols-2">
-              <ChipGroup
-                icon={<ChatIcon className="size-4" />}
-                label="Languages I speak"
-                values={profile.languages}
-              />
-              <ChipGroup
-                icon={<HeartIcon className="size-4" />}
-                label="What I like"
-                values={profile.interests}
-              />
-            </div>
-          </Card>
         </div>
+
       </div>
     </>
   );
 }
 
-/* ---------- Petits morceaux ---------- */
-
-function InfoItem({ icon, label, value }: { icon: ReactNode; label: string; value: string | null }) {
+/** Une ligne d'information du badge. */
+function BadgeRow({
+  label,
+  value,
+  mono = false,
+}: {
+  label: string;
+  value: string | null | undefined;
+  mono?: boolean;
+}) {
+  if (!value) return null;
   return (
-    <div className="flex min-w-0 gap-3">
-      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-blush text-mute">
-        {icon}
-      </span>
-      <div className="min-w-0">
-        <dt className="text-xs font-medium text-mute">{label}</dt>
-        <dd className={`break-words text-sm ${value ? "font-medium text-ink" : "text-mute"}`}>
-          {value ?? "Not added yet"}
-        </dd>
-      </div>
-    </div>
-  );
-}
-
-function ChipGroup({ icon, label, values }: { icon: ReactNode; label: string; values: string[] }) {
-  return (
-    <div>
-      <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink">
-        <span className="text-brand">{icon}</span>
+    <div className="flex items-baseline gap-3 text-sm">
+      <dt className="w-16 shrink-0 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">
         {label}
-      </h3>
-      {values.length > 0 ? (
-        <ul className="flex flex-wrap gap-2">
-          {values.map((value) => (
-            <li key={value} className="chip">
-              {value}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <NotSet />
-      )}
+      </dt>
+      <dd className={`min-w-0 flex-1 truncate text-zinc-800 ${mono ? "font-mono" : "font-medium"}`}>
+        {value}
+      </dd>
     </div>
-  );
-}
-
-function NotSet() {
-  return (
-    <p className="text-sm text-mute">
-      Not added yet.{" "}
-      <Link href="/profile/edit" className="font-medium text-brand underline-offset-2 hover:underline">
-        Add it
-      </Link>
-    </p>
   );
 }
 
@@ -247,14 +179,15 @@ function Barcode({ seed }: { seed: string }) {
     return (code % 3) + 1; // barres de 1 à 3 unités
   });
   return (
-    <div aria-hidden className="flex h-10 items-stretch justify-center gap-0.5">
+    <div aria-hidden className="flex h-10 items-stretch justify-center gap-[2px]">
       {widths.map((width, index) => (
         <span
           key={index}
-          className="bg-ink"
-          style={{ width: `${width * 1.5}px`, opacity: index % 7 === 3 ? 0.7 : 1 }}
+          className="bg-zinc-900"
+          style={{ width: `${width * 1.5}px`, opacity: index % 7 === 3 ? 0.75 : 1 }}
         />
       ))}
     </div>
   );
 }
+

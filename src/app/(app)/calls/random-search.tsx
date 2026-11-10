@@ -2,11 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { ShuffleIcon } from "@/components/icons";
 import { cancelRandomSearch, startRandomSearch } from "./actions";
 
-// La carte "partenaire au hasard" : on cherche quelqu un qui cherche aussi,
-// et dès que deux personnes se trouvent, l appel démarre.
+// La carte "partenaire au hasard" : on cherche quelqu'un qui cherche aussi,
+// et dès que deux personnes se trouvent, l'appel démarre.
 export function RandomSearchCard() {
   const router = useRouter();
   const [searching, setSearching] = useState(false);
@@ -64,74 +63,77 @@ export function RandomSearchCard() {
   }
 
   return (
-    <section
-      aria-labelledby="random-title"
-      aria-busy={searching}
-      className="relative overflow-hidden rounded-2xl bg-brand p-6 text-white shadow-raised sm:p-8"
-    >
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-        {/* Le téléphone, avec des ondes pendant la recherche */}
-        <span className="relative flex size-16 shrink-0 items-center justify-center">
-          {searching && (
-            <>
-              <span aria-hidden className="anim-ping absolute inset-0 rounded-full bg-white/25" />
-              <span
-                aria-hidden
-                className="anim-ping absolute inset-0 rounded-full bg-white/20"
-                style={{ animationDelay: "0.6s" }}
-              />
-            </>
-          )}
-          <span className="relative flex size-16 items-center justify-center rounded-2xl bg-white/12 ring-1 ring-white/20">
-            <ShuffleIcon className="size-7" />
+    <section className="neu rounded-3xl p-6">
+      {searching ? (
+        <div className="flex flex-col items-center gap-4 py-2 text-center">
+          {/* Les ondes qui pulsent autour du téléphone */}
+          <span className="relative flex size-20 items-center justify-center">
+            <span aria-hidden className="anim-ping absolute inset-0 rounded-full bg-brand/25" />
+            <span
+              aria-hidden
+              className="anim-ping absolute inset-0 rounded-full bg-accent/30"
+              style={{ animationDelay: "0.5s" }}
+            />
+            <span className="neu-inset relative flex size-16 items-center justify-center rounded-full text-brand">
+              <SearchPhoneIcon />
+            </span>
           </span>
-        </span>
-
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-white/75">
-            {searching ? "Searching" : "Quick start"}
-          </p>
-          <h2 id="random-title" className="mt-1 font-display text-xl font-semibold sm:text-2xl">
-            {searching ? "Looking for a partner..." : "Talk to a random partner"}
-          </h2>
-          <p className="mt-1 max-w-md text-sm text-white/80">
-            {searching
-              ? "The call starts as soon as someone else searches too. Keep this page open."
-              : "We match you with another member who is looking for a partner right now."}
-          </p>
-        </div>
-
-        {searching ? (
+          <div>
+            <p className="font-display text-lg font-bold text-ink">Looking for a partner...</p>
+            <p className="text-sm text-mute">
+              The call starts as soon as someone else searches too.
+            </p>
+          </div>
           <button
             type="button"
             onClick={cancel}
             disabled={pending}
-            className="btn btn-lg shrink-0 border-white/30 text-white hover:border-white/50 hover:bg-white/10"
+            className="neu-sm neu-btn rounded-full px-5 py-2 text-sm font-semibold text-mute disabled:opacity-60"
           >
             Cancel
           </button>
-        ) : (
+        </div>
+      ) : (
+        <div className="flex items-center gap-4">
+          <span className="neu-inset flex size-14 shrink-0 items-center justify-center rounded-2xl text-brand">
+            <SearchPhoneIcon />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-display text-lg font-bold text-ink">Random partner</h2>
+            <p className="text-sm text-mute">
+              Practice English with a surprise member of the club.
+            </p>
+          </div>
           <button
             type="button"
             onClick={start}
             disabled={pending}
-            className="btn btn-lg btn-inverse shrink-0"
+            className="neu-btn shrink-0 rounded-full bg-brand px-5 py-2.5 text-sm font-bold text-white shadow-md disabled:opacity-60"
           >
-            {pending ? "Starting..." : "Find a partner"}
+            {pending ? "..." : "Search"}
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
-      <p
-        aria-live="polite"
-        className={
-          message
-            ? "mt-5 rounded-xl bg-white/10 px-4 py-3 text-sm font-medium text-white ring-1 ring-white/15"
-            : "sr-only"
-        }
-      >
+      <p aria-live="polite" className="mt-3 min-h-5 text-center text-sm text-amber-300">
         {message}
       </p>
     </section>
+  );
+}
+
+function SearchPhoneIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="size-7"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.4 2.1L8.1 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.6 1.9Z" />
+    </svg>
   );
 }
