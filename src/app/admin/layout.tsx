@@ -1,10 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { adminSignOut } from "../(auth)/admin/login/actions";
 import { AdminNav } from "./admin-nav";
-
-export const dynamic = "force-dynamic";
 
 // Le cadre commun de l'espace admin : en-tête, onglets, déconnexion.
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -25,7 +23,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </Link>
 
           <div className="ml-auto flex items-center gap-3">
-            <AdminNav />
+            {/* Les onglets lisent l'adresse de la page : obligatoire dans un <Suspense>. */}
+            <Suspense fallback={<div className="h-9" />}>
+              <AdminNav />
+            </Suspense>
             <form action={adminSignOut}>
               <button
                 type="submit"
