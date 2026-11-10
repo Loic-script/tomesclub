@@ -1,7 +1,8 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { BottomNav } from "@/components/bottom-nav";
+import { PresencePing } from "@/components/presence-ping";
 import { SideCalendar } from "@/components/side-calendar";
-import { SideClock } from "@/components/side-clock";
+import { SideMembers, SideMembersFallback } from "@/components/side-members";
 
 // La coque de l'application membre : le fond sombre de la page d'authentification,
 // avec les cartes claires en relief qui flottent dessus. Sur grand écran,
@@ -41,9 +42,23 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       {/* Colonne centrale, largeur "téléphone" même sur grand écran */}
       <div className="relative z-10 mx-auto w-full max-w-lg flex-1 px-4 pb-32 pt-8">{children}</div>
 
-      <SideClock className="fixed right-10 top-1/2 z-10 hidden -translate-y-1/2 xl:block" />
+      {/* Les membres du club : qui est en ligne, et le bouton pour les suivre.
+          La liste est lue au moment de la requête → <Suspense> obligatoire. */}
+      <Suspense
+        fallback={
+          <SideMembersFallback className="fixed right-10 top-1/2 z-10 hidden -translate-y-1/2 xl:block" />
+        }
+      >
+        <SideMembers className="fixed right-10 top-1/2 z-10 hidden -translate-y-1/2 xl:block" />
+      </Suspense>
 
-      <BottomNav />
+      {/* La barre du bas lit l'adresse de la page : obligatoire dans un <Suspense>. */}
+      <Suspense fallback={null}>
+        <BottomNav />
+      </Suspense>
+
+      {/* Dit au serveur que je suis en ligne (rien ne s'affiche). */}
+      <PresencePing />
     </div>
   );
 }

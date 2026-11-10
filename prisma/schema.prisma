@@ -41,6 +41,10 @@ model User {
   // Les notifications reçues (appels, événements, annonces)
   notifications Notification[]
 
+  // Abonnements : les membres que je suis, et ceux qui me suivent
+  following Follow[] @relation("Following")
+  followers Follow[] @relation("Followers")
+
   @@map("user")
 }
 
@@ -120,6 +124,8 @@ model Profile {
   /// Réglages des notifications (le membre peut les couper)
   notifyCalls  Boolean   @default(true) // quand on m'appelle
   notifyEvents Boolean   @default(true) // nouveaux événements et annonces
+  /// Dernier signe de vie du navigateur : sert à afficher le point vert "en ligne"
+  lastSeenAt   DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @default(now()) @updatedAt
 
@@ -217,4 +223,21 @@ model Notification {
 
   @@index([userId, createdAt])
   @@map("notification")
+}
+
+// ===================================================================
+// Abonnements (suivre un membre)
+// ===================================================================
+
+/// "follower" suit "following".
+model Follow {
+  followerId  String
+  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@id([followerId, followingId])
+  @@index([followingId])
+  @@map("follow")
 }

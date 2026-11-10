@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { MemberAvatar } from "@/components/member-avatar";
 import type { CallableMember } from "@/lib/calls";
@@ -39,13 +40,13 @@ export function MembersCallList({ members }: { members: CallableMember[] }) {
         {members.map((member) => {
           const calling = callingId === member.id;
           return (
-            <li key={member.id}>
+            <li key={member.id} className="flex flex-col items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => call(member.id)}
                 disabled={callingId !== null}
                 title={`Call ${member.firstName}`}
-                className="group flex w-full flex-col items-center gap-1.5 disabled:opacity-60"
+                className="group flex w-full justify-center disabled:opacity-60"
               >
                 <span className="relative">
                   {/* Onde quand l'appel part */}
@@ -75,14 +76,17 @@ export function MembersCallList({ members }: { members: CallableMember[] }) {
                     <CallIcon />
                   </span>
                 </span>
-                <span
-                  className={`max-w-16 truncate text-xs font-medium ${
-                    calling ? "text-accent" : "text-white/80"
-                  }`}
-                >
-                  {calling ? "Calling..." : member.firstName}
-                </span>
               </button>
+
+              {/* Le prénom ouvre la fiche du membre */}
+              <Link
+                href={`/members/${member.id}`}
+                className={`max-w-16 truncate text-xs font-medium transition hover:text-accent ${
+                  calling ? "text-accent" : "text-white/80"
+                }`}
+              >
+                {calling ? "Calling..." : member.firstName}
+              </Link>
             </li>
           );
         })}
