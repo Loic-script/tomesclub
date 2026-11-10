@@ -1,5 +1,4 @@
 import type { CSSProperties, ReactNode } from "react";
-import { AppBackground } from "@/components/app-background";
 
 // Fond des pages d'authentification : scène sombre bleu nuit → bordeaux,
 // avec des tuiles de verre qui flottent (style de l'image de référence,
@@ -7,7 +6,9 @@ import { AppBackground } from "@/components/app-background";
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <main className="relative flex flex-1 items-center justify-center overflow-hidden bg-cream px-4 py-10">
-      <AppBackground />
+      {/* Lueurs douces dans les coins */}
+      <div aria-hidden className="absolute -right-24 -top-24 size-96 rounded-full bg-brand-100 blur-3xl" />
+      <div aria-hidden className="absolute -bottom-32 -left-24 size-[28rem] rounded-full bg-accent-100 blur-3xl" />
 
       {/* Tuiles flottantes autour de la carte */}
       <Tile look="glass" className="left-[5%] top-[10%] size-28 rotate-6" style={tile(200, 9)}>
