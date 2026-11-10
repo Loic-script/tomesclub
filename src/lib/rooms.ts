@@ -2,6 +2,7 @@ import "server-only";
 import { createRoomServiceClient } from "@/lib/livekit";
 import { notifyAllMembers } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { findActivity } from "@/lib/room-activities";
 
 // Les salles de groupe (rooms), ouvertes à tous les membres.
 
@@ -20,17 +21,38 @@ export type OpenRoom = {
   participants: number;
   isPrivate: boolean;
   isMine: boolean;
+  activity: string | null;
+  durationMin: number | null;
+  level: string | null;
+};
+
+/** Ce que l'hôte choisit en créant la salle. */
+export type NewRoom = {
+  name: string;
+  topic: string | null;
+  isPrivate: boolean;
+  activity: string | null;
+  description: string | null;
+  format: string | null;
+  level: string | null;
+  durationMin: number | null;
 };
 
 /** Crée une salle : d'abord dans la base, puis dans LiveKit. */
-export async function createRoom(
-  creatorId: string,
-  name: string,
-  topic: string | null,
-  isPrivate: boolean,
-): Promise<{ id: string }> {
+export async function createRoom(creatorId: string, input: NewRoom): Promise<{ id: string }> {
+  const { name, topic, isPrivate } = input;
   const room = await prisma.room.create({
-    data: { name: name.slice(0, 60), topic, isPrivate, createdById: creatorId },
+    data: {
+      name: name.slice(0, 60),
+      topic,
+      isPrivate,
+      activity: input.activity,
+      description: input.description,
+      format: input.format,
+      level: input.level,
+      durationMin: input.durationMin,
+      createdById: creatorId,
+    },
     select: { id: true },
   });
 
@@ -51,10 +73,13 @@ export async function createRoom(
       where: { id: creatorId },
       select: { name: true },
     });
+    const activity = findActivity(input.activity);
     await notifyAllMembers(
       {
         kind: "room",
-        title: `New room: ${name.slice(0, 60)}`,
+        title: activity
+          ? `New room: ${name.slice(0, 60)} · ${activity.name}`
+          : `New room: ${name.slice(0, 60)}`,
         body: topic
           ? `${host?.name ?? "A member"} · ${topic}`
           : `${host?.name ?? "A member"} opened a room. Come and practice!`,
@@ -95,6 +120,9 @@ export async function listOpenRooms(viewerId: string): Promise<OpenRoom[] | null
       name: true,
       topic: true,
       isPrivate: true,
+      activity: true,
+      durationMin: true,
+      level: true,
       createdById: true,
       createdBy: { select: { name: true, profile: { select: { firstName: true } } } },
     },
@@ -112,10 +140,26 @@ export async function listOpenRooms(viewerId: string): Promise<OpenRoom[] | null
     participants: participantsById.get(row.id) ?? 0,
     isPrivate: row.isPrivate,
     isMine: row.createdById === viewerId,
+    activity: row.activity,
+    durationMin: row.durationMin,
+    level: row.level,
   }));
 }
 
 /** Une salle, si elle existe dans la base. */
 export function getRoom(id: string) {
-  return prisma.room.findUnique({ where: { id }, select: { id: true, name: true } });
+  return prisma.room.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      topic: true,
+      activity: true,
+      description: true,
+      format: true,
+      level: true,
+      durationMin: true,
+      createdAt: true,
+    },
+  });
 }

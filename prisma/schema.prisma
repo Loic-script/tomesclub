@@ -171,8 +171,14 @@ model CallParticipant {
 model Room {
   id          String   @id @default(cuid())
   name        String
-  topic       String?
+  topic       String? // le thème de la conversation (proposé ou écrit par l hôte)
   isPrivate   Boolean  @default(false)
+  /// L activité choisie (clé du catalogue : "debate", "open-discussion"...)
+  activity    String?
+  description String?
+  format      String? // ex : "Team debate", "Breakout pairs"
+  level       String? // all | beginner | elementary | intermediate | advanced
+  durationMin Int? // 5 à 30 minutes
   createdById String
   createdBy   User     @relation("RoomsCreated", fields: [createdById], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
