@@ -7,6 +7,16 @@ import { prisma } from "@/lib/prisma";
 /** Un membre est "en ligne" si son navigateur a donné signe de vie il y a moins de 2 minutes. */
 const ONLINE_MS = 2 * 60 * 1000;
 
+/** L'âge en années, à partir de la date de naissance (null si elle est absente). */
+function ageFrom(birthDate: Date | null, today: Date): number | null {
+  if (!birthDate) return null;
+  let age = today.getFullYear() - birthDate.getFullYear();
+  // L'anniversaire n'est pas encore passé cette année ? On enlève un an.
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) age -= 1;
+  return age >= 0 && age < 130 ? age : null;
+}
+
 /** Combien de membres le panneau de droite montre. */
 const SIDE_LIMIT = 12;
 
@@ -105,6 +115,8 @@ export type PublicMemberProfile = {
   englishLevel: string | null;
   city: string | null;
   country: string | null;
+  /** L'âge calculé à partir de la date de naissance. */
+  age: number | null;
   languages: string[];
   interests: string[];
   occupations: { kind?: string; detail?: string }[];
@@ -136,6 +148,7 @@ export async function getPublicMemberProfile(
         englishLevel: true,
         city: true,
         country: true,
+        birthDate: true,
         languages: true,
         interests: true,
         occupations: true,
@@ -163,6 +176,7 @@ export async function getPublicMemberProfile(
     englishLevel: profile.englishLevel,
     city: profile.city,
     country: profile.country,
+    age: ageFrom(profile.birthDate, new Date()),
     languages: profile.languages,
     interests: profile.interests,
     occupations: Array.isArray(profile.occupations)

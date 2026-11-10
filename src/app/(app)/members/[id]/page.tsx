@@ -47,6 +47,9 @@ async function MemberView({ params }: { params: Promise<{ id: string }> }) {
     detail: entry.detail ?? "",
   }));
   const place = [member.city, member.country].filter(Boolean).join(", ");
+  // La ligne sous le nom : "24 years old · Antananarivo, Madagascar"
+  const ageLine = member.age !== null ? `${member.age} years old` : null;
+  const subLine = [ageLine, place || null].filter(Boolean).join(" · ");
 
   return (
     <>
@@ -87,7 +90,7 @@ async function MemberView({ params }: { params: Promise<{ id: string }> }) {
           <h2 className="mt-3 font-display text-2xl font-bold text-white">
             {member.firstName} {member.lastName}
           </h2>
-          {place && <p className="text-sm text-white/55">{place}</p>}
+          {subLine && <p className="text-sm text-white/55">{subLine}</p>}
 
           {/* Il me suit déjà ? On le dit. */}
           {member.followsMe && (
