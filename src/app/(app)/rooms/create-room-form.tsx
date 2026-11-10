@@ -1,142 +1,119 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { GlobeIcon, LockIcon, PlusIcon } from "@/components/icons";
 import { createRoomAction, type CreateRoomState } from "./actions";
 
 const VISIBILITIES = [
-  { value: "public", label: "Public", hint: "Everyone sees it in the list." },
-  { value: "private", label: "Private", hint: "Only people with the link can join." },
+  { value: "public", label: "Public", hint: "Everyone sees it in the list.", icon: GlobeIcon },
+  { value: "private", label: "Private", hint: "Only people with the link can join.", icon: LockIcon },
 ] as const;
 
 const initialState: CreateRoomState = { error: null };
 
-// Le formulaire "Create a room", replié derrière un bouton.
+// Le formulaire "Create a room" : compact, toujours visible.
+// Mêmes champs qu avant (name, topic, visibility) et même action serveur.
 export function CreateRoomForm() {
-  const [open, setOpen] = useState(false);
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [state, formAction, pending] = useActionState(createRoomAction, initialState);
 
-  const field =
-    "neu-inset w-full rounded-xl px-3 py-2 text-ink placeholder:text-mute/70 outline-none transition focus:ring-2 focus:ring-accent/40";
-
   return (
-    <div>
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className="neu neu-btn flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 font-bold text-ink"
-      >
-        <PlusIcon rotated={open} />
-        {open ? "Close" : "Create a room"}
-      </button>
-
-      {/* Le formulaire se déplie sous le bouton */}
-      <div
-        className={`grid transition-all duration-300 ease-out ${
-          open ? "mt-4 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-        }`}
-      >
-        <div className="overflow-hidden p-1">
-          <form action={formAction} className="neu space-y-3 rounded-3xl p-5">
-            <label className="block">
-              <span className="mb-1 block text-sm font-medium text-mute">Room name *</span>
-              <input
-                name="name"
-                type="text"
-                required
-                maxLength={60}
-                placeholder="e.g. Morning conversation club"
-                className={field}
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-sm font-medium text-mute">Topic (optional)</span>
-              <input
-                name="topic"
-                type="text"
-                maxLength={80}
-                placeholder="e.g. Talk about your week"
-                className={field}
-              />
-            </label>
-
-            {/* Publique ou privée ? */}
-            <div>
-              <span className="mb-1 block text-sm font-medium text-mute">Who can see it?</span>
-              <div className="flex gap-2">
-                {VISIBILITIES.map((option) => (
-                  <label
-                    key={option.value}
-                    className={`flex-1 cursor-pointer rounded-xl px-3 py-2 text-center transition-all duration-200 ${
-                      visibility === option.value
-                        ? "neu-inset text-brand"
-                        : "text-mute ring-1 ring-line hover:text-brand"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="visibility"
-                      value={option.value}
-                      checked={visibility === option.value}
-                      onChange={() => setVisibility(option.value)}
-                      className="sr-only"
-                    />
-                    <span className="flex items-center justify-center gap-1.5 text-sm font-semibold">
-                      {option.value === "private" && <LockIcon />}
-                      {option.label}
-                    </span>
-                  </label>
-                ))}
-              </div>
-              <p className="mt-1.5 text-xs text-mute">
-                {VISIBILITIES.find((option) => option.value === visibility)?.hint}
-              </p>
-            </div>
-            <p aria-live="polite" className="min-h-5 text-sm text-amber-300">
-              {state.error}
-            </p>
-            <button
-              type="submit"
-              disabled={pending}
-              className="neu-btn w-full rounded-full bg-brand px-5 py-2.5 font-bold text-white shadow-md disabled:opacity-60"
-            >
-              {pending ? "Opening the room..." : "Open the room"}
-            </button>
-          </form>
+    <section id="create-room" aria-labelledby="create-room-title" className="card scroll-mt-24 p-5 sm:p-6">
+      <div className="mb-5 flex items-center gap-3">
+        <span className="flex size-10 items-center justify-center rounded-xl bg-brand-50 text-brand">
+          <PlusIcon />
+        </span>
+        <div>
+          <h2 id="create-room-title" className="font-display text-lg font-semibold text-ink">
+            Create a room
+          </h2>
+          <p className="text-sm text-mute">Open a group conversation.</p>
         </div>
       </div>
-    </div>
-  );
-}
 
-function LockIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="size-3.5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="5" y="11" width="14" height="10" rx="2.5" />
-      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-    </svg>
-  );
-}
+      <form action={formAction} className="space-y-4">
+        <div>
+          <label htmlFor="room-name" className="label">
+            Room name
+          </label>
+          <input
+            id="room-name"
+            name="name"
+            type="text"
+            required
+            maxLength={60}
+            placeholder="e.g. Morning conversation club"
+            className="field"
+          />
+        </div>
 
-function PlusIcon({ rotated }: { rotated: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={`size-5 transition-transform duration-300 ${rotated ? "rotate-45" : ""}`}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-    >
-      <path d="M12 5v14M5 12h14" />
-    </svg>
+        <div>
+          <label htmlFor="room-topic" className="label">
+            Topic <span className="font-normal text-mute">(optional)</span>
+          </label>
+          <input
+            id="room-topic"
+            name="topic"
+            type="text"
+            maxLength={80}
+            placeholder="e.g. Talk about your week"
+            className="field"
+          />
+        </div>
+
+        {/* Publique ou privée ? Deux cartes à choisir */}
+        <fieldset>
+          <legend className="label">Who can join?</legend>
+          <div className="grid grid-cols-2 gap-2">
+            {VISIBILITIES.map((option) => {
+              const selected = visibility === option.value;
+              const Icon = option.icon;
+              return (
+                <label
+                  key={option.value}
+                  className={`relative flex cursor-pointer flex-col gap-1 rounded-xl border p-3 transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand ${
+                    selected
+                      ? "border-brand bg-brand-50"
+                      : "border-line-strong bg-surface hover:border-blush-2 hover:bg-blush/40"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="visibility"
+                    value={option.value}
+                    checked={selected}
+                    onChange={() => setVisibility(option.value)}
+                    className="sr-only"
+                  />
+                  <span
+                    className={`flex items-center gap-1.5 text-sm font-semibold ${
+                      selected ? "text-brand" : "text-ink"
+                    }`}
+                  >
+                    <Icon className="size-4" />
+                    {option.label}
+                  </span>
+                  <span className="text-xs leading-snug text-mute">{option.hint}</span>
+                  {selected && (
+                    <span aria-hidden className="absolute right-3 top-3 size-2 rounded-full bg-brand" />
+                  )}
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+
+        <p
+          aria-live="polite"
+          className={state.error ? "well px-3 py-2 text-sm font-medium text-danger" : "sr-only"}
+        >
+          {state.error}
+        </p>
+
+        <button type="submit" disabled={pending} className="btn btn-primary btn-lg w-full">
+          {pending ? "Opening the room..." : "Open the room"}
+        </button>
+      </form>
+    </section>
   );
 }

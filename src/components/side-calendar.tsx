@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useSyncExternalStore, type CSSProperties } from "react";
+import { useState, useSyncExternalStore } from "react";
+import { ChevronIcon } from "@/components/icons";
 
-// Le calendrier du panneau de gauche : mois navigable, "aujourd'hui" en bordeaux.
-// La date vient du navigateur (rien côté serveur).
+// Le calendrier : mois navigable, "aujourd'hui" en bordeaux,
+// et un petit point sous les jours où un cours est prévu.
+// La date vient du navigateur (l'heure locale du membre).
 
 /** Préviens React chaque minute (assez pour changer de jour à minuit). */
 function subscribeEveryMinute(onTick: () => void) {
@@ -11,7 +13,16 @@ function subscribeEveryMinute(onTick: () => void) {
   return () => clearInterval(timer);
 }
 
-export function SideCalendar({ className = "" }: { className?: string }) {
+const dayKey = (date: Date) => `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+
+export function SideCalendar({
+  className = "",
+  eventDates = [],
+}: {
+  className?: string;
+  /** Les dates des cours (texte ISO), pour les marquer d'un point. */
+  eventDates?: string[];
+}) {
   const tick = useSyncExternalStore(
     subscribeEveryMinute,
     () => Math.floor(Date.now() / 60000),
@@ -20,24 +31,25 @@ export function SideCalendar({ className = "" }: { className?: string }) {
   // Le mois affiché : null = celui d'aujourd'hui ; sinon choisi avec les flèches.
   const [view, setView] = useState<{ year: number; month: number } | null>(null);
 
-  if (tick === 0) return null;
+  // Côté serveur, on ne connaît pas la date du membre : une forme vide de même taille.
+  if (tick === 0) {
+    return <div aria-hidden className={`card h-80 animate-pulse ${className}`} />;
+  }
+
   const today = new Date(tick * 60000);
   const shown = view ?? { year: today.getFullYear(), month: today.getMonth() };
+  const marked = new Set(eventDates.map((iso) => dayKey(new Date(iso))));
 
   const firstDay = new Date(shown.year, shown.month, 1);
   const daysInMonth = new Date(shown.year, shown.month + 1, 0).getDate();
   // Lundi = 0 ... Dimanche = 6
   const offset = (firstDay.getDay() + 6) % 7;
 
-  const monthLabel = new Intl.DateTimeFormat("en-GB", {
-    month: "long",
-    year: "numeric",
-  }).format(firstDay);
-
-  const isToday = (day: number) =>
-    today.getDate() === day &&
-    today.getMonth() === shown.month &&
-    today.getFullYear() === shown.year;
+  const monthLabel = new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric" }).format(
+    firstDay,
+  );
+  const isCurrentMonth =
+    shown.year === today.getFullYear() && shown.month === today.getMonth();
 
   function move(step: number) {
     const next = new Date(shown.year, shown.month + step, 1);
@@ -45,77 +57,87 @@ export function SideCalendar({ className = "" }: { className?: string }) {
   }
 
   return (
-    <aside aria-label="Calendar" className={className}>
-      <div
-        className="neu anim-rise w-72 rounded-[2rem] p-6"
-        style={{ "--d": "300ms" } as CSSProperties}
-      >
-        {/* En-tête : mois + flèches */}
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <button
-            type="button"
-            onClick={() => move(-1)}
-            aria-label="Previous month"
-            className="neu-sm neu-btn flex size-8 items-center justify-center rounded-full text-mute hover:text-brand"
-          >
-            <Chevron direction="left" />
+    <section aria-label="Calendar" className={`card p-5 ${className}`}>
+      {/* En-tête : mois + flèches */}
+      <div className="mb-4 flex items-center gap-1">
+        <p aria-live="polite" className="flex-1 font-display text-base font-semibold text-ink">
+          {monthLabel}
+        </p>
+        {!isCurrentMonth && (
+          <button type="button" onClick={() => setView(null)} className="btn btn-ghost btn-sm">
+            Today
           </button>
-          <p className="font-display text-base font-bold text-ink">{monthLabel}</p>
-          <button
-            type="button"
-            onClick={() => move(1)}
-            aria-label="Next month"
-            className="neu-sm neu-btn flex size-8 items-center justify-center rounded-full text-mute hover:text-brand"
-          >
-            <Chevron direction="right" />
-          </button>
-        </div>
-
-        {/* Jours de la semaine */}
-        <div className="mb-1 grid grid-cols-7 text-center text-[11px] font-semibold uppercase text-mute">
-          {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((day) => (
-            <span key={day}>{day}</span>
-          ))}
-        </div>
-
-        {/* Les jours du mois */}
-        <div className="grid grid-cols-7 gap-y-1 text-center">
-          {Array.from({ length: offset }, (_, index) => (
-            <span key={`empty-${index}`} />
-          ))}
-          {Array.from({ length: daysInMonth }, (_, index) => {
-            const day = index + 1;
-            return (
-              <span
-                key={day}
-                className={`mx-auto flex size-8 items-center justify-center rounded-full text-sm transition-colors ${
-                  isToday(day)
-                    ? "bg-brand font-bold text-white shadow-md ring-1 ring-line"
-                    : "font-medium text-mute hover:bg-blush"
-                }`}
-              >
-                {day}
-              </span>
-            );
-          })}
-        </div>
+        )}
+        <button
+          type="button"
+          onClick={() => move(-1)}
+          aria-label="Previous month"
+          className="btn btn-ghost btn-sm btn-icon w-8"
+        >
+          <ChevronIcon direction="left" />
+        </button>
+        <button
+          type="button"
+          onClick={() => move(1)}
+          aria-label="Next month"
+          className="btn btn-ghost btn-sm btn-icon w-8"
+        >
+          <ChevronIcon />
+        </button>
       </div>
-    </aside>
-  );
-}
 
-function Chevron({ direction }: { direction: "left" | "right" }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={`size-4 ${direction === "left" ? "" : "rotate-180"}`}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m14 6-6 6 6 6" />
-    </svg>
+      {/* Jours de la semaine */}
+      <div aria-hidden className="mb-1 grid grid-cols-7 text-center text-xs font-medium text-mute">
+        {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((day) => (
+          <span key={day} className="py-1">
+            {day}
+          </span>
+        ))}
+      </div>
+
+      {/* Les jours du mois */}
+      <div className="grid grid-cols-7 gap-y-0.5 text-center">
+        {Array.from({ length: offset }, (_, index) => (
+          <span key={`empty-${index}`} />
+        ))}
+        {Array.from({ length: daysInMonth }, (_, index) => {
+          const day = index + 1;
+          const date = new Date(shown.year, shown.month, day);
+          const isToday = dayKey(date) === dayKey(today);
+          const hasClass = marked.has(dayKey(date));
+          return (
+            <span
+              key={day}
+              aria-current={isToday ? "date" : undefined}
+              className={`relative mx-auto flex size-9 items-center justify-center rounded-full text-sm tabular-nums ${
+                isToday
+                  ? "bg-brand font-semibold text-white"
+                  : hasClass
+                    ? "font-semibold text-brand"
+                    : "text-ink/80"
+              }`}
+            >
+              {day}
+              {hasClass && (
+                <>
+                  <span
+                    aria-hidden
+                    className={`absolute bottom-1 size-1 rounded-full ${isToday ? "bg-white" : "bg-brand"}`}
+                  />
+                  <span className="sr-only">, class scheduled</span>
+                </>
+              )}
+            </span>
+          );
+        })}
+      </div>
+
+      {eventDates.length > 0 && (
+        <p className="mt-4 flex items-center gap-2 border-t border-line pt-3 text-xs text-mute">
+          <span aria-hidden className="size-1.5 rounded-full bg-brand" />
+          A class is scheduled on this day
+        </p>
+      )}
+    </section>
   );
 }

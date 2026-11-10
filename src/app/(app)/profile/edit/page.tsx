@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/app-ui";
+import { ArrowLeftIcon } from "@/components/icons";
 import { ProfileForm } from "@/components/profile-form";
 import { getFullProfile } from "@/lib/profile";
 import { requireUser } from "@/lib/session";
@@ -11,11 +14,20 @@ export const metadata: Metadata = { title: "Edit profile" };
 // Page /profile/edit : modifier sa fiche (même formulaire que l'accueil, pré-rempli).
 export default function EditProfilePage() {
   return (
-    <div className="flex justify-center">
-      <Suspense fallback={<p className="pt-20 text-center text-mute">Loading...</p>}>
-        <EditGate />
-      </Suspense>
-    </div>
+    <>
+      <Link
+        href="/profile"
+        className="mb-5 inline-flex items-center gap-1.5 rounded-lg text-sm font-medium text-mute transition-colors hover:text-brand"
+      >
+        <ArrowLeftIcon className="size-4" />
+        Back to profile
+      </Link>
+      <div className="flex justify-center">
+        <Suspense fallback={<PageSkeleton />}>
+          <EditGate />
+        </Suspense>
+      </div>
+    </>
   );
 }
 

@@ -1,61 +1,34 @@
-import { Suspense, type ReactNode } from "react";
-import { BottomNav } from "@/components/bottom-nav";
+import type { ReactNode } from "react";
+import { AppSidebar, MobileNav, MobileTopBar } from "@/components/app-shell";
 import { PresencePing } from "@/components/presence-ping";
-import { SideCalendar } from "@/components/side-calendar";
-import { SideMembers, SideMembersFallback } from "@/components/side-members";
 
-// La coque de l'application membre : le fond sombre de la page d'authentification,
-// avec les cartes claires en relief qui flottent dessus. Sur grand écran,
-// un calendrier à gauche et une montre à droite habillent les côtés.
+// La coque de l'application membre.
+// - Ordinateur : barre latérale à gauche, contenu large à droite.
+// - Téléphone / tablette : barre du haut + onglets en bas.
+// Les panneaux "membres" et "calendrier" ne sont plus partout :
+// chaque page les montre seulement quand ils sont utiles.
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="relative flex flex-1 flex-col overflow-hidden bg-cream">
-      {/* Lueurs douces dans les coins, comme sur la page de connexion */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-24 -top-24 size-96 rounded-full bg-brand-100 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-32 -left-24 size-[28rem] rounded-full bg-accent-100 blur-3xl"
-      />
-
-      {/* Quelques tuiles de verre flottantes */}
-      <span
-        aria-hidden
-        className="anim-bubble pointer-events-none absolute left-[7%] top-[14%] size-20 rotate-6 rounded-2xl border border-line bg-white shadow-lg shadow-brand/5 max-xl:hidden"
-        style={{ "--d": "400ms", "--float": "9s" } as React.CSSProperties}
-      />
-      <span
-        aria-hidden
-        className="anim-bubble pointer-events-none absolute bottom-[16%] right-[6%] size-14 -rotate-6 rounded-2xl bg-gradient-to-br from-accent/70 to-brand/50 max-xl:hidden"
-        style={{ "--d": "700ms", "--float": "11s" } as React.CSSProperties}
-      />
-      <span
-        aria-hidden
-        className="anim-bubble pointer-events-none absolute right-[4%] top-[10%] size-10 rotate-12 rounded-xl bg-accent-200 max-xl:hidden"
-        style={{ "--d": "1000ms", "--float": "8s" } as React.CSSProperties}
-      />
-
-      <SideCalendar className="fixed left-10 top-1/2 z-10 hidden -translate-y-1/2 xl:block" />
-
-      {/* Colonne centrale, largeur "téléphone" même sur grand écran */}
-      <div className="relative z-10 mx-auto w-full max-w-lg flex-1 px-4 pb-32 pt-8">{children}</div>
-
-      {/* Les membres du club : qui est en ligne, et le bouton pour les suivre.
-          La liste est lue au moment de la requête → <Suspense> obligatoire. */}
-      <Suspense
-        fallback={
-          <SideMembersFallback className="fixed right-10 top-1/2 z-10 hidden -translate-y-1/2 xl:block" />
-        }
+    <div className="flex flex-1 flex-col bg-cream">
+      <a
+        href="#main"
+        className="sr-only z-50 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
       >
-        <SideMembers className="fixed right-10 top-1/2 z-10 hidden -translate-y-1/2 xl:block" />
-      </Suspense>
+        Skip to content
+      </a>
 
-      {/* La barre du bas lit l'adresse de la page : obligatoire dans un <Suspense>. */}
-      <Suspense fallback={null}>
-        <BottomNav />
-      </Suspense>
+      <AppSidebar />
+      <MobileTopBar />
+
+      <main id="main" tabIndex={-1} className="flex-1 outline-none lg:pl-sidebar">
+        <div className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 sm:px-6 sm:pt-8 lg:px-10 lg:pb-16 lg:pt-10">
+          {children}
+        </div>
+        {/* La place de la barre d'onglets du bas : elle ne cache jamais le contenu. */}
+        <div aria-hidden className="h-[calc(4rem+env(safe-area-inset-bottom))] lg:hidden" />
+      </main>
+
+      <MobileNav />
 
       {/* Dit au serveur que je suis en ligne (rien ne s'affiche). */}
       <PresencePing />

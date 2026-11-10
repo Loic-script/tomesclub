@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { delay, GlassCard, PageHeader } from "@/components/app-ui";
+import { delay, EmptyState, PageHeader, PageSkeleton, SectionHeader } from "@/components/app-ui";
+import { LockIcon, PeopleIcon, PlusIcon } from "@/components/icons";
 import { listOpenRooms } from "@/lib/rooms";
 import { requireMember } from "@/lib/session";
 import { CreateRoomForm } from "./create-room-form";
 
 export const metadata: Metadata = { title: "Rooms" };
 
-// Page /rooms : les salles de groupe ouvertes, et en créer une.
+// Page /rooms : rejoindre une salle de groupe ouverte (action principale),
+// ou en créer une (formulaire à côté sur grand écran).
 export default function RoomsPage() {
   return (
-    <Suspense fallback={<p className="pt-20 text-center text-mute">Loading...</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <RoomsHome />
     </Suspense>
   );
@@ -25,88 +27,82 @@ async function RoomsHome() {
     <>
       <PageHeader title="Rooms" subtitle="Group conversations, open to every member." />
 
-      <div className="space-y-5">
-        <div className="anim-rise" style={delay(150)}>
-          <CreateRoomForm />
-        </div>
-
-        <div className="anim-rise space-y-3" style={delay(280)}>
-          <h2 className="px-1 font-display text-lg font-bold text-ink">Open rooms</h2>
+      <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_var(--spacing-rail)]">
+        {/* ----- Les salles ouvertes ----- */}
+        <section aria-labelledby="open-rooms" className="anim-rise min-w-0" style={delay(80)}>
+          <SectionHeader
+            id="open-rooms"
+            title="Open rooms"
+            count={rooms?.length}
+            description="Join a conversation that is happening now."
+          />
 
           {rooms === null ? (
-            <GlassCard>
-              <p className="text-sm text-amber-300">
-                The video server is not running, so rooms are unavailable right now.
-              </p>
-            </GlassCard>
+            <p className="well px-4 py-3 text-sm text-mute">
+              The video server is not running, so rooms are unavailable right now.
+            </p>
           ) : rooms.length === 0 ? (
-            <GlassCard>
-              <p className="text-center text-sm text-mute">
-                No open room right now. Be the first to create one!
-              </p>
-            </GlassCard>
+            <EmptyState
+              icon={<PeopleIcon />}
+              title="No open room right now"
+              description="Be the first: open a room, give it a topic, and the club gets a notification."
+              action={
+                <a href="#create-room" className="btn btn-primary xl:hidden">
+                  <PlusIcon className="size-4" />
+                  Create a room
+                </a>
+              }
+            />
           ) : (
-            <ul className="space-y-4">
+            <ul className="grid gap-3 lg:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
               {rooms.map((room, index) => (
-                <li key={room.id} className="anim-rise" style={delay(320 + index * 80)}>
-                  <GlassCard className="flex items-center gap-4">
-                    <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark font-display text-lg font-bold text-white shadow-md">
+                <li
+                  key={room.id}
+                  className="anim-rise card flex flex-col gap-4 p-5"
+                  style={delay(120 + Math.min(index, 6) * 50)}
+                >
+                  <div className="flex items-start gap-4">
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-brand-100 font-display text-lg font-semibold text-brand">
                       {room.name[0]?.toUpperCase() ?? "R"}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="flex items-center gap-1.5 truncate font-semibold text-ink">
-                        {room.name}
-                        {room.isPrivate && (
-                          <span className="flex shrink-0 items-center gap-1 rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
-                            <LockIcon /> Private
-                          </span>
-                        )}
-                      </p>
-                      <p className="truncate text-xs text-mute">
-                        {room.topic ? `${room.topic} · ` : ""}Hosted by{" "}
-                        {room.isMine ? "you" : room.hostName}
-                        {room.isPrivate && room.isMine ? " · share the link to invite" : ""}
-                      </p>
+                      <h3 className="break-words font-semibold text-ink">{room.name}</h3>
+                      {room.topic && <p className="mt-0.5 text-sm text-mute">{room.topic}</p>}
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <span className="neu-inset flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold text-mute">
-                        <PeopleDot /> {room.participants}
+                    {room.isPrivate && (
+                      <span className="chip shrink-0 bg-accent-100 font-semibold text-accent-700">
+                        <LockIcon className="size-3.5" />
+                        Private
                       </span>
-                      <Link
-                        href={`/room/${room.id}`}
-                        className="neu-btn rounded-full bg-brand px-4 py-2 text-sm font-bold text-white shadow-md"
-                      >
-                        Join
-                      </Link>
-                    </div>
-                  </GlassCard>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3 border-t border-line pt-4">
+                    <span className="inline-flex items-center gap-1.5 text-sm text-mute">
+                      <span aria-hidden className="size-2 rounded-full bg-success" />
+                      {room.participants} {room.participants === 1 ? "person" : "people"}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm text-mute">
+                      · Hosted by {room.isMine ? "you" : room.hostName}
+                    </span>
+                    <Link href={`/room/${room.id}`} className="btn btn-primary shrink-0">
+                      Join
+                    </Link>
+                  </div>
+                  {room.isPrivate && room.isMine && (
+                    <p className="-mt-1 text-xs text-mute">Share the room link to invite people.</p>
+                  )}
                 </li>
               ))}
             </ul>
           )}
-        </div>
+        </section>
+
+        {/* ----- Créer une salle ----- */}
+        <aside className="anim-rise min-w-0 xl:sticky xl:top-10" style={delay(160)}>
+          <CreateRoomForm />
+        </aside>
       </div>
     </>
-  );
-}
-
-function PeopleDot() {
-  return <span aria-hidden className="size-1.5 rounded-full bg-green-400" />;
-}
-
-function LockIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="size-3"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="5" y="11" width="14" height="10" rx="2.5" />
-      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-    </svg>
   );
 }

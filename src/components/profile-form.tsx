@@ -188,7 +188,7 @@ export function ProfileForm({
     mode === "edit" ? "Save changes" : photoFile ? "Finish" : "Finish without photo";
 
   return (
-    <div className="anim-rise w-full max-w-2xl rounded-[2rem] bg-white p-6 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-line sm:p-10">
+    <div className="anim-rise w-full max-w-2xl rounded-[2rem] bg-white p-6 shadow-pop ring-1 ring-line sm:p-10">
       {/* ----- En-tête : logo + avancement ----- */}
       <header className="mb-8">
         <div className="anim-rise flex items-center gap-4" style={delay(100)}>

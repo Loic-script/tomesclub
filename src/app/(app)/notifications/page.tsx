@@ -1,7 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
-import { delay, GlassCard, PageHeader } from "@/components/app-ui";
+import { Suspense, type ReactNode } from "react";
+import { ActionForm } from "@/components/action-form";
+import { Card, delay, EmptyState, PageHeader, PageSkeleton } from "@/components/app-ui";
+import {
+  BellIcon,
+  CalendarIcon,
+  ChevronIcon,
+  MegaphoneIcon,
+  PeopleIcon,
+  PhoneIcon,
+  SettingsIcon,
+  UserPlusIcon,
+} from "@/components/icons";
 import {
   getNotificationSettings,
   listMyNotifications,
@@ -13,10 +24,10 @@ import { clearAllAction, markAllReadAction, toggleSettingAction } from "./action
 
 export const metadata: Metadata = { title: "Notifications" };
 
-// Page /notifications : tout ce que le club a à me dire, et mes réglages.
+// Page /notifications : l'historique (à gauche) et mes préférences (à droite).
 export default function NotificationsPage() {
   return (
-    <Suspense fallback={<p className="pt-20 text-center text-mute">Loading...</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <NotificationsHome />
     </Suspense>
   );
@@ -33,105 +44,116 @@ async function NotificationsHome() {
   return (
     <>
       <PageHeader
-        bell={false}
         title="Notifications"
         subtitle={
           unread > 0
-            ? `${unread} new ${unread === 1 ? "message" : "messages"}`
-            : "You are up to date"
+            ? `${unread} new ${unread === 1 ? "notification" : "notifications"}`
+            : "You are up to date."
         }
-        right={
-          unread > 0 ? (
-            <form action={markAllReadAction}>
-              <button
-                type="submit"
-                className="neu-sm neu-btn rounded-full px-4 py-2 text-xs font-semibold text-ink"
-              >
-                Mark all read
-              </button>
-            </form>
-          ) : undefined
+        actions={
+          <a href="#preferences" className="btn btn-secondary xl:hidden">
+            <SettingsIcon className="size-4" />
+            Preferences
+          </a>
         }
       />
 
-      <div className="space-y-5">
-        {/* ----- Les réglages : je choisis ce que je veux recevoir ----- */}
-        <GlassCard className="anim-rise" style={delay(100)}>
-          <h2 className="font-display text-lg font-bold text-ink">Settings</h2>
-          <p className="mt-1 text-xs text-mute">Choose what you want to be told about.</p>
-
-          <div className="mt-4 space-y-3">
-            <SettingRow
-              field="notifyCalls"
-              label="Video calls"
-              hint="When a member calls you"
-              value={settings.notifyCalls}
-              icon={<PhoneIcon />}
-            />
-            <SettingRow
-              field="notifyFollows"
-              label="New followers"
-              hint="When a member starts following you"
-              value={settings.notifyFollows}
-              icon={<UserPlusIcon />}
-            />
-            <SettingRow
-              field="notifyRooms"
-              label="Group rooms"
-              hint="When a member opens a public room"
-              value={settings.notifyRooms}
-              icon={<RoomsIcon />}
-            />
-            <SettingRow
-              field="notifyEvents"
-              label="Events and news"
-              hint="New classes and announcements from the coach"
-              value={settings.notifyEvents}
-              icon={<CalendarIcon />}
-            />
+      <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_var(--spacing-rail)]">
+        {/* ----- L'historique ----- */}
+        <section aria-labelledby="activity-title" className="anim-rise min-w-0" style={delay(80)}>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 id="activity-title" className="font-display text-lg font-semibold text-ink">
+              Activity
+            </h2>
+            {notifications.length > 0 && (
+              <div className="flex items-center gap-1">
+                {unread > 0 && (
+                  <ActionForm action={markAllReadAction}>
+                    <button type="submit" className="btn btn-ghost btn-sm text-brand hover:text-brand">
+                      Mark all read
+                    </button>
+                  </ActionForm>
+                )}
+                <ActionForm action={clearAllAction}>
+                  <button type="submit" className="btn btn-ghost btn-sm">
+                    Clear all
+                  </button>
+                </ActionForm>
+              </div>
+            )}
           </div>
-        </GlassCard>
 
-        {/* ----- La liste ----- */}
-        {notifications.length === 0 ? (
-          <GlassCard className="anim-rise text-center" style={delay(180)}>
-            <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-blush text-mute">
-              <BellIcon className="size-7" />
-            </span>
-            <p className="mt-3 font-semibold text-ink">Nothing yet</p>
-            <p className="mt-1 text-sm text-mute">Calls and new events will show up here.</p>
-          </GlassCard>
-        ) : (
-          <>
-            <ul className="space-y-3">
-              {notifications.map((notification, index) => (
-                <li
-                  key={notification.id}
-                  className="anim-rise"
-                  style={delay(180 + Math.min(index, 8) * 50)}
-                >
-                  <NotificationCard notification={notification} />
-                </li>
-              ))}
-            </ul>
+          {notifications.length === 0 ? (
+            <EmptyState
+              icon={<BellIcon />}
+              title="Nothing yet"
+              description="Calls, new followers, rooms and events will show up here."
+            />
+          ) : (
+            <Card padded={false} className="overflow-hidden">
+              <ul className="divide-y divide-line">
+                {notifications.map((notification) => (
+                  <li key={notification.id}>
+                    <NotificationRow notification={notification} />
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+        </section>
 
-            <form action={clearAllAction} className="pt-1 text-center">
-              <button
-                type="submit"
-                className="rounded-full px-4 py-2 text-xs font-semibold text-mute transition hover:text-brand"
-              >
-                Clear all
-              </button>
-            </form>
-          </>
-        )}
+        {/* ----- Les préférences ----- */}
+        <aside
+          id="preferences"
+          aria-labelledby="preferences-title"
+          className="anim-rise min-w-0 scroll-mt-24 xl:sticky xl:top-10"
+          style={delay(140)}
+        >
+          <Card>
+            <h2 id="preferences-title" className="font-display text-lg font-semibold text-ink">
+              Preferences
+            </h2>
+            <p className="mt-1 text-sm text-mute">Choose what you want to be told about.</p>
+
+            <div className="mt-5 divide-y divide-line">
+              <SettingRow
+                field="notifyCalls"
+                label="Video calls"
+                hint="When a member calls you"
+                value={settings.notifyCalls}
+                icon={<PhoneIcon className="size-4" />}
+              />
+              <SettingRow
+                field="notifyFollows"
+                label="New followers"
+                hint="When a member starts following you"
+                value={settings.notifyFollows}
+                icon={<UserPlusIcon className="size-4" />}
+              />
+              <SettingRow
+                field="notifyRooms"
+                label="Group rooms"
+                hint="When a member opens a public room"
+                value={settings.notifyRooms}
+                icon={<PeopleIcon className="size-4" />}
+              />
+              <SettingRow
+                field="notifyEvents"
+                label="Events and news"
+                hint="New classes and announcements from the coach"
+                value={settings.notifyEvents}
+                icon={<CalendarIcon className="size-4" />}
+              />
+            </div>
+          </Card>
+        </aside>
       </div>
     </>
   );
 }
 
-/** Une carte de notification (cliquable si elle a un lien). */
-function NotificationCard({ notification }: { notification: MemberNotification }) {
+/** Une ligne de l'historique (cliquable si elle a un lien). */
+function NotificationRow({ notification }: { notification: MemberNotification }) {
   const date = new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
     month: "short",
@@ -142,7 +164,7 @@ function NotificationCard({ notification }: { notification: MemberNotification }
   const inside = (
     <>
       <span
-        className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${
+        className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${
           notification.read ? "bg-blush text-mute" : "bg-brand text-white"
         }`}
       >
@@ -150,40 +172,47 @@ function NotificationCard({ notification }: { notification: MemberNotification }
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-2">
+        <span className="flex items-start justify-between gap-3">
           <span
-            className={`truncate text-sm font-semibold ${
-              notification.read ? "text-mute" : "text-ink"
+            className={`min-w-0 break-words text-sm ${
+              notification.read ? "font-medium text-ink/80" : "font-semibold text-ink"
             }`}
           >
             {notification.title}
           </span>
-          {!notification.read && (
-            <span aria-label="New" className="size-2 shrink-0 rounded-full bg-accent" />
-          )}
+          <time
+            dateTime={notification.createdAt.toISOString()}
+            className="shrink-0 pt-0.5 text-xs text-mute"
+          >
+            {date}
+          </time>
         </span>
         {notification.body && (
-          <span className="mt-0.5 block text-xs text-mute">{notification.body}</span>
+          <span className="mt-0.5 block text-sm text-mute">{notification.body}</span>
         )}
-        <span className="mt-1 block text-[11px] text-mute/70">{date}</span>
       </span>
+
+      {!notification.read && (
+        <span className="mt-1.5 size-2 shrink-0 rounded-full bg-brand">
+          <span className="sr-only">New</span>
+        </span>
+      )}
+      {notification.link && <ChevronIcon className="mt-1 size-4 text-mute" />}
     </>
   );
 
-  const shell = `neu-sm flex items-start gap-3 rounded-3xl p-4 ${
-    notification.read ? "" : "ring-1 ring-accent/30"
-  }`;
+  const row = `flex items-start gap-4 px-4 py-4 sm:px-5 ${notification.read ? "" : "bg-brand-50/50"}`;
 
   return notification.link ? (
-    <Link href={notification.link} className={`${shell} neu-btn`}>
+    <Link href={notification.link} className={`${row} transition-colors hover:bg-blush/60`}>
       {inside}
     </Link>
   ) : (
-    <div className={shell}>{inside}</div>
+    <div className={row}>{inside}</div>
   );
 }
 
-/** Un interrupteur de réglage, sans JavaScript : un petit formulaire. */
+/** Un interrupteur de réglage : un petit formulaire (puis la page se rafraîchit). */
 function SettingRow({
   field,
   label,
@@ -195,21 +224,25 @@ function SettingRow({
   label: string;
   hint: string;
   value: boolean;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }) {
   return (
-    <form action={toggleSettingAction} className="neu-inset flex items-center gap-3 rounded-2xl p-3">
+    <ActionForm action={toggleSettingAction} className="flex items-center gap-3 py-3.5 first:pt-0 last:pb-0">
       <input type="hidden" name="field" value={field} />
       {/* On envoie l'inverse de l'état actuel : le bouton bascule le réglage. */}
       <input type="hidden" name="value" value={value ? "off" : "on"} />
 
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blush text-mute">
+      <span
+        className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
+          value ? "bg-brand-50 text-brand" : "bg-blush text-mute"
+        }`}
+      >
         {icon}
       </span>
 
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-semibold text-ink">{label}</span>
-        <span className="block text-[11px] text-mute">{hint}</span>
+        <span className="block text-xs text-mute">{hint}</span>
       </span>
 
       <button
@@ -217,93 +250,25 @@ function SettingRow({
         role="switch"
         aria-checked={value}
         aria-label={`${label}: ${value ? "on" : "off"}`}
-        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors duration-300 ${
-          value ? "bg-brand" : "bg-blush-2"
+        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors duration-200 group-aria-busy:opacity-60 ${
+          value ? "bg-brand hover:bg-brand-700" : "bg-line-strong hover:bg-blush-2"
         }`}
       >
         <span
-          className={`absolute top-1 size-5 rounded-full bg-white shadow transition-all duration-300 ${
-            value ? "left-6" : "left-1"
+          aria-hidden
+          className={`size-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+            value ? "translate-x-5" : "translate-x-0"
           }`}
         />
       </button>
-    </form>
+    </ActionForm>
   );
 }
-
-/* Icônes */
-
-const iconProps = {
-  viewBox: "0 0 24 24",
-  className: "size-5",
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 1.8,
-  strokeLinecap: "round",
-  strokeLinejoin: "round",
-} as const;
 
 function KindIcon({ kind }: { kind: string }) {
-  if (kind === "call") return <PhoneIcon />;
-  if (kind === "follow") return <UserPlusIcon />;
-  if (kind === "room") return <RoomsIcon />;
-  if (kind === "event") return <CalendarIcon />;
-  return <MegaphoneIcon />;
-}
-
-function UserPlusIcon() {
-  return (
-    <svg {...iconProps}>
-      <circle cx="9" cy="8" r="3.4" />
-      <path d="M2.8 20a6.2 6.2 0 0 1 12.4 0" />
-      <path d="M18 8v6M15 11h6" />
-    </svg>
-  );
-}
-
-function RoomsIcon() {
-  return (
-    <svg {...iconProps}>
-      <circle cx="9" cy="8" r="3.2" />
-      <path d="M2.8 19a6.2 6.2 0 0 1 12.4 0" />
-      <circle cx="17" cy="9.5" r="2.4" />
-      <path d="M15.6 14.5a4.9 4.9 0 0 1 5.6 4.5" />
-    </svg>
-  );
-}
-
-function PhoneIcon() {
-  return (
-    <svg {...iconProps}>
-      <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.4 2.1L8.1 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.6 1.9Z" />
-    </svg>
-  );
-}
-
-function CalendarIcon() {
-  return (
-    <svg {...iconProps}>
-      <rect x="3" y="5" width="18" height="16" rx="2.5" />
-      <path d="M8 3v4M16 3v4M3 10h18" />
-    </svg>
-  );
-}
-
-function MegaphoneIcon() {
-  return (
-    <svg {...iconProps}>
-      <path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1Z" />
-      <path d="M15.5 8.5a5 5 0 0 1 0 7" />
-      <path d="M18.5 6a9 9 0 0 1 0 12" />
-    </svg>
-  );
-}
-
-function BellIcon({ className = "size-5" }: { className?: string }) {
-  return (
-    <svg {...iconProps} className={className}>
-      <path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6" />
-      <path d="M10.5 20a2 2 0 0 0 3 0" />
-    </svg>
-  );
+  if (kind === "call") return <PhoneIcon className="size-4" />;
+  if (kind === "follow") return <UserPlusIcon className="size-4" />;
+  if (kind === "room") return <PeopleIcon className="size-4" />;
+  if (kind === "event") return <CalendarIcon className="size-4" />;
+  return <MegaphoneIcon className="size-4" />;
 }
