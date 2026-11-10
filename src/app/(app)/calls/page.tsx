@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { delay, GlassCard, PageHeader } from "@/components/app-ui";
-import { listActiveCalls, listCallableMembers } from "@/lib/calls";
+import { listActiveCalls } from "@/lib/calls";
+import { listMembers, type MemberCard } from "@/lib/members";
 import { requireMember } from "@/lib/session";
 import { MembersCallList } from "./members-call-list";
+import { MembersSearch } from "./members-search";
 import { RandomSearchCard } from "./random-search";
 
 export const metadata: Metadata = { title: "Calls" };
@@ -21,9 +23,17 @@ export default function CallsPage() {
 async function CallsHome() {
   const user = await requireMember();
   const [members, activeCalls] = await Promise.all([
-    listCallableMembers(user.id),
+    // Tout le monde (0 = pas de limite), avec "en ligne" et "je le suis".
+    listMembers(user.id, 0),
     listActiveCalls(user.id),
   ]);
+
+  // La première carte : seulement les membres en ligne ou que je suis.
+  const nearby = members
+    .filter((member) => member.online || member.following)
+    .sort((a, b) => priority(a) - priority(b) || a.firstName.localeCompare(b.firstName));
+  // La deuxième carte : tout le monde, par ordre alphabétique.
+  const everyone = [...members].sort((a, b) => a.firstName.localeCompare(b.firstName));
 
   return (
     <>
@@ -63,10 +73,31 @@ async function CallsHome() {
 
         <GlassCard className="anim-rise" style={delay(350)}>
           <h2 className="font-display text-lg font-bold text-white">Members</h2>
-          <p className="mb-2 text-sm text-white/60">Pick someone and start a video call.</p>
-          <MembersCallList members={members} />
+          <p className="mb-2 text-sm text-white/60">
+            Online now and people you follow. Pick someone and start a video call.
+          </p>
+          <MembersCallList
+            members={nearby}
+            emptyText="Nobody online yet. Follow members to keep them here."
+          />
+        </GlassCard>
+
+        <GlassCard className="anim-rise" style={delay(430)}>
+          <h2 className="font-display text-lg font-bold text-white">All members</h2>
+          <p className="text-sm text-white/60">Everyone in the club.</p>
+          <MembersSearch members={everyone} />
         </GlassCard>
       </div>
     </>
   );
+}
+
+/**
+ * L'ordre de la carte "Members" :
+ * 0 = je le suis ET il est en ligne, 1 = en ligne, 2 = je le suis (hors ligne).
+ */
+function priority(member: MemberCard): number {
+  if (member.following && member.online) return 0;
+  if (member.online) return 1;
+  return 2;
 }

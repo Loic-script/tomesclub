@@ -8,16 +8,23 @@ import { startDirectCall } from "./actions";
 
 // Les membres en grille d'icônes rondes (comme un calendrier d'avatars) :
 // on touche un visage pour lancer l'appel vidéo.
-export function MembersCallList({ members }: { members: CallableMember[] }) {
+export type CallListMember = CallableMember & { online?: boolean; following?: boolean };
+
+export function MembersCallList({
+  members,
+  emptyText = "No other members yet. Invite your friends to join the club!",
+}: {
+  members: CallListMember[];
+  /** Le texte quand la liste est vide. */
+  emptyText?: string;
+}) {
   const [error, setError] = useState<string | null>(null);
   const [callingId, setCallingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   if (members.length === 0) {
     return (
-      <p className="py-4 text-center text-sm text-white/60">
-        No other members yet. Invite your friends to join the club!
-      </p>
+      <p className="py-4 text-center text-sm text-white/60">{emptyText}</p>
     );
   }
 
@@ -67,6 +74,14 @@ export function MembersCallList({ members }: { members: CallableMember[] }) {
                       size="size-14"
                     />
                   </span>
+                  {/* Point vert : en ligne */}
+                  {member.online && (
+                    <span
+                      role="img"
+                      aria-label="Online"
+                      className="absolute right-0.5 top-0.5 size-3.5 rounded-full border-2 border-white bg-green-500"
+                    />
+                  )}
                   {/* Petit badge téléphone */}
                   <span
                     className={`absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full text-white shadow transition-colors ${
