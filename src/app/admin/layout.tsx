@@ -18,7 +18,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <span className="block font-display text-lg font-bold leading-tight text-navy">
                 Tomes Club
               </span>
-              <span className="block text-xs text-mute">Admin area</span>
+              <span className="block text-xs text-zinc-500">Admin area</span>
             </span>
           </Link>
 

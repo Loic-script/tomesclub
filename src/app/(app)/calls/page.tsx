@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Calls" };
 // Page /calls : appeler un membre, ou se faire appeler par le hasard.
 export default function CallsPage() {
   return (
-    <Suspense fallback={<p className="pt-20 text-center text-mute">Loading...</p>}>
+    <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
       <CallsHome />
     </Suspense>
   );
@@ -36,7 +36,7 @@ async function CallsHome() {
 
         {activeCalls.length > 0 && (
           <GlassCard className="anim-rise" style={delay(250)}>
-            <h2 className="mb-3 font-display text-lg font-bold text-ink">Calls in progress</h2>
+            <h2 className="mb-3 font-display text-lg font-bold text-white">Calls in progress</h2>
             <ul className="space-y-3">
               {activeCalls.map((call) => (
                 <li
@@ -44,10 +44,10 @@ async function CallsHome() {
                   className="neu-inset flex items-center justify-between gap-3 rounded-2xl px-3.5 py-2.5"
                 >
                   <div className="min-w-0 text-sm">
-                    <p className="font-semibold text-ink">
+                    <p className="font-semibold text-white">
                       {call.startedByMe ? "Started by you" : `${call.startedByName} is calling you`}
                     </p>
-                    <p className="truncate text-mute">With {call.otherNames.join(", ")}</p>
+                    <p className="truncate text-white/60">With {call.otherNames.join(", ")}</p>
                   </div>
                   <Link
                     href={`/call/${call.id}`}
@@ -62,8 +62,8 @@ async function CallsHome() {
         )}
 
         <GlassCard className="anim-rise" style={delay(350)}>
-          <h2 className="font-display text-lg font-bold text-ink">Members</h2>
-          <p className="mb-2 text-sm text-mute">Pick someone and start a video call.</p>
+          <h2 className="font-display text-lg font-bold text-white">Members</h2>
+          <p className="mb-2 text-sm text-white/60">Pick someone and start a video call.</p>
           <MembersCallList members={members} />
         </GlassCard>
       </div>

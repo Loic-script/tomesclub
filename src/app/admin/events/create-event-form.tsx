@@ -11,7 +11,7 @@ export function CreateEventForm() {
   const [kind, setKind] = useState<"event" | "announcement">("event");
 
   const field =
-    "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20";
+    "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20";
 
   return (
     <form action={formAction} className="space-y-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
@@ -75,7 +75,7 @@ export function CreateEventForm() {
         />
       </label>
 
-      <p aria-live="polite" className="min-h-5 text-sm text-danger">
+      <p aria-live="polite" className="min-h-5 text-sm text-red-600">
         {state.error}
       </p>
 

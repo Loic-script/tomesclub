@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "Home" };
 // et les grandes tuiles vers chaque section.
 export default function HomePage() {
   return (
-    <Suspense fallback={<p className="pt-20 text-center text-mute">Loading...</p>}>
+    <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
       <HomeDashboard />
     </Suspense>
   );
@@ -67,7 +67,7 @@ async function HomeDashboard() {
               href={`/call/${activeCalls[0].id}`}
               className="neu-btn flex items-center gap-3 rounded-3xl bg-gradient-to-r from-brand to-brand-dark p-4 text-white shadow-lg"
             >
-              <span className="relative flex size-11 shrink-0 items-center justify-center rounded-full bg-blush">
+              <span className="relative flex size-11 shrink-0 items-center justify-center rounded-full bg-white/15">
                 <span aria-hidden className="anim-ping absolute inset-0 rounded-full bg-accent/50" />
                 <PhoneIcon className="relative size-5" />
               </span>
@@ -77,7 +77,7 @@ async function HomeDashboard() {
                     ? "Your call is in progress"
                     : `${activeCalls[0].startedByName} is calling you`}
                 </span>
-                <span className="block text-sm text-mute">Tap to join the video call</span>
+                <span className="block text-sm text-white/70">Tap to join the video call</span>
               </span>
               <span className="shrink-0 rounded-full bg-white px-4 py-2 text-sm font-bold text-brand">
                 Join
@@ -100,20 +100,20 @@ async function HomeDashboard() {
           <div className="anim-rise" style={delay(280)}>
             <Link href="/events" className="block">
               <GlassCard className="neu-btn flex items-center gap-4">
-                <span className="flex size-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark text-white shadow-md ring-1 ring-line">
+                <span className="flex size-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark text-white shadow-md ring-1 ring-white/20">
                   <span className="font-display text-xl font-bold leading-none">
                     {new Intl.DateTimeFormat("en-GB", { day: "2-digit" }).format(nextEvent.startsAt)}
                   </span>
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-mute">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-white/80">
                     {new Intl.DateTimeFormat("en-GB", { month: "short" }).format(nextEvent.startsAt)}
                   </span>
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-xs font-semibold uppercase tracking-wide text-brand">
+                  <span className="block text-xs font-semibold uppercase tracking-wide text-accent">
                     Next class
                   </span>
-                  <span className="block truncate font-semibold text-ink">{nextEvent.title}</span>
-                  <span className="block text-sm text-mute">
+                  <span className="block truncate font-semibold text-white">{nextEvent.title}</span>
+                  <span className="block text-sm text-white/60">
                     {new Intl.DateTimeFormat("en-GB", {
                       weekday: "long",
                       hour: "2-digit",
@@ -121,7 +121,7 @@ async function HomeDashboard() {
                     }).format(nextEvent.startsAt)}
                   </span>
                 </span>
-                <span aria-hidden className="text-mute/70">→</span>
+                <span aria-hidden className="text-white/40">→</span>
               </GlassCard>
             </Link>
           </div>
@@ -152,8 +152,8 @@ async function HomeDashboard() {
 function Stat({ value, label }: { value: number | string; label: string }) {
   return (
     <div className="neu-inset rounded-2xl px-2 py-3">
-      <p className="font-display text-2xl font-bold text-brand">{value}</p>
-      <p className="text-xs text-mute">{label}</p>
+      <p className="font-display text-2xl font-bold text-accent">{value}</p>
+      <p className="text-xs text-white/60">{label}</p>
     </div>
   );
 }
@@ -174,12 +174,12 @@ function Tile({
   return (
     <Link href={href} className="anim-rise block" style={delay(delayMs)}>
       <GlassCard className="neu-btn flex flex-col items-center gap-3 py-6 text-center">
-        <span className="neu-inset flex size-14 items-center justify-center rounded-2xl text-brand">
+        <span className="neu-inset flex size-14 items-center justify-center rounded-2xl text-accent">
           {children}
         </span>
         <span>
-          <span className="block font-display text-lg font-bold text-ink">{title}</span>
-          <span className="block text-xs text-mute">{hint}</span>
+          <span className="block font-display text-lg font-bold text-white">{title}</span>
+          <span className="block text-xs text-white/55">{hint}</span>
         </span>
       </GlassCard>
     </Link>

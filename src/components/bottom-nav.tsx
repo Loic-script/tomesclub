@@ -42,8 +42,8 @@ export function BottomNav() {
                 aria-current={active ? "page" : undefined}
                 className={`flex flex-col items-center gap-0.5 rounded-full px-1 py-2 text-[10px] font-semibold leading-tight transition-all duration-300 sm:px-3 sm:text-[11px] ${
                   active
-                    ? "neu-inset text-brand"
-                    : "text-mute hover:-translate-y-0.5 hover:text-brand"
+                    ? "neu-inset text-accent"
+                    : "text-white/60 hover:-translate-y-0.5 hover:text-white"
                 }`}
               >
                 <Icon />
@@ -59,7 +59,7 @@ export function BottomNav() {
             type="button"
             onClick={signOut}
             disabled={signingOut}
-            className="flex w-full flex-col items-center gap-0.5 rounded-full px-1 py-2 text-[10px] font-semibold leading-tight text-mute transition-all duration-300 hover:-translate-y-0.5 hover:text-brand disabled:opacity-60 sm:px-3 sm:text-[11px]"
+            className="flex w-full flex-col items-center gap-0.5 rounded-full px-1 py-2 text-[10px] font-semibold leading-tight text-white/60 transition-all duration-300 hover:-translate-y-0.5 hover:text-accent disabled:opacity-60 sm:px-3 sm:text-[11px]"
           >
             <LogoutIcon />
             {signingOut ? "..." : "Logout"}

@@ -14,7 +14,7 @@ export default function OnboardingPage() {
   return (
     <Suspense
       fallback={
-        <div className="w-full max-w-2xl rounded-[2rem] bg-white p-10 text-center text-mute shadow-2xl">
+        <div className="w-full max-w-2xl rounded-[2rem] bg-white p-10 text-center text-zinc-500 shadow-2xl">
           Loading...
         </div>
       }

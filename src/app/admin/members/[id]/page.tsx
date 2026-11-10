@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "Member profile · Admin" };
 // Page /admin/members/<id> : la fiche complète d'un membre.
 export default function MemberProfilePage({ params }: PageProps<"/admin/members/[id]">) {
   return (
-    <Suspense fallback={<p className="m-auto text-mute">Loading...</p>}>
+    <Suspense fallback={<p className="m-auto text-zinc-500">Loading...</p>}>
       {params.then(({ id }) => (
         <MemberProfile userId={id} />
       ))}
@@ -65,7 +65,7 @@ async function MemberProfile({ userId }: { userId: string }) {
           />
           <div className="min-w-0 flex-1">
             <h1 className="truncate font-display text-2xl font-bold text-navy">{displayName}</h1>
-            <p className="truncate text-sm text-mute">{member.email}</p>
+            <p className="truncate text-sm text-zinc-500">{member.email}</p>
             <p className="mt-1 text-xs text-zinc-400">
               Member since {date(member.createdAt)} ·{" "}
               {profile?.completedAt ? "profile completed" : "profile not finished"}
@@ -75,7 +75,7 @@ async function MemberProfile({ userId }: { userId: string }) {
         </header>
 
         {!profile ? (
-          <p className="pt-6 text-mute">This member has not filled in the form yet.</p>
+          <p className="pt-6 text-zinc-500">This member has not filled in the form yet.</p>
         ) : (
           <dl className="grid gap-x-8 gap-y-5 pt-6 sm:grid-cols-2">
             <Field label="Date of birth" value={date(profile.birthDate)} />
@@ -118,7 +118,7 @@ function Field({
   return (
     <div>
       <dt className="text-xs font-semibold uppercase tracking-wide text-zinc-400">{label}</dt>
-      <dd className={`mt-0.5 text-ink ${capitalize ? "capitalize" : ""}`}>
+      <dd className={`mt-0.5 text-zinc-900 ${capitalize ? "capitalize" : ""}`}>
         {value || <span className="text-zinc-400">—</span>}
       </dd>
     </div>

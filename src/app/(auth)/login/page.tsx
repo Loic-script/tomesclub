@@ -13,7 +13,7 @@ const delay = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
 export default function LoginPage() {
   return (
     <div
-      className="anim-rise grid w-full max-w-4xl overflow-hidden rounded-[2rem] bg-white shadow-[0_30px_80px_-24px_rgba(92,4,35,0.35)] ring-1 ring-line md:min-h-[540px] md:grid-cols-2"
+      className="anim-rise grid w-full max-w-4xl overflow-hidden rounded-[2rem] bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 md:min-h-[540px] md:grid-cols-2"
       style={delay(0)}
     >
       {/* ----- Panneau de gauche : la marque ----- */}
@@ -57,7 +57,7 @@ export default function LoginPage() {
         </SpeechBubble>
 
         <div className="relative flex flex-col items-center gap-4">
-          <p className="anim-rise text-xs font-semibold uppercase tracking-[0.35em] text-accent" style={delay(150)}>
+          <p className="anim-rise text-xs font-semibold uppercase tracking-[0.35em] text-white/80" style={delay(150)}>
             Welcome to
           </p>
 
@@ -65,11 +65,11 @@ export default function LoginPage() {
             Tomes Club
           </h2>
 
-          <p className="anim-rise text-xs font-semibold uppercase tracking-[0.2em] text-white/85" style={delay(420)}>
+          <p className="anim-rise text-xs font-semibold uppercase tracking-[0.2em] text-white/90" style={delay(420)}>
             Motivate <Dot /> Activate <Dot /> Develop
           </p>
 
-          <span aria-hidden className="anim-rise h-px w-24 bg-accent" style={delay(520)} />
+          <span aria-hidden className="anim-rise h-px w-24 bg-white/30" style={delay(520)} />
 
           <p className="anim-rise max-w-xs text-sm leading-6 text-white/80" style={delay(620)}>
             Live English classes with Coach Rindra, wherever you are.
@@ -106,7 +106,7 @@ function SpeechBubble({
     <span
       aria-hidden
       style={style}
-      className={`anim-bubble absolute select-none rounded-2xl rounded-bl-sm bg-white px-3 py-1.5 text-xs font-medium text-brand shadow-sm ${className}`}
+      className={`anim-bubble absolute select-none rounded-2xl rounded-bl-sm bg-white/15 px-3 py-1.5 text-xs font-medium text-white/90 shadow-sm backdrop-blur-sm ${className}`}
     >
       {children}
     </span>
@@ -115,5 +115,5 @@ function SpeechBubble({
 
 /** Point orange entre les mots de la devise. */
 function Dot() {
-  return <span className="text-brand">·</span>;
+  return <span className="text-accent">·</span>;
 }

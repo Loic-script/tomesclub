@@ -188,7 +188,7 @@ export function ProfileForm({
     mode === "edit" ? "Save changes" : photoFile ? "Finish" : "Finish without photo";
 
   return (
-    <div className="anim-rise w-full max-w-2xl rounded-[2rem] bg-white p-6 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-line sm:p-10">
+    <div className="anim-rise w-full max-w-2xl rounded-[2rem] bg-white p-6 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 sm:p-10">
       {/* ----- En-tête : logo + avancement ----- */}
       <header className="mb-8">
         <div className="anim-rise flex items-center gap-4" style={delay(100)}>
@@ -200,7 +200,7 @@ export function ProfileForm({
             <p className="font-display text-2xl font-bold leading-tight text-navy">
               {mode === "edit" ? "Edit profile" : "Tomes Club"}
             </p>
-            <p className="text-sm text-mute">
+            <p className="text-sm text-zinc-500">
               Step {step + 1} of {STEPS.length}
             </p>
           </div>
@@ -276,7 +276,7 @@ export function ProfileForm({
                       }
                       className="size-4 accent-brand"
                     />
-                    <span className="font-semibold text-ink">{occupation.label}</span>
+                    <span className="font-semibold text-zinc-900">{occupation.label}</span>
                   </label>
 
                   {/* Le détail se déplie quand la case est cochée */}
@@ -331,8 +331,8 @@ export function ProfileForm({
                         : "border-zinc-200 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-sm"
                     }`}
                   >
-                    <span className="block font-semibold text-ink">{level.label}</span>
-                    <span className="block text-xs text-mute">{level.hint}</span>
+                    <span className="block font-semibold text-zinc-900">{level.label}</span>
+                    <span className="block text-xs text-zinc-500">{level.hint}</span>
                   </button>
                 ))}
               </div>
@@ -374,7 +374,7 @@ export function ProfileForm({
                 // eslint-disable-next-line @next/next/no-img-element -- aperçu local ou photo privée de l'API
                 <img src={photoPreview} alt="Your photo" className="size-full object-cover" />
               ) : (
-                <span className="flex flex-col items-center gap-2 text-mute transition-colors group-hover:text-brand">
+                <span className="flex flex-col items-center gap-2 text-zinc-500 transition-colors group-hover:text-brand">
                   <CameraIcon />
                   <span className="text-sm font-medium">Choose a photo</span>
                 </span>
@@ -403,7 +403,7 @@ export function ProfileForm({
       </div>
 
       {/* ----- Erreur + navigation ----- */}
-      <p aria-live="polite" className="mt-4 min-h-5 text-sm text-danger">
+      <p aria-live="polite" className="mt-4 min-h-5 text-sm text-red-600">
         {error}
       </p>
 
@@ -493,7 +493,7 @@ function TextField({
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-ink shadow-[inset_2px_2px_6px_rgba(0,0,0,0.06),inset_-2px_-2px_6px_#ffffff] outline-none transition placeholder:text-zinc-400 focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
+        className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-zinc-900 shadow-[inset_2px_2px_6px_rgba(0,0,0,0.06),inset_-2px_-2px_6px_#ffffff] outline-none transition placeholder:text-zinc-400 focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
       />
     </label>
   );
@@ -559,7 +559,7 @@ function ChipPicker({
             }
           }}
           placeholder={addPlaceholder}
-          className="w-full max-w-60 rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-1.5 text-sm text-ink shadow-[inset_2px_2px_5px_rgba(0,0,0,0.06),inset_-2px_-2px_5px_#ffffff] outline-none transition placeholder:text-zinc-400 focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
+          className="w-full max-w-60 rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-1.5 text-sm text-zinc-900 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.06),inset_-2px_-2px_5px_#ffffff] outline-none transition placeholder:text-zinc-400 focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
         />
         <button
           type="button"

@@ -12,7 +12,7 @@ export async function NotificationBell() {
     <Link
       href="/notifications"
       aria-label={unread > 0 ? `Notifications (${unread} new)` : "Notifications"}
-      className="neu-sm neu-btn relative flex size-11 shrink-0 items-center justify-center rounded-full text-mute transition hover:text-brand"
+      className="neu-sm neu-btn relative flex size-11 shrink-0 items-center justify-center rounded-full text-white/80 transition hover:text-white"
     >
       <svg
         viewBox="0 0 24 24"

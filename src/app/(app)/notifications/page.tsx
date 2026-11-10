@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "Notifications" };
 // Page /notifications : tout ce que le club a à me dire, et mes réglages.
 export default function NotificationsPage() {
   return (
-    <Suspense fallback={<p className="pt-20 text-center text-mute">Loading...</p>}>
+    <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
       <NotificationsHome />
     </Suspense>
   );
@@ -45,7 +45,7 @@ async function NotificationsHome() {
             <form action={markAllReadAction}>
               <button
                 type="submit"
-                className="neu-sm neu-btn rounded-full px-4 py-2 text-xs font-semibold text-ink"
+                className="neu-sm neu-btn rounded-full px-4 py-2 text-xs font-semibold text-white"
               >
                 Mark all read
               </button>
@@ -57,8 +57,8 @@ async function NotificationsHome() {
       <div className="space-y-5">
         {/* ----- Les réglages : je choisis ce que je veux recevoir ----- */}
         <GlassCard className="anim-rise" style={delay(100)}>
-          <h2 className="font-display text-lg font-bold text-ink">Settings</h2>
-          <p className="mt-1 text-xs text-mute">Choose what you want to be told about.</p>
+          <h2 className="font-display text-lg font-bold text-white">Settings</h2>
+          <p className="mt-1 text-xs text-white/55">Choose what you want to be told about.</p>
 
           <div className="mt-4 space-y-3">
             <SettingRow
@@ -95,11 +95,11 @@ async function NotificationsHome() {
         {/* ----- La liste ----- */}
         {notifications.length === 0 ? (
           <GlassCard className="anim-rise text-center" style={delay(180)}>
-            <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-blush text-mute">
+            <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-white/10 text-white/70">
               <BellIcon className="size-7" />
             </span>
-            <p className="mt-3 font-semibold text-ink">Nothing yet</p>
-            <p className="mt-1 text-sm text-mute">Calls and new events will show up here.</p>
+            <p className="mt-3 font-semibold text-white">Nothing yet</p>
+            <p className="mt-1 text-sm text-white/55">Calls and new events will show up here.</p>
           </GlassCard>
         ) : (
           <>
@@ -118,7 +118,7 @@ async function NotificationsHome() {
             <form action={clearAllAction} className="pt-1 text-center">
               <button
                 type="submit"
-                className="rounded-full px-4 py-2 text-xs font-semibold text-mute transition hover:text-brand"
+                className="rounded-full px-4 py-2 text-xs font-semibold text-white/50 transition hover:text-white"
               >
                 Clear all
               </button>
@@ -143,7 +143,7 @@ function NotificationCard({ notification }: { notification: MemberNotification }
     <>
       <span
         className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${
-          notification.read ? "bg-blush text-mute" : "bg-brand text-white"
+          notification.read ? "bg-white/10 text-white/60" : "bg-brand text-white"
         }`}
       >
         <KindIcon kind={notification.kind} />
@@ -153,7 +153,7 @@ function NotificationCard({ notification }: { notification: MemberNotification }
         <span className="flex items-center gap-2">
           <span
             className={`truncate text-sm font-semibold ${
-              notification.read ? "text-mute" : "text-ink"
+              notification.read ? "text-white/70" : "text-white"
             }`}
           >
             {notification.title}
@@ -163,9 +163,9 @@ function NotificationCard({ notification }: { notification: MemberNotification }
           )}
         </span>
         {notification.body && (
-          <span className="mt-0.5 block text-xs text-mute">{notification.body}</span>
+          <span className="mt-0.5 block text-xs text-white/55">{notification.body}</span>
         )}
-        <span className="mt-1 block text-[11px] text-mute/70">{date}</span>
+        <span className="mt-1 block text-[11px] text-white/40">{date}</span>
       </span>
     </>
   );
@@ -203,13 +203,13 @@ function SettingRow({
       {/* On envoie l'inverse de l'état actuel : le bouton bascule le réglage. */}
       <input type="hidden" name="value" value={value ? "off" : "on"} />
 
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blush text-mute">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white/70">
         {icon}
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-semibold text-ink">{label}</span>
-        <span className="block text-[11px] text-mute">{hint}</span>
+        <span className="block text-sm font-semibold text-white">{label}</span>
+        <span className="block text-[11px] text-white/50">{hint}</span>
       </span>
 
       <button
@@ -218,7 +218,7 @@ function SettingRow({
         aria-checked={value}
         aria-label={`${label}: ${value ? "on" : "off"}`}
         className={`relative h-7 w-12 shrink-0 rounded-full transition-colors duration-300 ${
-          value ? "bg-brand" : "bg-blush-2"
+          value ? "bg-brand" : "bg-white/15"
         }`}
       >
         <span

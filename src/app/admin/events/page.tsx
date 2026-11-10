@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Events · Admin" };
 // Page /admin/events : publier et gérer les événements et annonces du club.
 export default function AdminEventsPage() {
   return (
-    <Suspense fallback={<p className="m-auto text-mute">Loading...</p>}>
+    <Suspense fallback={<p className="m-auto text-zinc-500">Loading...</p>}>
       <AdminEvents />
     </Suspense>
   );
@@ -44,7 +44,7 @@ async function AdminEvents() {
       </h2>
 
       {events.length === 0 ? (
-        <p className="rounded-2xl bg-white p-8 text-center text-mute shadow-sm">
+        <p className="rounded-2xl bg-white p-8 text-center text-zinc-500 shadow-sm">
           Nothing published yet.
         </p>
       ) : (
@@ -62,8 +62,8 @@ async function AdminEvents() {
                 {event.kind === "event" ? "Event" : "Announcement"}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-ink">{event.title}</p>
-                <p className="text-xs text-mute">
+                <p className="font-semibold text-zinc-900">{event.title}</p>
+                <p className="text-xs text-zinc-500">
                   {event.startsAt ? `Starts ${format(event.startsAt)}` : `Posted ${format(event.createdAt)}`}
                 </p>
               </div>

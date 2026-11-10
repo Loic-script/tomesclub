@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Rooms" };
 // Page /rooms : les salles de groupe ouvertes, et en créer une.
 export default function RoomsPage() {
   return (
-    <Suspense fallback={<p className="pt-20 text-center text-mute">Loading...</p>}>
+    <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
       <RoomsHome />
     </Suspense>
   );
@@ -31,7 +31,7 @@ async function RoomsHome() {
         </div>
 
         <div className="anim-rise space-y-3" style={delay(280)}>
-          <h2 className="px-1 font-display text-lg font-bold text-ink">Open rooms</h2>
+          <h2 className="px-1 font-display text-lg font-bold text-white">Open rooms</h2>
 
           {rooms === null ? (
             <GlassCard>
@@ -41,7 +41,7 @@ async function RoomsHome() {
             </GlassCard>
           ) : rooms.length === 0 ? (
             <GlassCard>
-              <p className="text-center text-sm text-mute">
+              <p className="text-center text-sm text-white/60">
                 No open room right now. Be the first to create one!
               </p>
             </GlassCard>
@@ -50,11 +50,11 @@ async function RoomsHome() {
               {rooms.map((room, index) => (
                 <li key={room.id} className="anim-rise" style={delay(320 + index * 80)}>
                   <GlassCard className="flex items-center gap-4">
-                    <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark font-display text-lg font-bold text-white shadow-md">
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-brand font-display text-lg font-bold text-white shadow-md">
                       {room.name[0]?.toUpperCase() ?? "R"}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="flex items-center gap-1.5 truncate font-semibold text-ink">
+                      <p className="flex items-center gap-1.5 truncate font-semibold text-white">
                         {room.name}
                         {room.isPrivate && (
                           <span className="flex shrink-0 items-center gap-1 rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
@@ -62,14 +62,14 @@ async function RoomsHome() {
                           </span>
                         )}
                       </p>
-                      <p className="truncate text-xs text-mute">
+                      <p className="truncate text-xs text-white/60">
                         {room.topic ? `${room.topic} · ` : ""}Hosted by{" "}
                         {room.isMine ? "you" : room.hostName}
                         {room.isPrivate && room.isMine ? " · share the link to invite" : ""}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
-                      <span className="neu-inset flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold text-mute">
+                      <span className="neu-inset flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold text-white/75">
                         <PeopleDot /> {room.participants}
                       </span>
                       <Link
