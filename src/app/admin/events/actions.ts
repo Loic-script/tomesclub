@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
+import { notifyAllMembers } from "@/lib/notifications";
 import { MAX_PHOTO_BYTES, PHOTO_TYPES } from "@/lib/onboarding-options";
 import { prisma } from "@/lib/prisma";
 
@@ -50,6 +51,23 @@ export async function createEvent(
 
   await prisma.event.create({
     data: { kind, title, description: description || null, startsAt, image, imageType },
+  });
+
+  // On prévient tous les membres (ceux qui n'ont pas coupé ces notifications).
+  await notifyAllMembers({
+    kind: kind === "event" ? "event" : "announcement",
+    title: kind === "event" ? `New class: ${title}` : title,
+    body:
+      kind === "event" && startsAt
+        ? new Intl.DateTimeFormat("en-GB", {
+            weekday: "long",
+            day: "2-digit",
+            month: "long",
+            hour: "2-digit",
+            minute: "2-digit",
+          }).format(startsAt)
+        : "New announcement from your coach.",
+    link: "/events",
   });
 
   redirect("/admin/events");

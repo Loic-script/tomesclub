@@ -1,6 +1,7 @@
 import "server-only";
 import { connection } from "next/server";
 import { createRoomServiceClient } from "@/lib/livekit";
+import { notifyMembers } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 
 // Tout ce qui concerne les appels vidéo dans la base de données + LiveKit.
@@ -87,6 +88,11 @@ export async function createCall(
   });
   if (invited.length === 0) return null;
 
+  const creator = await prisma.user.findUnique({
+    where: { id: creatorId },
+    select: { name: true },
+  });
+
   const call = await prisma.call.create({
     data: {
       createdById: creatorId,
@@ -108,6 +114,17 @@ export async function createCall(
     await prisma.call.delete({ where: { id: call.id } });
     throw error;
   }
+
+  // On prévient les personnes invitées (sauf celles qui ont coupé ces notifications).
+  await notifyMembers(
+    invited.map((user) => user.id),
+    {
+      kind: "call",
+      title: `${creator?.name ?? "A member"} invited you to a video call`,
+      body: "Tap to join the room.",
+      link: `/call/${call.id}`,
+    },
+  );
 
   return call;
 }

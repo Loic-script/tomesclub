@@ -1,4 +1,5 @@
-import type { CSSProperties, ReactNode } from "react";
+import { Suspense, type CSSProperties, type ReactNode } from "react";
+import { NotificationBell, NotificationBellFallback } from "@/components/notification-bell";
 
 // Petits morceaux d'interface du "mode application" (fond clair, relief doux).
 
@@ -27,17 +28,26 @@ export function PageHeader({
   title,
   subtitle,
   right,
+  bell = true,
 }: {
   title: string;
   subtitle?: string;
   right?: ReactNode;
+  /** La cloche des notifications (cachée sur la page Notifications elle-même). */
+  bell?: boolean;
 }) {
   return (
-    <header className="anim-rise mb-6 flex items-center gap-4" style={delay(50)}>
+    <header className="anim-rise mb-6 flex items-center gap-3" style={delay(50)}>
       <div className="min-w-0 flex-1">
         <h1 className="font-display text-3xl font-bold tracking-tight text-white">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-white/65">{subtitle}</p>}
       </div>
+      {bell && (
+        // La cloche compte les notifications : lecture au moment de la requête.
+        <Suspense fallback={<NotificationBellFallback />}>
+          <NotificationBell />
+        </Suspense>
+      )}
       {right}
     </header>
   );
