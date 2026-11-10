@@ -5,6 +5,7 @@ import { VideoRoom } from "@/components/video-room";
 import { getCallForMember } from "@/lib/calls";
 import { createParticipantToken, getBrowserLiveKitUrl } from "@/lib/livekit";
 import { requireUser } from "@/lib/session";
+import { endCallForTime } from "./actions";
 
 export const metadata: Metadata = { title: "In a call" };
 
@@ -38,6 +39,12 @@ async function Room({ callId }: { callId: string }) {
   ]);
 
   return (
-    <VideoRoom token={token} serverUrl={serverUrl} leaveTo="/calls" callMinutes={CALL_MINUTES} />
+    <VideoRoom
+      token={token}
+      serverUrl={serverUrl}
+      leaveTo="/calls"
+      callMinutes={CALL_MINUTES}
+      onTimeUp={endCallForTime.bind(null, call.id)}
+    />
   );
 }

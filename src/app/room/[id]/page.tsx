@@ -6,8 +6,9 @@ import { Suspense } from "react";
 import { VideoRoom } from "@/components/video-room";
 import { createParticipantToken, getBrowserLiveKitUrl } from "@/lib/livekit";
 import { findActivity, levelLabel } from "@/lib/room-activities";
-import { getRoom, ROOM_PREFIX, roomEndsAt, roomIsOver } from "@/lib/rooms";
+import { closeRoom, getRoom, ROOM_PREFIX, roomEndsAt, roomIsOver } from "@/lib/rooms";
 import { requireMember } from "@/lib/session";
+import { endRoomIfOver } from "./actions";
 
 export const metadata: Metadata = { title: "Room" };
 
@@ -33,6 +34,8 @@ async function Room({ roomId }: { roomId: string }) {
   // Le temps choisi par l hôte est fini : la salle est fermée.
   await connection();
   if (roomIsOver(room)) {
+    // Personne n'a fermé la salle à temps : on la ferme et on la supprime maintenant.
+    await closeRoom(room.id);
     return (
       <div className="m-auto max-w-sm px-6 text-center">
         <p className="text-4xl" aria-hidden>
@@ -71,6 +74,7 @@ async function Room({ roomId }: { roomId: string }) {
       token={token}
       serverUrl={serverUrl}
       leaveTo="/rooms"
+      onTimeUp={endRoomIfOver.bind(null, room.id)}
       room={{
         activityIcon: activity?.icon ?? null,
         activityName: activity?.name ?? (room.topic ? room.name : null),

@@ -137,6 +137,16 @@ export function getCallForMember(callId: string, userId: string) {
   });
 }
 
+/** Termine un appel : LiveKit fait sortir les deux personnes. */
+export async function endCallRoom(callId: string): Promise<void> {
+  try {
+    await createRoomServiceClient().deleteRoom(callId);
+  } catch (error) {
+    // Déjà fermé (l'autre personne l'a peut-être fait juste avant).
+    console.warn("[endCallRoom]", error);
+  }
+}
+
 /** Les appels en cours où je suis invité (la salle LiveKit est encore ouverte). */
 export async function listActiveCalls(userId: string): Promise<ActiveCall[]> {
   // "Récent" dépend de l'heure actuelle : donnée de requête, on le déclare à Next.js.

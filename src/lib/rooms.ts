@@ -41,6 +41,20 @@ export function roomIsOver(room: { createdAt: Date; durationMin: number | null }
   return end !== null && Date.now() >= end;
 }
 
+/**
+ * Ferme une salle pour de bon : LiveKit fait sortir tout le monde,
+ * puis la salle est supprimée de la base.
+ */
+export async function closeRoom(id: string): Promise<void> {
+  try {
+    await createRoomServiceClient().deleteRoom(`${ROOM_PREFIX}${id}`);
+  } catch (error) {
+    // Déjà fermée dans LiveKit (ou serveur vidéo injoignable) : on supprime quand même.
+    console.warn("[closeRoom]", error);
+  }
+  await prisma.room.deleteMany({ where: { id } });
+}
+
 /** Ce que l'hôte choisit en créant la salle. */
 export type NewRoom = {
   name: string;
@@ -149,10 +163,7 @@ export async function listOpenRooms(viewerId: string): Promise<OpenRoom[] | null
   await connection();
   const finished = rows.filter(roomIsOver);
   if (finished.length > 0) {
-    const service = createRoomServiceClient();
-    await Promise.allSettled(
-      finished.map((row) => service.deleteRoom(`${ROOM_PREFIX}${row.id}`)),
-    );
+    await Promise.allSettled(finished.map((row) => closeRoom(row.id)));
   }
   const stillOpen = rows.filter((row) => !finished.includes(row));
 
