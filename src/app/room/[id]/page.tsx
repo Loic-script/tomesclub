@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { VideoRoom } from "@/components/video-room";
 import { createParticipantToken, getBrowserLiveKitUrl } from "@/lib/livekit";
 import { findActivity, levelLabel } from "@/lib/room-activities";
-import { getRoom, ROOM_PREFIX } from "@/lib/rooms";
+import { getRoom, ROOM_PREFIX, roomEndsAt, roomIsOver } from "@/lib/rooms";
 import { requireMember } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Room" };
@@ -28,6 +30,28 @@ async function Room({ roomId }: { roomId: string }) {
   const room = await getRoom(roomId);
   if (!room) notFound();
 
+  // Le temps choisi par l hôte est fini : la salle est fermée.
+  await connection();
+  if (roomIsOver(room)) {
+    return (
+      <div className="m-auto max-w-sm px-6 text-center">
+        <p className="text-4xl" aria-hidden>
+          ⏰
+        </p>
+        <h1 className="mt-3 font-display text-2xl font-bold text-white">This room has ended</h1>
+        <p className="mt-2 text-sm text-white/60">
+          Its {room.durationMin} minutes are over. Open a new room to keep practising!
+        </p>
+        <Link
+          href="/rooms"
+          className="mt-6 inline-block rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white"
+        >
+          Back to rooms
+        </Link>
+      </div>
+    );
+  }
+
   const [serverUrl, token] = await Promise.all([
     getBrowserLiveKitUrl(),
     createParticipantToken({
@@ -39,9 +63,8 @@ async function Room({ roomId }: { roomId: string }) {
 
   // Ce que la barre du haut affiche : l'activité, le thème, le temps restant.
   const activity = findActivity(room.activity);
-  const endsAt = room.durationMin
-    ? new Date(room.createdAt.getTime() + room.durationMin * 60 * 1000).toISOString()
-    : null;
+  const endsAtMs = roomEndsAt(room);
+  const endsAt = endsAtMs !== null ? new Date(endsAtMs).toISOString() : null;
 
   return (
     <VideoRoom

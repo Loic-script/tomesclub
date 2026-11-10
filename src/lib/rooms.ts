@@ -1,4 +1,5 @@
 import "server-only";
+import { connection } from "next/server";
 import { createRoomServiceClient } from "@/lib/livekit";
 import { notifyAllMembers } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
@@ -28,6 +29,17 @@ export type OpenRoom = {
   /** Fin prévue (texte ISO) : création + durée. Null si pas de durée. */
   endsAt: string | null;
 };
+
+/** La fin prévue d'une salle (en ms), ou null si elle n'a pas de durée. */
+export function roomEndsAt(room: { createdAt: Date; durationMin: number | null }): number | null {
+  return room.durationMin ? room.createdAt.getTime() + room.durationMin * 60 * 1000 : null;
+}
+
+/** Le temps de la salle est-il fini ? (à appeler après connection()) */
+export function roomIsOver(room: { createdAt: Date; durationMin: number | null }): boolean {
+  const end = roomEndsAt(room);
+  return end !== null && Date.now() >= end;
+}
 
 /** Ce que l'hôte choisit en créant la salle. */
 export type NewRoom = {
@@ -133,11 +145,22 @@ export async function listOpenRooms(viewerId: string): Promise<OpenRoom[] | null
     },
   });
 
+  // Les salles dont le temps est fini : on les cache et on les ferme dans LiveKit.
+  await connection();
+  const finished = rows.filter(roomIsOver);
+  if (finished.length > 0) {
+    const service = createRoomServiceClient();
+    await Promise.allSettled(
+      finished.map((row) => service.deleteRoom(`${ROOM_PREFIX}${row.id}`)),
+    );
+  }
+  const stillOpen = rows.filter((row) => !finished.includes(row));
+
   const participantsById = new Map(
     open.map((room) => [room.name.slice(ROOM_PREFIX.length), Number(room.numParticipants)]),
   );
 
-  return rows.map((row) => ({
+  return stillOpen.map((row) => ({
     id: row.id,
     name: row.name,
     topic: row.topic,
@@ -149,9 +172,7 @@ export async function listOpenRooms(viewerId: string): Promise<OpenRoom[] | null
     format: row.format,
     durationMin: row.durationMin,
     level: row.level,
-    endsAt: row.durationMin
-      ? new Date(row.createdAt.getTime() + row.durationMin * 60 * 1000).toISOString()
-      : null,
+    endsAt: row.durationMin ? new Date(roomEndsAt(row)!).toISOString() : null,
   }));
 }
 

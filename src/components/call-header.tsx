@@ -20,7 +20,17 @@ export type RoomInfo = {
   endsAt: string | null;
 };
 
-export function CallHeader({ room }: { room?: RoomInfo }) {
+export function CallHeader({
+  room,
+  endsAt,
+  note,
+}: {
+  room?: RoomInfo;
+  /** Fin de l'appel (texte ISO) : affiche le compte à rebours. */
+  endsAt?: string | null;
+  /** Petit texte à droite tant qu'il n'y a pas de compte à rebours. */
+  note?: string | null;
+}) {
   const [showDetails, setShowDetails] = useState(false);
   const hasDetails = Boolean(room?.description || room?.format || room?.level || room?.theme);
 
@@ -78,9 +88,17 @@ export function CallHeader({ room }: { room?: RoomInfo }) {
               )}
             </button>
 
-            {room.endsAt && <RoomTimeLeft endsAt={room.endsAt} />}
           </>
         )}
+
+        {/* Le temps restant, toujours à droite */}
+        <span className="ml-auto shrink-0">
+          {endsAt ? (
+            <RoomTimeLeft endsAt={endsAt} />
+          ) : note ? (
+            <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/60">{note}</span>
+          ) : null}
+        </span>
       </div>
 
       {/* Les détails, seulement si on les ouvre */}

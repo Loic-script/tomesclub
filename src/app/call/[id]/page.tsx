@@ -8,6 +8,9 @@ import { requireUser } from "@/lib/session";
 
 export const metadata: Metadata = { title: "In a call" };
 
+/** Un appel entre membres dure toujours 5 minutes (compté quand les deux sont là). */
+const CALL_MINUTES = 5;
+
 // Page /call/<id> : la salle vidéo d'un appel privé.
 export default function CallRoomPage({ params }: PageProps<"/call/[id]">) {
   return (
@@ -34,5 +37,7 @@ async function Room({ callId }: { callId: string }) {
     createParticipantToken({ identity: user.id, name: user.name, roomName: call.id }),
   ]);
 
-  return <VideoRoom token={token} serverUrl={serverUrl} leaveTo="/calls" />;
+  return (
+    <VideoRoom token={token} serverUrl={serverUrl} leaveTo="/calls" callMinutes={CALL_MINUTES} />
+  );
 }
