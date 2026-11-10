@@ -17,6 +17,30 @@ const VISIBILITIES = [
 
 const initialState: CreateRoomState = { error: null };
 
+/** Un conseil selon le niveau (repris du fichier des activités). */
+function levelTip(level: string): string | null {
+  if (level === "beginner" || level === "elementary") {
+    return "Tip: use simple linking words: because, but, so, for example.";
+  }
+  if (level === "intermediate" || level === "advanced") {
+    return "Tip: use stronger connectors: however, as a result, in contrast, on the other hand.";
+  }
+  return null;
+}
+
+/** La description toute prête pour un thème proposé. */
+function describe(activity: RoomActivity, format: string, duration: number, level: string): string {
+  return [
+    activity.description,
+    "1. Prepare (1 min): read the theme and note 2–3 ideas.",
+    `2. Do it (${duration} min): ${format}.`,
+    "3. Feedback: share one thing that went well and one thing to improve.",
+    levelTip(level),
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 const field =
   "neu-inset w-full rounded-xl px-3 py-2 text-white placeholder:text-white/40 outline-none transition focus:ring-2 focus:ring-accent/40";
 const labelText = "mb-1.5 block text-sm font-medium text-white/75";
@@ -109,6 +133,24 @@ function RoomOptions({
   const [level, setLevel] = useState("all");
   const [duration, setDuration] = useState<number>(DEFAULT_DURATION);
   const [visibility, setVisibility] = useState<"public" | "private">("public");
+  // Thème proposé → description écrite pour l'hôte (et mise à jour avec les options).
+  // Thème écrit par l'hôte → il écrit sa propre description.
+  const [autoDescription, setAutoDescription] = useState(false);
+  const [ownDescription, setOwnDescription] = useState("");
+  const description = autoDescription ? describe(activity, format, duration, level) : ownDescription;
+
+  function chooseSuggestion(suggestion: string) {
+    setTopic(suggestion);
+    setAutoDescription(true);
+  }
+
+  function writeOwnTheme(value: string) {
+    setTopic(value);
+    if (autoDescription) {
+      setAutoDescription(false);
+      setOwnDescription("");
+    }
+  }
 
   const topics = activity.categories.find((entry) => entry.name === category)?.topics ?? [];
   const levelName = ROOM_LEVELS.find((entry) => entry.value === level)?.label;
@@ -120,7 +162,7 @@ function RoomOptions({
     const picked = all[Math.floor(Math.random() * all.length)];
     if (!picked) return;
     setCategory(picked.category);
-    setTopic(picked.suggestion);
+    chooseSuggestion(picked.suggestion);
   }
 
   return (
@@ -188,7 +230,7 @@ function RoomOptions({
             <li key={suggestion}>
               <button
                 type="button"
-                onClick={() => setTopic(suggestion)}
+                onClick={() => chooseSuggestion(suggestion)}
                 aria-pressed={topic === suggestion}
                 className={`w-full rounded-xl px-3 py-2 text-left text-sm transition ${
                   topic === suggestion
@@ -208,7 +250,7 @@ function RoomOptions({
           required
           maxLength={160}
           value={topic}
-          onChange={(event) => setTopic(event.target.value)}
+          onChange={(event) => writeOwnTheme(event.target.value)}
           placeholder="…or write your own theme"
           aria-label="Theme"
           className={`${field} mt-2`}
@@ -218,14 +260,22 @@ function RoomOptions({
       {/* ----- La description ----- */}
       <label className="block">
         <span className={labelText}>
-          Description <span className="text-white/40">(optional)</span>
+          Description{" "}
+          <span className="text-white/40">
+            {autoDescription ? "(written for you, you can edit it)" : "(optional)"}
+          </span>
         </span>
         <textarea
           name="description"
-          rows={3}
-          maxLength={400}
+          rows={autoDescription ? 6 : 3}
+          maxLength={600}
+          value={description}
+          onChange={(event) => {
+            setAutoDescription(false);
+            setOwnDescription(event.target.value);
+          }}
           placeholder="What will you do? Any rules or tips for the group?"
-          className={`${field} resize-y`}
+          className={`${field} resize-y leading-6`}
         />
       </label>
 
@@ -241,27 +291,28 @@ function RoomOptions({
         </div>
       </fieldset>
 
-      {/* ----- Le niveau et la durée ----- */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className={labelText}>English level</span>
-          <select
-            name="level"
-            value={level}
-            onChange={(event) => setLevel(event.target.value)}
-            className={`${field} [&>option]:text-ink`}
-          >
-            {ROOM_LEVELS.map((entry) => (
-              <option key={entry.value} value={entry.value}>
-                {entry.label}
-              </option>
-            ))}
-          </select>
-        </label>
+      {/* ----- Le niveau ----- */}
+      <fieldset>
+        <legend className={labelText}>English level</legend>
+        <input type="hidden" name="level" value={level} />
+        <div className="flex flex-wrap gap-1.5">
+          {ROOM_LEVELS.map((entry) => (
+            <ChoiceChip
+              key={entry.value}
+              selected={level === entry.value}
+              onClick={() => setLevel(entry.value)}
+            >
+              {entry.label}
+            </ChoiceChip>
+          ))}
+        </div>
+      </fieldset>
 
+      {/* ----- La durée ----- */}
+      <div>
         <fieldset>
           <legend className={labelText}>Duration</legend>
-          <div className="grid grid-cols-6 gap-1 sm:grid-cols-3">
+          <div className="grid grid-cols-6 gap-1.5">
             {ROOM_DURATIONS.map((minutes) => (
               <ChoiceChip
                 key={minutes}

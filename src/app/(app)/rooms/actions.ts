@@ -25,7 +25,7 @@ export async function createRoomAction(
   if (!topic) return { error: "Please choose or write a theme." };
 
   const name = text(formData, "name", 60) || activity.name;
-  const description = text(formData, "description", 400);
+  const description = text(formData, "description", 600);
   const isPrivate = formData.get("visibility") === "private";
 
   const formatValue = text(formData, "format", 60);

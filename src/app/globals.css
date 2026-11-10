@@ -248,3 +248,27 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------- Barres de défilement aux couleurs du club ---------- */
+/* Firefox et Chrome récent : fine, orange sur fond transparent. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(247 148 74 / 0.55) transparent;
+}
+
+/* Safari et anciens navigateurs : pastille arrondie orange → bordeaux. */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background: linear-gradient(var(--color-accent), var(--color-brand)) padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent) padding-box;
+}
