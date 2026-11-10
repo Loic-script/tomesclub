@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Members · Admin" };
 // Page /admin/members : la liste des membres, avec accès à chaque fiche.
 export default function MembersPage() {
   return (
-    <Suspense fallback={<p className="m-auto text-zinc-500">Loading...</p>}>
+    <Suspense fallback={<p className="m-auto text-mute">Loading...</p>}>
       <MembersList />
     </Suspense>
   );
@@ -48,7 +48,7 @@ async function MembersList() {
       </header>
 
       {members.length === 0 ? (
-        <p className="rounded-2xl bg-white p-8 text-center text-zinc-500 shadow-sm">
+        <p className="rounded-2xl bg-white p-8 text-center text-mute shadow-sm">
           No members yet.
         </p>
       ) : (
@@ -69,8 +69,8 @@ async function MembersList() {
                 />
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-zinc-900">{displayName}</p>
-                  <p className="truncate text-sm text-zinc-500">{member.email}</p>
+                  <p className="truncate font-semibold text-ink">{displayName}</p>
+                  <p className="truncate text-sm text-mute">{member.email}</p>
                 </div>
 
                 <div className="flex items-center gap-2 text-xs">

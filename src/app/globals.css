@@ -1,23 +1,54 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fffafb; /* blanc rosé, comme le site */
+  --foreground: #22192e; /* encre : presque noir, un peu violet */
 }
 
 /* Couleurs du logo Tomes Club → classes Tailwind : bg-brand, text-navy, bg-cream... */
 @theme {
-  --color-brand: #9c0b3b;
-  --color-brand-dark: #7a082e;
-  --color-navy: #2e3192;
-  --color-accent: #f7944a;
-  --color-cream: #fbe7e1;
+  /* --- Bordeaux (couleur principale du site) --- */
+  --color-brand-50: #fdf2f6;
+  --color-brand-100: #fce7ee;
+  --color-brand-200: #f8cddc;
+  --color-brand-300: #f0a3bd;
+  --color-brand-400: #e26a93;
+  --color-brand-500: #c4306a;
+  --color-brand: #930a39;
+  --color-brand-700: #7a0730;
+  --color-brand-dark: #5c0423;
+  --color-brand-900: #3f0218;
+
+  /* --- Or (accent : un seul par écran) --- */
+  --color-accent-50: #fffbea;
+  --color-accent-100: #fff4d1;
+  --color-accent-200: #fee8a6;
+  --color-accent-300: #fbd978;
+  --color-accent: #f7c948;
+  --color-accent-500: #e9b32a;
+  --color-accent-600: #c9931a;
+  --color-accent-700: #9c7110;
+
+  /* --- Fonds et traits (gris très légèrement rosé) --- */
+  --color-cream: #fffafb;
+  --color-blush: #fceef3;
+  --color-blush-2: #f5d7e2;
+  --color-line: #f0e2e8;
+
+  /* --- Textes --- */
+  --color-ink: #22192e;
+  --color-mute: #625a70;
+  --color-navy: #2a3487;
+
+  /* --- Messages --- */
+  --color-success: #10a37a;
+  --color-danger: #d33a4b;
 
   /* Police des titres (classe Tailwind : font-display) */
   --font-display: var(--font-bricolage), var(--font-geist-sans), sans-serif;
 
-  /* Fond clair du mode application (style relief doux) */
-  --color-surface: #f3eae8;
+  /* La carte du mode application : blanc pur posé sur le fond rosé */
+  --color-surface: #ffffff;
 }
 
 @theme inline {
@@ -25,13 +56,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
@@ -129,80 +153,55 @@ body {
   animation: gradient-drift 16s ease-in-out infinite alternate;
 }
 
-/* ---------- Relief doux ("neumorphisme") du mode application ---------- */
-/* Une carte posée sur le fond : lumière en haut à gauche, ombre en bas à droite. */
+/* ---------- Cartes et boutons (style du site) ---------- */
+/* Une carte : blanc pur, trait fin rosé, ombre douce teintée bordeaux.
+   Les noms de classes ne changent pas (.neu, .neu-sm, .neu-inset, .neu-btn). */
 .neu {
   background: var(--color-surface);
+  border: 1px solid var(--color-line);
   box-shadow:
-    9px 9px 20px #d9cac7,
-    -9px -9px 20px #ffffff;
+    0 24px 48px -28px rgba(92, 4, 35, 0.3),
+    0 3px 8px -4px rgba(92, 4, 35, 0.07);
 }
 
 .neu-sm {
   background: var(--color-surface);
-  box-shadow:
-    5px 5px 12px #d9cac7,
-    -5px -5px 12px #ffffff;
+  border: 1px solid var(--color-line);
+  box-shadow: 0 10px 22px -14px rgba(92, 4, 35, 0.28);
 }
 
-/* Creusé dans le fond (champs de texte, état actif). */
+/* Creusé : champs de texte, onglet actif. */
 .neu-inset {
-  background: var(--color-surface);
-  box-shadow:
-    inset 5px 5px 10px #dccecb,
-    inset -5px -5px 10px #ffffff;
-}
-
-/* Sur le fond sombre de l'app, les surfaces prennent la couleur du fond
-   (verre sombre) et le relief se fait avec des ombres noires + un fin liseré clair. */
-.on-dark .neu {
-  background: rgba(255, 255, 255, 0.09);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 22px 45px -15px rgba(0, 0, 0, 0.6);
-}
-
-.on-dark .neu-sm {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.5);
-}
-
-.on-dark .neu-inset {
-  background: rgba(0, 0, 0, 0.22);
-  box-shadow:
-    inset 4px 4px 10px rgba(0, 0, 0, 0.45),
-    inset -3px -3px 8px rgba(255, 255, 255, 0.05);
-}
-
-.on-dark .neu.neu-btn:active,
-.on-dark .neu-sm.neu-btn:active {
-  box-shadow:
-    inset 4px 4px 10px rgba(0, 0, 0, 0.45),
-    inset -3px -3px 8px rgba(255, 255, 255, 0.05);
+  background: var(--color-blush);
+  border: 1px solid var(--color-line);
+  box-shadow: inset 0 2px 4px rgba(92, 4, 35, 0.06);
 }
 
 /* Bouton : se soulève au survol, s'enfonce quand on appuie. */
 .neu-btn {
   transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .neu-btn:hover {
   transform: translateY(-2px);
+  box-shadow:
+    0 28px 50px -26px rgba(92, 4, 35, 0.38),
+    0 4px 10px -4px rgba(92, 4, 35, 0.1);
 }
 
 .neu-btn:active {
-  transform: translateY(0) scale(0.97);
+  transform: translateY(0) scale(0.98);
+  box-shadow: inset 0 2px 5px rgba(92, 4, 35, 0.12);
 }
 
-.neu-sm.neu-btn:active,
-.neu.neu-btn:active {
-  box-shadow:
-    inset 5px 5px 10px #dccecb,
-    inset -5px -5px 10px #ffffff;
+/* Le focus clavier, visible partout (accessibilité). */
+:where(a, button, input, select, textarea, [role="switch"]):focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 0.75rem;
 }
 
 /* Liste déroulante qui s'ouvre (pays). */

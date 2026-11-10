@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Admin" };
 // Page /admin : le tableau de bord de l'équipe (protégé par la session admin).
 export default function AdminPage() {
   return (
-    <Suspense fallback={<p className="m-auto text-zinc-500">Loading...</p>}>
+    <Suspense fallback={<p className="m-auto text-mute">Loading...</p>}>
       <AdminHome />
     </Suspense>
   );

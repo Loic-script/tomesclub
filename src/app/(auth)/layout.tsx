@@ -5,10 +5,10 @@ import type { CSSProperties, ReactNode } from "react";
 // adapté à la palette Tomes Club).
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <main className="relative flex flex-1 items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#1a1150,#45091f_52%,#7a082e)] px-4 py-10">
+    <main className="relative flex flex-1 items-center justify-center overflow-hidden bg-cream px-4 py-10">
       {/* Lueurs douces dans les coins */}
-      <div aria-hidden className="absolute -right-24 -top-24 size-96 rounded-full bg-navy/50 blur-3xl" />
-      <div aria-hidden className="absolute -bottom-32 -left-24 size-[28rem] rounded-full bg-accent/15 blur-3xl" />
+      <div aria-hidden className="absolute -right-24 -top-24 size-96 rounded-full bg-brand-100 blur-3xl" />
+      <div aria-hidden className="absolute -bottom-32 -left-24 size-[28rem] rounded-full bg-accent-100 blur-3xl" />
 
       {/* Tuiles flottantes autour de la carte */}
       <Tile look="glass" className="left-[5%] top-[10%] size-28 rotate-6" style={tile(200, 9)}>
@@ -37,10 +37,10 @@ const tile = (delayMs: number, floatSec: number) =>
   ({ "--d": `${delayMs}ms`, "--float": `${floatSec}s` }) as CSSProperties;
 
 const LOOKS = {
-  /* verre dépoli */ glass: "border border-white/20 bg-white/10 backdrop-blur-sm",
-  /* orange du logo */ accent: "bg-gradient-to-br from-accent/80 to-brand/50",
-  /* crème du logo */ cream: "bg-cream/30",
-  /* rosé */ rose: "bg-gradient-to-br from-[#f06292]/60 to-brand/40",
+  /* carte blanche */ glass: "border border-line bg-white",
+  /* or du club */ accent: "bg-gradient-to-br from-accent to-accent-500",
+  /* rosé très clair */ cream: "bg-blush-2",
+  /* bordeaux */ rose: "bg-gradient-to-br from-brand to-brand-dark",
 } as const;
 
 function Tile({
@@ -58,7 +58,7 @@ function Tile({
     <span
       aria-hidden
       style={style}
-      className={`anim-bubble absolute flex items-center justify-center rounded-2xl shadow-xl shadow-black/25 ${LOOKS[look]} ${className}`}
+      className={`anim-bubble absolute flex items-center justify-center rounded-2xl shadow-xl shadow-brand/10 ${LOOKS[look]} ${className}`}
     >
       {children}
     </span>
@@ -71,7 +71,7 @@ function BubbleGlyph() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="size-10 text-white/80"
+      className="size-10 text-brand/55"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.5"
@@ -84,14 +84,14 @@ function BubbleGlyph() {
 }
 
 function AaGlyph() {
-  return <span className="font-display text-2xl font-bold text-white/80">Aa</span>;
+  return <span className="font-display text-2xl font-bold text-brand/55">Aa</span>;
 }
 
 function CameraGlyph() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="size-9 text-white/80"
+      className="size-9 text-brand/55"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.5"

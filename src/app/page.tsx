@@ -6,8 +6,8 @@ import { getCurrentUser } from "@/lib/session";
 // Page d'entrée : on envoie chacun au bon endroit.
 export default function Home() {
   return (
-    <main className="flex flex-1 items-center justify-center bg-[linear-gradient(160deg,#1a1150,#45091f_45%,#7a082e)]">
-      <Suspense fallback={<p className="text-white/60">Loading...</p>}>
+    <main className="flex flex-1 items-center justify-center bg-cream">
+      <Suspense fallback={<p className="text-mute">Loading...</p>}>
         <Gate />
       </Suspense>
     </main>

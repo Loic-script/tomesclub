@@ -43,7 +43,7 @@ export function FollowButton({
       aria-pressed={isFollowing}
       className={`${padding} shrink-0 rounded-full font-semibold transition-all duration-300 disabled:opacity-60 ${
         isFollowing
-          ? "neu-inset text-white/70 hover:text-white"
+          ? "neu-inset text-mute hover:text-brand"
           : "neu-btn bg-gradient-to-r from-brand to-brand-dark text-white shadow-lg hover:-translate-y-0.5"
       }`}
     >

@@ -56,23 +56,23 @@ export function SideCalendar({ className = "" }: { className?: string }) {
             type="button"
             onClick={() => move(-1)}
             aria-label="Previous month"
-            className="neu-sm neu-btn flex size-8 items-center justify-center rounded-full text-white/70 hover:text-accent"
+            className="neu-sm neu-btn flex size-8 items-center justify-center rounded-full text-mute hover:text-brand"
           >
             <Chevron direction="left" />
           </button>
-          <p className="font-display text-base font-bold text-white">{monthLabel}</p>
+          <p className="font-display text-base font-bold text-ink">{monthLabel}</p>
           <button
             type="button"
             onClick={() => move(1)}
             aria-label="Next month"
-            className="neu-sm neu-btn flex size-8 items-center justify-center rounded-full text-white/70 hover:text-accent"
+            className="neu-sm neu-btn flex size-8 items-center justify-center rounded-full text-mute hover:text-brand"
           >
             <Chevron direction="right" />
           </button>
         </div>
 
         {/* Jours de la semaine */}
-        <div className="mb-1 grid grid-cols-7 text-center text-[11px] font-semibold uppercase text-white/45">
+        <div className="mb-1 grid grid-cols-7 text-center text-[11px] font-semibold uppercase text-mute">
           {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((day) => (
             <span key={day}>{day}</span>
           ))}
@@ -90,8 +90,8 @@ export function SideCalendar({ className = "" }: { className?: string }) {
                 key={day}
                 className={`mx-auto flex size-8 items-center justify-center rounded-full text-sm transition-colors ${
                   isToday(day)
-                    ? "bg-brand font-bold text-white shadow-md ring-1 ring-white/30"
-                    : "font-medium text-white/80 hover:bg-white/10"
+                    ? "bg-brand font-bold text-white shadow-md ring-1 ring-line"
+                    : "font-medium text-mute hover:bg-blush"
                 }`}
               >
                 {day}

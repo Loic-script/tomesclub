@@ -15,7 +15,7 @@ export function MembersCallList({ members }: { members: CallableMember[] }) {
 
   if (members.length === 0) {
     return (
-      <p className="py-4 text-center text-sm text-white/60">
+      <p className="py-4 text-center text-sm text-mute">
         No other members yet. Invite your friends to join the club!
       </p>
     );
@@ -69,7 +69,7 @@ export function MembersCallList({ members }: { members: CallableMember[] }) {
                   </span>
                   {/* Petit badge téléphone */}
                   <span
-                    className={`absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full text-white shadow transition-colors ${
+                    className={`absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full text-ink shadow transition-colors ${
                       calling ? "bg-accent" : "bg-brand group-hover:bg-accent"
                     }`}
                   >
@@ -81,8 +81,8 @@ export function MembersCallList({ members }: { members: CallableMember[] }) {
               {/* Le prénom ouvre la fiche du membre */}
               <Link
                 href={`/members/${member.id}`}
-                className={`max-w-16 truncate text-xs font-medium transition hover:text-accent ${
-                  calling ? "text-accent" : "text-white/80"
+                className={`max-w-16 truncate text-xs font-medium transition hover:text-brand ${
+                  calling ? "text-brand" : "text-mute"
                 }`}
               >
                 {calling ? "Calling..." : member.firstName}
@@ -91,7 +91,7 @@ export function MembersCallList({ members }: { members: CallableMember[] }) {
           );
         })}
       </ul>
-      <p aria-live="polite" className="mt-2 min-h-5 text-sm text-red-600">
+      <p aria-live="polite" className="mt-2 min-h-5 text-sm text-danger">
         {error}
       </p>
     </div>

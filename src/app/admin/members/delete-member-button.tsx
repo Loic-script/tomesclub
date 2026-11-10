@@ -14,7 +14,7 @@ export function DeleteMemberButton({ userId, name }: { userId: string; name: str
       <button
         type="button"
         onClick={() => setArmed(true)}
-        className="rounded-lg border border-red-300 px-3 py-1.5 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+        className="rounded-lg border border-red-300 px-3 py-1.5 text-sm font-semibold text-danger transition hover:bg-red-50"
       >
         Delete
       </button>
@@ -27,7 +27,7 @@ export function DeleteMemberButton({ userId, name }: { userId: string; name: str
         type="button"
         onClick={() => startTransition(() => deleteMember(userId))}
         disabled={pending}
-        className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
+        className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-semibold text-ink transition hover:bg-red-700 disabled:opacity-60"
       >
         {pending ? "Deleting..." : `Yes, delete ${name}`}
       </button>

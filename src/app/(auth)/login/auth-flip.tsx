@@ -46,7 +46,7 @@ export function AuthFlip() {
           </div>
 
           <div className="anim-rise" style={delay(500)}>
-            <h1 className="font-display text-3xl font-bold text-navy">Sign in</h1>
+            <h1 className="font-display text-3xl font-bold text-brand">Sign in</h1>
             <span
               aria-hidden
               className="mx-auto mt-2 block h-1 w-12 rounded-full bg-gradient-to-r from-brand to-accent"
@@ -60,7 +60,7 @@ export function AuthFlip() {
             <GoogleSignInButton />
           </div>
 
-          <p className="anim-rise text-xs leading-5 text-zinc-500" style={delay(800)}>
+          <p className="anim-rise text-xs leading-5 text-mute" style={delay(800)}>
             No password to remember — Google keeps your account safe. By signing in, you agree to
             the Tomes Club <span className="font-medium text-brand">Terms &amp; Conditions</span>.
           </p>
@@ -73,7 +73,7 @@ export function AuthFlip() {
             <button
               type="button"
               onClick={() => turnTo(true)}
-              className="font-medium text-navy transition hover:text-brand hover:underline"
+              className="font-medium text-brand transition hover:text-brand-dark hover:underline"
             >
               Admin sign in →
             </button>

@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Profile" };
 // Page /profile : ma fiche, avec le bouton pour la modifier.
 export default function ProfilePage() {
   return (
-    <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
+    <Suspense fallback={<p className="pt-20 text-center text-mute">Loading...</p>}>
       <ProfileHome />
     </Suspense>
   );
@@ -46,7 +46,7 @@ async function ProfileHome() {
         right={
           <Link
             href="/profile/edit"
-            className="neu-sm neu-btn rounded-full px-4 py-2 text-sm font-semibold text-white"
+            className="neu-sm neu-btn rounded-full px-4 py-2 text-sm font-semibold text-ink"
           >
             Edit
           </Link>
@@ -56,7 +56,7 @@ async function ProfileHome() {
       <div className="space-y-6">
         {/* ----- Le badge de membre, comme une carte d'identité du club ----- */}
         <div className="anim-pop mx-auto w-full max-w-xs" style={delay(150)}>
-          <div className="relative overflow-hidden rounded-[1.75rem] bg-white pb-6 text-zinc-900 shadow-[0_26px_55px_-18px_rgba(0,0,0,0.65)]">
+          <div className="relative overflow-hidden rounded-[1.75rem] bg-white pb-6 text-ink shadow-[0_26px_55px_-20px_rgba(92,4,35,0.35)] ring-1 ring-line">
             {/* La fente du badge (pour le cordon) */}
             <div className="relative z-10 pt-4">
               <div className="mx-auto h-2.5 w-16 rounded-full bg-zinc-200 shadow-inner" />
@@ -95,7 +95,7 @@ async function ProfileHome() {
                 Tomes Club member
               </p>
               {profile.englishLevel && (
-                <span className="mt-2 inline-block rounded-full bg-accent px-3 py-0.5 text-xs font-bold capitalize text-white shadow-sm">
+                <span className="mt-2 inline-block rounded-full bg-accent px-3 py-0.5 text-xs font-bold capitalize text-ink shadow-sm">
                   {profile.englishLevel} english
                 </span>
               )}

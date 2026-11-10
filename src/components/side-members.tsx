@@ -19,15 +19,15 @@ export async function SideMembers({ className = "" }: { className?: string }) {
         style={{ "--d": "300ms" } as CSSProperties}
       >
         <header className="mb-4 flex items-center gap-2">
-          <h2 className="font-display text-lg font-bold text-white">Members</h2>
-          <span className="ml-auto flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/70">
+          <h2 className="font-display text-lg font-bold text-ink">Members</h2>
+          <span className="ml-auto flex items-center gap-1.5 rounded-full bg-blush px-2.5 py-1 text-[11px] font-semibold text-mute">
             <span className="relative flex size-2">
               {onlineCount > 0 && (
-                <span aria-hidden className="anim-ping absolute inset-0 rounded-full bg-emerald-400/70" />
+                <span aria-hidden className="anim-ping absolute inset-0 rounded-full bg-success/70" />
               )}
               <span
                 className={`relative size-2 rounded-full ${
-                  onlineCount > 0 ? "bg-emerald-400" : "bg-white/30"
+                  onlineCount > 0 ? "bg-success" : "bg-blush-2"
                 }`}
               />
             </span>
@@ -36,7 +36,7 @@ export async function SideMembers({ className = "" }: { className?: string }) {
         </header>
 
         {members.length === 0 ? (
-          <p className="py-6 text-center text-sm text-white/55">
+          <p className="py-6 text-center text-sm text-mute">
             No other members yet.
           </p>
         ) : (
@@ -62,17 +62,17 @@ export async function SideMembers({ className = "" }: { className?: string }) {
                     />
                     <span
                       aria-label={member.online ? "Online" : "Offline"}
-                      className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-[#2b1538] ${
-                        member.online ? "bg-emerald-400" : "bg-white/30"
+                      className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white ${
+                        member.online ? "bg-success" : "bg-blush-2"
                       }`}
                     />
                   </Link>
 
                   <Link href={`/members/${member.id}`} className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-white">
+                    <span className="block truncate text-sm font-semibold text-ink">
                       {member.firstName}
                     </span>
-                    <span className="block truncate text-[11px] text-white/50">
+                    <span className="block truncate text-[11px] text-mute">
                       {member.online ? "Online now" : (member.country ?? member.englishLevel ?? "Member")}
                     </span>
                   </Link>
@@ -90,7 +90,7 @@ export async function SideMembers({ className = "" }: { className?: string }) {
 
         <Link
           href="/calls"
-          className="neu-sm neu-btn mt-4 block rounded-2xl py-2 text-center text-xs font-semibold text-white/80 hover:text-white"
+          className="neu-sm neu-btn mt-4 block rounded-2xl py-2 text-center text-xs font-semibold text-mute hover:text-brand"
         >
           Call a member
         </Link>

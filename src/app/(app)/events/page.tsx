@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Events" };
 // Page /events : les cours/événements programmés par l'admin, et ses annonces.
 export default function EventsPage() {
   return (
-    <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
+    <Suspense fallback={<p className="pt-20 text-center text-mute">Loading...</p>}>
       <EventsHome />
     </Suspense>
   );
@@ -26,10 +26,10 @@ async function EventsHome() {
 
       <div className="space-y-6">
         <section className="anim-rise space-y-3" style={delay(150)}>
-          <h2 className="px-1 font-display text-lg font-bold text-white">Upcoming</h2>
+          <h2 className="px-1 font-display text-lg font-bold text-ink">Upcoming</h2>
           {upcoming.length === 0 ? (
             <GlassCard>
-              <p className="text-center text-sm text-white/60">
+              <p className="text-center text-sm text-mute">
                 No class scheduled yet. Check back soon!
               </p>
             </GlassCard>
@@ -38,7 +38,7 @@ async function EventsHome() {
               {upcoming.map((event, index) => (
                 <li key={event.id} className="anim-rise" style={delay(200 + index * 90)}>
                   {/* Carte à image, comme un plan de voyage */}
-                  <article className="group relative h-44 overflow-hidden rounded-3xl shadow-[0_22px_45px_-15px_rgba(0,0,0,0.6)]">
+                  <article className="group relative h-44 overflow-hidden rounded-3xl shadow-[0_22px_45px_-18px_rgba(92,4,35,0.3)]">
                     {event.imageType ? (
                       // eslint-disable-next-line @next/next/no-img-element -- image privée servie par notre API
                       <img
@@ -47,23 +47,23 @@ async function EventsHome() {
                         className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="absolute inset-0 bg-[linear-gradient(135deg,#2e3192,#7a082e_55%,#9c0b3b)]" />
+                      <div className="absolute inset-0 bg-[linear-gradient(135deg,#930a39,#5c0423_55%,#7a0730)]" />
                     )}
                     {/* Voile sombre pour lire le texte */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/5" />
 
                     {event.startsAt && (
-                      <span className="absolute left-4 top-4 rounded-full bg-black/45 px-3 py-1 text-xs font-bold text-white ring-1 ring-white/25 backdrop-blur-sm">
+                      <span className="absolute left-4 top-4 rounded-full bg-blush px-3 py-1 text-xs font-bold text-ink ring-1 ring-line backdrop-blur-sm">
                         {formatChip(event.startsAt)}
                       </span>
                     )}
 
                     <div className="absolute inset-x-4 bottom-4">
-                      <h3 className="font-display text-xl font-bold uppercase tracking-wide text-white drop-shadow">
+                      <h3 className="font-display text-xl font-bold uppercase tracking-wide text-ink drop-shadow">
                         {event.title}
                       </h3>
                       {event.description && (
-                        <p className="mt-0.5 truncate text-sm text-white/80">{event.description}</p>
+                        <p className="mt-0.5 truncate text-sm text-mute">{event.description}</p>
                       )}
                     </div>
                   </article>
@@ -74,25 +74,25 @@ async function EventsHome() {
         </section>
 
         <section className="anim-rise space-y-3" style={delay(350)}>
-          <h2 className="px-1 font-display text-lg font-bold text-white">Announcements</h2>
+          <h2 className="px-1 font-display text-lg font-bold text-ink">Announcements</h2>
           {announcements.length === 0 ? (
             <GlassCard>
-              <p className="text-center text-sm text-white/60">No announcement right now.</p>
+              <p className="text-center text-sm text-mute">No announcement right now.</p>
             </GlassCard>
           ) : (
             <ul className="space-y-4">
               {announcements.map((event) => (
                 <li key={event.id}>
                   <GlassCard className="flex gap-3.5">
-                    <span className="neu-inset flex size-10 shrink-0 items-center justify-center rounded-xl text-accent">
+                    <span className="neu-inset flex size-10 shrink-0 items-center justify-center rounded-xl text-brand">
                       <MegaphoneIcon />
                     </span>
                     <div className="min-w-0">
-                      <p className="font-semibold text-white">{event.title}</p>
+                      <p className="font-semibold text-ink">{event.title}</p>
                       {event.description && (
-                        <p className="mt-0.5 text-sm leading-5 text-white/70">{event.description}</p>
+                        <p className="mt-0.5 text-sm leading-5 text-mute">{event.description}</p>
                       )}
-                      <p className="mt-1 text-xs text-white/45">{formatDay(event.createdAt)}</p>
+                      <p className="mt-1 text-xs text-mute">{formatDay(event.createdAt)}</p>
                     </div>
                   </GlassCard>
                 </li>

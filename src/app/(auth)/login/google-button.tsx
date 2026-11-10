@@ -50,7 +50,7 @@ export function GoogleSignInButton() {
         {pending ? "Opening Google..." : "Continue with Google"}
       </button>
 
-      <p aria-live="polite" className="min-h-5 text-sm text-red-600">
+      <p aria-live="polite" className="min-h-5 text-sm text-danger">
         {error}
       </p>
     </div>

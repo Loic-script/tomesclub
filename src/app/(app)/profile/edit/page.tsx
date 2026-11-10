@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Edit profile" };
 export default function EditProfilePage() {
   return (
     <div className="flex justify-center">
-      <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
+      <Suspense fallback={<p className="pt-20 text-center text-mute">Loading...</p>}>
         <EditGate />
       </Suspense>
     </div>

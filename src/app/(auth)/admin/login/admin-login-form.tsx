@@ -10,7 +10,7 @@ export function AdminLoginForm() {
 
   // Champ "creusé" en relief doux, avec l'étiquette à l'intérieur (placeholder).
   const field =
-    "w-full rounded-2xl border border-zinc-200 bg-zinc-50 py-3 pl-11 pr-4 text-sm text-zinc-900 placeholder:text-zinc-400 shadow-[inset_2px_2px_6px_rgba(0,0,0,0.06),inset_-2px_-2px_6px_#ffffff] outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/20";
+    "w-full rounded-2xl border border-zinc-200 bg-zinc-50 py-3 pl-11 pr-4 text-sm text-ink placeholder:text-zinc-400 shadow-[inset_2px_2px_6px_rgba(0,0,0,0.06),inset_-2px_-2px_6px_#ffffff] outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/20";
 
   return (
     <form action={formAction} className="space-y-3.5">
@@ -44,7 +44,7 @@ export function AdminLoginForm() {
         />
       </label>
 
-      <p aria-live="polite" className="min-h-5 text-sm text-red-600">
+      <p aria-live="polite" className="min-h-5 text-sm text-danger">
         {state.error}
       </p>
 
