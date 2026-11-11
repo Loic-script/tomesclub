@@ -56,7 +56,7 @@ export function MembersBrowser({ members }: { members: AdminMemberRow[] }) {
   return (
     <div className="anim-rise space-y-5" style={{ "--d": "100ms" } as React.CSSProperties}>
       {/* ----- Recherche + filtres ----- */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
         <label className="neu-inset flex flex-1 items-center gap-3 rounded-2xl px-4 py-3 focus-within:ring-2 focus-within:ring-accent/60">
           <SearchIcon className="size-5 shrink-0 text-white/45" />
           <span className="sr-only">Search a member</span>
@@ -78,7 +78,7 @@ export function MembersBrowser({ members }: { members: AdminMemberRow[] }) {
           )}
         </label>
 
-        <div role="group" aria-label="Filter members" className="flex gap-2 overflow-x-auto pb-1 lg:pb-0">
+        <div role="group" aria-label="Filter members" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 xl:pb-0">
           {FILTERS.map((option) => {
             const count = members.filter((member) => matchesFilter(member, option.key)).length;
             const active = filter === option.key;
@@ -115,7 +115,7 @@ export function MembersBrowser({ members }: { members: AdminMemberRow[] }) {
       ) : (
         <div className="neu overflow-hidden rounded-3xl">
           {/* Les titres des colonnes (grand écran) */}
-          <div className="hidden grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)_auto] gap-4 border-b border-white/10 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.18em] text-white/40 lg:grid">
+          <div className="hidden gap-4 border-b border-white/10 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.18em] text-white/40 xl:grid xl:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)_auto]">
             <span>Member</span>
             <span>Level</span>
             <span>Location</span>
@@ -127,62 +127,82 @@ export function MembersBrowser({ members }: { members: AdminMemberRow[] }) {
             {shown.map((member) => (
               <li
                 key={member.id}
-                className="group flex flex-wrap items-center gap-3 px-4 py-4 transition hover:bg-white/[0.04] sm:px-5 lg:grid lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)_auto] lg:gap-4"
+                className={`group px-4 py-4 transition hover:bg-white/[0.04] sm:px-5 xl:grid xl:items-center xl:gap-4 xl:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)_auto]`}
               >
-                <Link href={`/admin/members/${member.id}`} className="flex min-w-0 flex-1 items-center gap-3">
-                  <span className="relative shrink-0">
-                    <MemberAvatar userId={member.id} name={member.name} hasPhoto={member.hasPhoto} size="size-11" />
-                    {member.online && (
-                      <span
-                        aria-label="Online"
-                        className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-emerald-400 ring-[3px] ring-[#2a1238]"
-                      />
-                    )}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-white group-hover:text-accent">
-                      {member.name}
+                {/* Le membre + les boutons (sur téléphone, les boutons restent sur la même ligne) */}
+                <div className="flex min-w-0 items-center gap-3 xl:contents">
+                  <Link href={`/admin/members/${member.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+                    <span className="relative shrink-0">
+                      <MemberAvatar userId={member.id} name={member.name} hasPhoto={member.hasPhoto} size="size-11" />
+                      {member.online && (
+                        <span
+                          aria-label="Online"
+                          className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-emerald-400 ring-[3px] ring-[#2a1238]"
+                        />
+                      )}
                     </span>
-                    <span className="block truncate text-xs text-white/45">{member.email}</span>
-                  </span>
-                </Link>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-white group-hover:text-accent">
+                        {member.name}
+                      </span>
+                      <span className="block truncate text-xs text-white/45">{member.email}</span>
+                    </span>
+                  </Link>
 
-                <span className="text-xs lg:block">
-                  {member.level ? (
+                  {/* Colonnes du grand écran */}
+                  <span className="hidden text-xs xl:block">
+                    {member.level ? (
                     <span className="rounded-full bg-[#6d72ff]/20 px-2.5 py-1 font-semibold text-[#c4c6ff]">
                       {member.level}
                     </span>
                   ) : (
                     <span className="text-white/30">—</span>
                   )}
-                </span>
-
-                <span className="hidden min-w-0 lg:block">
-                  <span className="block truncate text-xs text-white/65">{member.place ?? "—"}</span>
-                  <span className="block text-[11px] text-white/35">Joined {member.joined}</span>
-                </span>
-
-                <span className="text-xs">
-                  <span
-                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold ${
+                  </span>
+                  <span className="hidden min-w-0 xl:block">
+                    <span className="block truncate text-xs text-white/65">{member.place ?? "—"}</span>
+                    <span className="block text-[11px] text-white/35">Joined {member.joined}</span>
+                  </span>
+                  <span className="hidden text-xs xl:block">
+                    <span
+                    className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 font-semibold ${
                       member.completed ? "bg-emerald-400/15 text-emerald-300" : "bg-amber-400/15 text-amber-300"
                     }`}
                   >
                     <span aria-hidden className={`size-1.5 rounded-full ${member.completed ? "bg-emerald-300" : "bg-amber-300"}`} />
                     {member.completed ? "Profile done" : "Not finished"}
                   </span>
-                </span>
+                  </span>
 
-                <span className="ml-auto flex items-center justify-end gap-2 lg:w-40">
-                  <DeleteMemberButton userId={member.id} name={member.firstName} compact />
-                  <Link
-                    href={`/admin/members/${member.id}`}
-                    aria-label={`View ${member.name}`}
-                    className="neu-sm neu-btn flex size-9 items-center justify-center rounded-full text-white/70 hover:text-accent"
+                  <span className="flex shrink-0 items-center justify-end gap-2 xl:w-40">
+                    <DeleteMemberButton userId={member.id} name={member.firstName} compact />
+                    <Link
+                      href={`/admin/members/${member.id}`}
+                      aria-label={`View ${member.name}`}
+                      className="neu-sm neu-btn hidden size-9 items-center justify-center rounded-full text-white/70 hover:text-accent sm:flex"
+                    >
+                      <ArrowIcon />
+                    </Link>
+                  </span>
+                </div>
+
+                {/* Téléphone et tablette : les détails sous le nom */}
+                <div className="mt-2.5 flex flex-wrap items-center gap-1.5 pl-14 text-[11px] xl:hidden">
+                  {member.level ? (
+                    <span className="rounded-full bg-[#6d72ff]/20 px-2.5 py-1 font-semibold text-[#c4c6ff]">
+                      {member.level}
+                    </span>
+                  ) : null}
+                  <span
+                    className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 font-semibold ${
+                      member.completed ? "bg-emerald-400/15 text-emerald-300" : "bg-amber-400/15 text-amber-300"
+                    }`}
                   >
-                    <ArrowIcon />
-                  </Link>
-                </span>
+                    <span aria-hidden className={`size-1.5 rounded-full ${member.completed ? "bg-emerald-300" : "bg-amber-300"}`} />
+                    {member.completed ? "Profile done" : "Not finished"}
+                  </span>
+                  {member.place && <span className="truncate text-white/45">· {member.place}</span>}
+                </div>
               </li>
             ))}
           </ul>

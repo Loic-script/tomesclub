@@ -90,6 +90,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent">
             Admin
           </span>
+          <form action={adminSignOut} className="ml-auto">
+            <button
+              type="submit"
+              aria-label="Sign out"
+              className="neu-sm neu-btn flex size-9 items-center justify-center rounded-full text-white/70 hover:text-accent"
+            >
+              <LogoutIcon className="size-4" />
+            </button>
+          </form>
         </div>
         <div className="mx-auto w-full max-w-6xl px-4 pb-32 pt-6 sm:px-6 lg:px-8 lg:pb-12 lg:pt-10">
           {children}
@@ -115,7 +124,7 @@ async function SideLinksWithCount() {
 
 async function BottomLinksWithCount() {
   const unread = (await isAdmin()) ? await countAdminUnread() : 0;
-  return <AdminBottomLinks unread={unread} signOut={adminSignOut} />;
+  return <AdminBottomLinks unread={unread} />;
 }
 
 /** La mise à jour automatique : seulement pour une session admin valide. */

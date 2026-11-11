@@ -76,15 +76,15 @@ async function AdminEvents() {
         subtitle={`${upcoming} upcoming ${upcoming === 1 ? "event" : "events"} · members are notified when you publish`}
       />
 
-      <div className="grid items-start gap-5 lg:grid-cols-5">
+      <div className="grid items-start gap-5 xl:grid-cols-5">
         {/* ----- Publier ----- */}
-        <div className="lg:sticky lg:top-8 lg:col-span-2">
+        <div className="xl:sticky xl:top-8 xl:col-span-2">
           <CreateEventForm />
         </div>
 
         {/* ----- Ce qui est publié ----- */}
         <Panel
-          className="lg:col-span-3"
+          className="xl:col-span-3"
           style={delay(160)}
           title={
             <>

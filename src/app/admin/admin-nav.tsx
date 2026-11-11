@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { BellIcon, CalendarIcon, GridIcon, LogoutIcon, RoomIcon, UsersIcon } from "./admin-icons";
+import { BellIcon, CalendarIcon, GridIcon, RoomIcon, UsersIcon } from "./admin-icons";
 
 // Les onglets de l'espace admin : barre latérale (ordinateur) ou barre du bas (téléphone).
 const TABS = [
@@ -62,13 +62,7 @@ export function AdminSideLinks({ unread }: { unread: number }) {
 }
 
 /** La barre du bas (téléphone et tablette), comme dans l'espace membre. */
-export function AdminBottomLinks({
-  unread,
-  signOut,
-}: {
-  unread: number;
-  signOut: () => Promise<void>;
-}) {
+export function AdminBottomLinks({ unread }: { unread: number }) {
   const pathname = usePathname();
   return (
     <nav
@@ -84,7 +78,7 @@ export function AdminBottomLinks({
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`relative flex flex-col items-center gap-0.5 rounded-full px-1 py-2 text-[10px] font-semibold leading-tight transition-all duration-300 sm:text-[11px] ${
+                className={`relative flex flex-col items-center gap-0.5 rounded-full px-0.5 py-2 text-[10px] font-semibold leading-tight transition-all duration-300 sm:text-[11px] ${
                   active ? "neu-inset text-accent" : "text-white/60 hover:-translate-y-0.5 hover:text-white"
                 }`}
               >
@@ -99,17 +93,6 @@ export function AdminBottomLinks({
             </li>
           );
         })}
-        <li className="flex-1">
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="flex w-full flex-col items-center gap-0.5 rounded-full px-1 py-2 text-[10px] font-semibold leading-tight text-white/60 transition-all duration-300 hover:-translate-y-0.5 hover:text-accent sm:text-[11px]"
-            >
-              <LogoutIcon />
-              Logout
-            </button>
-          </form>
-        </li>
       </ul>
     </nav>
   );

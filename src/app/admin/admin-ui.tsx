@@ -34,29 +34,31 @@ export function AdminHeader({
   bell?: boolean;
 }) {
   return (
-    <header className="anim-rise relative z-30 mb-8 flex flex-wrap items-end gap-4" style={delay(40)}>
+    <header className="anim-rise relative z-30 mb-6 sm:mb-8" style={delay(40)}>
+      <div className="flex items-start gap-3 sm:items-end sm:gap-4">
       <div className="min-w-0 flex-1">
         <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
           <span aria-hidden className="h-px w-5 rounded-full bg-accent/70" />
           {eyebrow}
         </p>
-        <h1 className="text-headline font-display text-[2rem] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[2.6rem]">
+        <h1 className="text-headline break-words font-display text-[1.85rem] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[2.6rem]">
           {title}
         </h1>
         {subtitle && (
-          <p className="mt-2 max-w-2xl text-[15px] font-medium leading-relaxed text-white/60">
+          <p className="mt-2 max-w-2xl text-sm font-medium leading-relaxed text-white/60 sm:text-[15px]">
             {subtitle}
           </p>
         )}
       </div>
-      <div className="flex items-center gap-3">
-        {right}
-        {bell && (
-          <Suspense fallback={<AdminBellFallback />}>
-            <AdminBell />
-          </Suspense>
-        )}
+      {/* Les boutons : à droite sur grand écran, sous le titre sur téléphone */}
+      {right && <div className="hidden shrink-0 items-center gap-3 sm:flex">{right}</div>}
+      {bell && (
+        <Suspense fallback={<AdminBellFallback />}>
+          <AdminBell />
+        </Suspense>
+      )}
       </div>
+      {right && <div className="mt-4 flex flex-wrap items-center gap-2 sm:hidden">{right}</div>}
     </header>
   );
 }
@@ -78,7 +80,7 @@ export function Panel({
   style?: CSSProperties;
 }) {
   return (
-    <section style={style} className={`neu anim-rise rounded-3xl p-5 sm:p-6 ${className}`}>
+    <section style={style} className={`neu anim-rise min-w-0 rounded-3xl p-4 sm:p-6 ${className}`}>
       {(title || action) && (
         <header className="mb-4 flex items-center gap-3">
           {icon && (
@@ -116,7 +118,7 @@ export function StatTile({
   style?: CSSProperties;
 }) {
   return (
-    <div style={style} className="neu anim-rise group relative overflow-hidden rounded-3xl p-5">
+    <div style={style} className="neu anim-rise group relative overflow-hidden rounded-3xl p-4 sm:p-5">
       {/* Halo de couleur dans le coin */}
       <span
         aria-hidden
@@ -138,10 +140,10 @@ export function StatTile({
           </span>
         )}
       </div>
-      <p className="relative mt-4 font-display text-4xl font-extrabold tabular-nums tracking-tight text-white">
+      <p className="relative mt-3 font-display text-3xl font-extrabold tabular-nums tracking-tight text-white sm:mt-4 sm:text-4xl">
         {value}
       </p>
-      <p className="relative mt-1 text-sm font-semibold text-white/70">{label}</p>
+      <p className="relative mt-1 truncate text-sm font-semibold text-white/70">{label}</p>
       {hint && <p className="relative mt-2 text-xs text-white/45">{hint}</p>}
     </div>
   );

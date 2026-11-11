@@ -54,7 +54,7 @@ async function AdminHome() {
         right={
           <Link
             href="/admin/events"
-            className="neu-btn hidden items-center gap-2 rounded-full bg-gradient-to-r from-accent to-brand px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand/30 sm:flex"
+            className="neu-btn flex items-center gap-2 rounded-full bg-gradient-to-r from-accent to-brand px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand/30"
           >
             <span aria-hidden className="text-base leading-none">+</span>
             New event
@@ -63,7 +63,7 @@ async function AdminHome() {
       />
 
       {/* ----- Les chiffres clés ----- */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <StatTile
           style={delay(80)}
           label="Members"
@@ -107,13 +107,13 @@ async function AdminHome() {
       </div>
 
       {/* ----- Inscriptions + niveaux ----- */}
-      <div className="mt-5 grid gap-5 lg:grid-cols-3">
+      <div className="mt-5 grid gap-5 xl:grid-cols-3">
         <SignupsChart data={data} />
         <LevelsPanel data={data} />
       </div>
 
       {/* ----- En direct : salles, événements, activité ----- */}
-      <div className="mt-5 grid gap-5 lg:grid-cols-3">
+      <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         <LiveRooms data={data} />
         <UpcomingEvents data={data} />
         <RecentActivity data={data} />
@@ -130,20 +130,20 @@ async function AdminHome() {
         {data.newest.length === 0 ? (
           <EmptyState icon={<UsersIcon />} title="No members yet" />
         ) : (
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <ul className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
             {data.newest.map((member) => (
               <li key={member.id}>
                 <Link
                   href={`/admin/members/${member.id}`}
-                  className="neu-sm neu-btn flex items-center gap-3 rounded-2xl p-3 lg:flex-col lg:p-4 lg:text-center"
+                  className="neu-sm neu-btn flex items-center gap-3 rounded-2xl p-3 xl:flex-col xl:p-4 xl:text-center"
                 >
                   <MemberAvatar
                     userId={member.id}
                     name={member.name}
                     hasPhoto={member.hasPhoto}
-                    size="size-11 lg:size-14"
+                    size="size-11 xl:size-14"
                   />
-                  <span className="min-w-0 flex-1 lg:w-full">
+                  <span className="min-w-0 flex-1 xl:w-full">
                     <span className="block truncate text-sm font-semibold text-white">{member.name}</span>
                     <span className="block truncate text-[11px] text-white/45">
                       Joined {timeAgo(member.createdAt)}
@@ -180,7 +180,7 @@ function SignupsChart({ data }: { data: DashboardData }) {
 
   return (
     <Panel
-      className="lg:col-span-2"
+      className="xl:col-span-2"
       style={delay(280)}
       title="New members"
       icon={<UserPlusIcon className="size-[18px]" />}
@@ -375,6 +375,7 @@ function UpcomingEvents({ data }: { data: DashboardData }) {
 function RecentActivity({ data }: { data: DashboardData }) {
   return (
     <Panel
+      className="md:col-span-2 xl:col-span-1"
       style={delay(480)}
       title="Recent activity"
       icon={<PulseIcon className="size-[18px]" />}
@@ -418,13 +419,13 @@ function DashboardSkeleton() {
         <div className="h-3 w-24 rounded-full bg-white/10" />
         <div className="h-10 w-64 rounded-2xl bg-white/10" />
       </div>
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         {[0, 1, 2, 3].map((index) => (
           <div key={index} className="neu h-40 rounded-3xl" />
         ))}
       </div>
-      <div className="mt-5 grid gap-5 lg:grid-cols-3">
-        <div className="neu h-72 rounded-3xl lg:col-span-2" />
+      <div className="mt-5 grid gap-5 xl:grid-cols-3">
+        <div className="neu h-72 rounded-3xl xl:col-span-2" />
         <div className="neu h-72 rounded-3xl" />
       </div>
     </div>

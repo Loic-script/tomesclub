@@ -35,7 +35,7 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
         event.live ? "ring-2 ring-red-400/60" : event.past && !editing ? "opacity-60" : ""
       }`}
     >
-      <div className="flex items-center gap-4 p-3">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3 p-3">
         <EventThumb event={event} />
 
         <span className="min-w-0 flex-1">
@@ -69,7 +69,7 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
           )}
         </span>
 
-        <span className="flex shrink-0 flex-col items-end gap-2 sm:flex-row sm:items-center">
+        <span className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-nowrap">
           {/* Le direct : Start, ou Join + End */}
           {event.kind === "event" &&
             (event.live ? (
@@ -152,7 +152,7 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
 /** La vignette : l'image, sinon la date, sinon le mégaphone. */
 function EventThumb({ event }: { event: AdminEventView }) {
   return (
-    <span className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-accent to-brand">
+    <span className="relative size-14 shrink-0 overflow-hidden rounded-xl sm:size-16 bg-gradient-to-br from-accent to-brand">
       {event.hasImage ? (
         // eslint-disable-next-line @next/next/no-img-element -- image privée servie par notre API
         <img src={`/api/event/image/${event.id}`} alt="" className="size-full object-cover" />

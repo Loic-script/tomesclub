@@ -39,10 +39,10 @@ async function AdminRooms() {
         subtitle={`${rooms?.length ?? 0} live ${rooms?.length === 1 ? "room" : "rooms"} · ${people} people inside · ${activities.length} activities`}
       />
 
-      <div className="grid items-start gap-5 lg:grid-cols-5">
+      <div className="grid items-start gap-5 xl:grid-cols-5">
         {/* ----- Les salles ouvertes ----- */}
         <Panel
-          className="lg:col-span-3"
+          className="xl:col-span-3"
           style={delay(100)}
           title="Live rooms"
           icon={<RoomIcon className="size-[18px]" />}
@@ -94,7 +94,7 @@ async function AdminRooms() {
                           {room.format && <Chip>{room.format}</Chip>}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
                         <CloseRoomButton roomId={room.id} />
                         <Link
                           href={`/room/${room.id}`}
@@ -115,7 +115,7 @@ async function AdminRooms() {
         </Panel>
 
         {/* ----- Ouvrir une salle (hôte : Coach) ----- */}
-        <section className="anim-rise space-y-3 lg:col-span-2" style={delay(160)}>
+        <section className="anim-rise space-y-3 xl:col-span-2" style={delay(160)}>
           <div className="px-1">
             <h2 className="font-display text-lg font-bold text-white">Open a room</h2>
             <p className="text-xs text-white/50">You will be the host, shown as “Coach”.</p>
