@@ -17,6 +17,8 @@ const MAX_TEXT = 300;
 const SHOWN_CHARS = 110;
 /** Au plus un envoi toutes les 120 ms, mais le dernier texte part TOUJOURS. */
 const SEND_EVERY_MS = 120;
+/** Silence plus long que ça : le sous-titre s efface et la prochaine phrase repart de zéro. */
+const PAUSE_MS = 1300;
 
 /** Garde la fin du texte, coupée proprement sur un mot. */
 function tail(text: string, size: number): string {
@@ -37,7 +39,7 @@ type Recognizer = {
   lang: string;
   continuous: boolean;
   interimResults: boolean;
-  onresult: ((event: { results: SpeechResultList }) => void) | null;
+  onresult: ((event: { results: SpeechResultList; resultIndex: number }) => void) | null;
   onend: (() => void) | null;
   onerror: ((event: { error: string }) => void) | null;
   onstart: (() => void) | null;
@@ -89,9 +91,13 @@ export function useLiveCaptions(room: Room) {
 
   const showLine = useCallback((participant: Participant, text: string, mine: boolean) => {
     const clean = text.trim().slice(-MAX_TEXT);
-    if (!clean) return;
     setLines((previous) => {
       const next = new Map(previous);
+      // Texte vide : la personne s est tue, on efface sa ligne.
+      if (!clean) {
+        next.delete(participant.identity);
+        return next;
+      }
       next.set(participant.identity, {
         id: participant.identity,
         name: mine ? "You" : participant.name || "Member",
@@ -176,6 +182,10 @@ export function useLiveCaptions(room: Room) {
     recognizer.interimResults = true;
     let stopped = false;
     let lastSent = 0;
+    // Où commence la phrase en cours (dans la liste des résultats de cette écoute).
+    let sentenceStart = 0;
+    let lastHeard = 0;
+    let silenceTimer: ReturnType<typeof setTimeout> | null = null;
     let pending: { text: string; final: boolean } | null = null;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
@@ -191,8 +201,22 @@ export function useLiveCaptions(room: Room) {
     recognizer.onresult = (event) => {
       // Tout ce qui a été dit depuis le début de l écoute, puis on garde la fin :
       // le sous-titre défile au lieu de s effacer à chaque phrase.
+      // Après un silence : nouvelle phrase, on ne colle pas l ancienne.
+      const heardAt = Date.now();
+      if (heardAt - lastHeard > PAUSE_MS) sentenceStart = event.resultIndex;
+      lastHeard = heardAt;
+
+      // Silence de plus de PAUSE_MS : on efface (chez moi et chez les autres).
+      if (silenceTimer) clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(() => {
+        showLine(room.localParticipant, "", true);
+        if (timer) clearTimeout(timer);
+        pending = { text: "", final: true };
+        flush();
+      }, PAUSE_MS);
+
       let spoken = "";
-      for (let index = 0; index < event.results.length; index += 1) {
+      for (let index = sentenceStart; index < event.results.length; index += 1) {
         spoken += `${event.results[index]?.[0].transcript ?? ""} `;
       }
       const last = event.results[event.results.length - 1];
@@ -222,6 +246,8 @@ export function useLiveCaptions(room: Room) {
       }
     };
     recognizer.onstart = () => {
+      // Une nouvelle écoute repart avec une liste de résultats vide.
+      sentenceStart = 0;
       setActive(true);
       setProblem(null);
     };
@@ -243,6 +269,7 @@ export function useLiveCaptions(room: Room) {
     return () => {
       stopped = true;
       if (timer) clearTimeout(timer);
+      if (silenceTimer) clearTimeout(silenceTimer);
       recognizer.onend = null;
       recognizer.onstart = null;
       recognizer.abort();
