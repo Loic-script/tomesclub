@@ -8,11 +8,12 @@ import { CheckIcon, TrashIcon } from "../admin-icons";
 import {
   addActivityAction,
   deleteActivityAction,
+  resetActivityAction,
   updateActivityAction,
   type ActivityFormState,
 } from "./actions";
 
-export type ManagedActivity = RoomActivity & { custom: boolean };
+export type ManagedActivity = RoomActivity & { custom: boolean; edited: boolean };
 
 const FILTERS = [
   { key: "all", label: "All" },
@@ -158,7 +159,7 @@ function ActivityCard({
               activity.custom ? "bg-accent/20 text-accent" : "bg-white/10 text-white/50"
             }`}
           >
-            {activity.custom ? "Yours" : "Built-in"}
+            {activity.custom ? "Yours" : activity.edited ? "Built-in · edited" : "Built-in"}
           </span>
         </div>
       </div>
@@ -214,47 +215,62 @@ function ActivityCard({
         >
           Files
         </button>
-        {activity.custom && (
-          <span className="ml-auto flex items-center gap-1.5">
-            {armed ? (
-              <>
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() => startTransition(() => deleteActivityAction(activity.key))}
-                  className="rounded-full bg-red-500 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-60"
-                >
-                  {pending ? "..." : "Delete"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setArmed(false)}
-                  className="rounded-full px-2 py-1.5 text-xs text-white/60 hover:text-white"
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={onEdit}
-                  className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/15"
-                >
-                  Edit
-                </button>
+        <span className="ml-auto flex items-center gap-1.5">
+          {armed ? (
+            <>
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() =>
+                  startTransition(() =>
+                    activity.custom ? deleteActivityAction(activity.key) : resetActivityAction(activity.key),
+                  )
+                }
+                className="rounded-full bg-red-500 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-60"
+              >
+                {pending ? "..." : activity.custom ? "Delete" : "Reset"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setArmed(false)}
+                className="rounded-full px-2 py-1.5 text-xs text-white/60 hover:text-white"
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={onEdit}
+                className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/15"
+              >
+                Edit
+              </button>
+              {activity.custom ? (
                 <button
                   type="button"
                   onClick={() => setArmed(true)}
                   aria-label={`Delete ${activity.name}`}
+                  title="Delete"
                   className="flex size-8 items-center justify-center rounded-full text-white/50 transition hover:bg-red-500/15 hover:text-red-300"
                 >
                   <TrashIcon />
                 </button>
-              </>
-            )}
-          </span>
-        )}
+              ) : activity.edited ? (
+                <button
+                  type="button"
+                  onClick={() => setArmed(true)}
+                  aria-label={`Reset ${activity.name} to the original`}
+                  title="Back to the original"
+                  className="flex size-8 items-center justify-center rounded-full text-base text-white/50 transition hover:bg-white/10 hover:text-white"
+                >
+                  ↺
+                </button>
+              ) : null}
+            </>
+          )}
+        </span>
       </div>
     </article>
   );

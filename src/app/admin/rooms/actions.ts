@@ -3,7 +3,12 @@
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
-import { addCustomActivity, deleteCustomActivity, updateCustomActivity } from "@/lib/activities";
+import {
+  addCustomActivity,
+  deleteCustomActivity,
+  resetBuiltInActivity,
+  updateCustomActivity,
+} from "@/lib/activities";
 import { deleteActivityFile, deleteFilesOfActivity, retryConversion } from "@/lib/activity-files";
 import { readRoomForm } from "@/lib/room-form";
 import type { RoomActivity } from "@/lib/room-activities";
@@ -95,8 +100,16 @@ export async function updateActivityAction(
   return { error: null, saved: true };
 }
 
+/** Une activite du catalogue modifiee : revenir a l original (les fichiers restent). */
+export async function resetActivityAction(key: string): Promise<void> {
+  await requireAdmin();
+  await resetBuiltInActivity(key);
+  refresh();
+}
+
 export async function deleteActivityAction(key: string): Promise<void> {
   await requireAdmin();
+  if (!key.startsWith("custom-")) return;
   await deleteFilesOfActivity(key);
   await deleteCustomActivity(key);
   refresh();
