@@ -198,6 +198,9 @@ model Event {
   startsAt    DateTime? // la date du cours/événement (null pour une annonce)
   image       Bytes? // l'image de la carte (facultative)
   imageType   String? // ex : image/jpeg
+  /// Le direct vidéo de l événement : lancé par l admin, terminé par l admin.
+  liveStartedAt DateTime?
+  liveEndedAt   DateTime?
   createdAt   DateTime  @default(now())
   responses   EventResponse[]
 

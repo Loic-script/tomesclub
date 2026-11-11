@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { delay, GlassCard, PageHeader } from "@/components/app-ui";
 import { prisma } from "@/lib/prisma";
 import { MemberAvatar } from "@/components/member-avatar";
+import { eventIsLive } from "@/lib/event-live";
 import { getEventResponses, type EventPerson } from "@/lib/event-responses";
 import { requireMember } from "@/lib/session";
 import { EventResponseButtons } from "./event-response-buttons";
@@ -82,7 +83,15 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                         {/* Voile sombre pour lire le texte */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/5" />
 
-                        {event.startsAt && (
+                        {eventIsLive(event) ? (
+                          <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white shadow-lg">
+                            <span className="relative flex size-2">
+                              <span className="anim-ping absolute inset-0 rounded-full bg-white" />
+                              <span className="relative size-2 rounded-full bg-white" />
+                            </span>
+                            LIVE NOW
+                          </span>
+                        ) : event.startsAt && (
                           <span className="absolute left-4 top-4 rounded-full bg-black/45 px-3 py-1 text-xs font-bold text-white ring-1 ring-white/25 backdrop-blur-sm">
                             {formatChip(event.startsAt)}
                           </span>
@@ -102,6 +111,15 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
 
                       {/* Participer / intéressé, et qui */}
                       <div className="space-y-3 p-4">
+                        {eventIsLive(event) && (
+                          <Link
+                            href={`/live/${event.id}`}
+                            className="neu-btn flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-500 to-brand px-4 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40"
+                          >
+                            <span aria-hidden>▶</span>
+                            Join the live
+                          </Link>
+                        )}
                         <EventResponseButtons
                           eventId={event.id}
                           mine={responses?.mine ?? { going: false, interested: false }}
@@ -217,6 +235,8 @@ const EVENT_FIELDS = {
   startsAt: true,
   imageType: true,
   createdAt: true,
+  liveStartedAt: true,
+  liveEndedAt: true,
 } as const;
 
 /** Charge les événements à venir et les annonces (dépend de l'heure de la requête). */
@@ -225,7 +245,14 @@ async function loadEvents() {
   return Promise.all([
     prisma.event.findMany({
       // On garde un événement affiché jusqu'à 2 h après son début.
-      where: { kind: "event", startsAt: { gte: new Date(Date.now() - 2 * 60 * 60 * 1000) } },
+      // ... et tant que son direct est en cours.
+      where: {
+        kind: "event",
+        OR: [
+          { startsAt: { gte: new Date(Date.now() - 2 * 60 * 60 * 1000) } },
+          { liveStartedAt: { not: null }, liveEndedAt: null },
+        ],
+      },
       orderBy: { startsAt: "asc" },
       take: 20,
       select: EVENT_FIELDS,

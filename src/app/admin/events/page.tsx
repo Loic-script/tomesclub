@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
-import { CalendarIcon, MegaphoneIcon } from "../admin-icons";
-import { AdminHeader, Chip, delay, EmptyState, Panel } from "../admin-ui";
+import { eventIsLive } from "@/lib/event-live";
+import { CalendarIcon } from "../admin-icons";
+import { AdminHeader, delay, EmptyState, Panel } from "../admin-ui";
+import { AdminEventItem } from "./admin-event-item";
 import { CreateEventForm } from "./create-event-form";
-import { DeleteEventButton } from "./delete-event-button";
 
 export const metadata: Metadata = { title: "Events · Admin" };
 
@@ -31,6 +32,8 @@ async function loadEvents() {
       startsAt: true,
       imageType: true,
       createdAt: true,
+      liveStartedAt: true,
+      liveEndedAt: true,
       responses: { select: { status: true } },
     },
   });
@@ -40,7 +43,14 @@ async function loadEvents() {
     going: responses.filter((response) => response.status === "going").length,
     interested: responses.filter((response) => response.status === "interested").length,
     past: Boolean(event.startsAt && event.startsAt.getTime() < now),
+    live: eventIsLive(event),
   }));
+}
+
+/** Date au format du champ datetime-local (heure du serveur, comme à l'enregistrement). */
+function toInputValue(date: Date): string {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 async function AdminEvents() {
@@ -92,52 +102,26 @@ async function AdminEvents() {
           ) : (
             <ul className="space-y-3">
               {events.map((event) => (
-                <li
+                <AdminEventItem
                   key={event.id}
-                  className={`neu-inset flex items-center gap-4 rounded-2xl p-3 ${event.past ? "opacity-60" : ""}`}
-                >
-                  {/* L'image, ou la date, ou le mégaphone */}
-                  <span className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-accent to-brand">
-                    {event.imageType ? (
-                      // eslint-disable-next-line @next/next/no-img-element -- image privée servie par notre API
-                      <img src={`/api/event/image/${event.id}`} alt="" className="size-full object-cover" />
-                    ) : event.startsAt ? (
-                      <span className="flex size-full flex-col items-center justify-center text-white">
-                        <span className="font-display text-xl font-extrabold leading-none">
-                          {day.format(event.startsAt)}
-                        </span>
-                        <span className="text-[10px] font-bold uppercase">{month.format(event.startsAt)}</span>
-                      </span>
-                    ) : (
-                      <span className="flex size-full items-center justify-center bg-gradient-to-br from-[#6d72ff] to-navy text-white">
-                        <MegaphoneIcon className="size-6" />
-                      </span>
-                    )}
-                  </span>
-
-                  <span className="min-w-0 flex-1">
-                    <span className="flex flex-wrap items-center gap-1.5">
-                      {event.kind === "event" ? (
-                        <Chip tone="accent">Event</Chip>
-                      ) : (
-                        <Chip tone="navy">Announcement</Chip>
-                      )}
-                      {event.past && <Chip>Past</Chip>}
-                    </span>
-                    <span className="mt-1 block truncate text-sm font-semibold text-white">{event.title}</span>
-                    <span className="block truncate text-[11px] text-white/45">
-                      {event.startsAt ? full.format(event.startsAt) : `Posted ${full.format(event.createdAt)}`}
-                    </span>
-                    {event.kind === "event" && (
-                      <span className="mt-1.5 flex gap-3 text-[11px]">
-                        <span className="font-semibold text-emerald-300">{event.going} going</span>
-                        <span className="text-white/50">{event.interested} interested</span>
-                      </span>
-                    )}
-                  </span>
-
-                  <DeleteEventButton eventId={event.id} />
-                </li>
+                  event={{
+                    id: event.id,
+                    kind: event.kind === "announcement" ? "announcement" : "event",
+                    title: event.title,
+                    description: event.description,
+                    startsAtInput: event.startsAt ? toInputValue(event.startsAt) : "",
+                    dayLabel: event.startsAt ? day.format(event.startsAt) : null,
+                    monthLabel: event.startsAt ? month.format(event.startsAt) : null,
+                    whenLabel: event.startsAt
+                      ? full.format(event.startsAt)
+                      : `Posted ${full.format(event.createdAt)}`,
+                    hasImage: Boolean(event.imageType),
+                    going: event.going,
+                    interested: event.interested,
+                    past: event.past,
+                    live: event.live,
+                  }}
+                />
               ))}
             </ul>
           )}
