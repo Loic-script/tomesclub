@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { BellIcon, CalendarIcon, GridIcon, LogoutIcon, UsersIcon } from "./admin-icons";
+import { BellIcon, CalendarIcon, GridIcon, LogoutIcon, RoomIcon, UsersIcon } from "./admin-icons";
 
 // Les onglets de l'espace admin : barre latérale (ordinateur) ou barre du bas (téléphone).
 const TABS = [
   { href: "/admin", label: "Overview", icon: GridIcon, exact: true },
   { href: "/admin/members", label: "Members", icon: UsersIcon, exact: false },
+  { href: "/admin/rooms", label: "Rooms", icon: RoomIcon, exact: false },
   { href: "/admin/events", label: "Events", icon: CalendarIcon, exact: false },
   { href: "/admin/notifications", label: "Inbox", icon: BellIcon, exact: false },
 ] as const;

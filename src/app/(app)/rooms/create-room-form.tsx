@@ -6,7 +6,6 @@ import {
   DEFAULT_PEOPLE,
   ROOM_MAX_PEOPLE,
   ROOM_MIN_PEOPLE,
-  ROOM_ACTIVITIES,
   ROOM_DURATIONS,
   ROOM_LEVELS,
   type RoomActivity,
@@ -50,10 +49,20 @@ const labelText = "mb-1.5 block text-sm font-medium text-white/75";
 
 // Le formulaire "Create a room", replié derrière un bouton.
 // Étape 1 : choisir l'activité. Étape 2 : thème, options, puis confirmer.
-export function CreateRoomForm() {
-  const [open, setOpen] = useState(false);
+export function CreateRoomForm({
+  activities,
+  action = createRoomAction,
+  defaultOpen = false,
+}: {
+  /** Le catalogue (les 13 activités + celles ajoutées par l'admin). */
+  activities: RoomActivity[];
+  /** L'action serveur qui crée la salle (membre ou admin). */
+  action?: (state: CreateRoomState, formData: FormData) => Promise<CreateRoomState>;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
   const [activity, setActivity] = useState<RoomActivity | null>(null);
-  const [state, formAction, pending] = useActionState(createRoomAction, initialState);
+  const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
     <div>
@@ -80,7 +89,7 @@ export function CreateRoomForm() {
               error={state.error}
             />
           ) : (
-            <ActivityPicker onPick={setActivity} />
+            <ActivityPicker activities={activities} onPick={setActivity} />
           )}
         </div>
       )}
@@ -90,12 +99,18 @@ export function CreateRoomForm() {
 
 /* ---------- Étape 1 : l'activité ---------- */
 
-function ActivityPicker({ onPick }: { onPick: (activity: RoomActivity) => void }) {
+function ActivityPicker({
+  activities,
+  onPick,
+}: {
+  activities: RoomActivity[];
+  onPick: (activity: RoomActivity) => void;
+}) {
   return (
     <section className="neu rounded-3xl p-5">
       <StepTitle step={1} title="Choose an activity" hint="What will the group do together?" />
       <ul className="mt-4 grid grid-cols-2 gap-2">
-        {ROOM_ACTIVITIES.map((activity) => (
+        {activities.map((activity) => (
           <li key={activity.key}>
             <button
               type="button"

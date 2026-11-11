@@ -181,8 +181,9 @@ model Room {
   level       String? // all | beginner | elementary | intermediate | advanced
   durationMin Int? // 1 à 30 minutes
   maxParticipants Int? // limite choisie par l hôte (2 à 20)
-  createdById String
-  createdBy   User     @relation("RoomsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  /// null = salle ouverte par le coach (session admin, sans compte membre)
+  createdById String?
+  createdBy   User?    @relation("RoomsCreated", fields: [createdById], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
 
   @@index([createdById])
@@ -287,4 +288,19 @@ model AdminNotification {
 
   @@index([createdAt])
   @@map("admin_notification")
+}
+
+/// Une activité de room ajoutée par l admin (en plus des 13 du catalogue).
+model CustomActivity {
+  id          String   @id @default(cuid())
+  key         String   @unique // "custom-..." : utilisée dans Room.activity
+  icon        String
+  name        String
+  description String
+  /// [{ name: "Catégorie", topics: ["Thème 1", ...] }]
+  categories  Json
+  formats     String[]
+  createdAt   DateTime @default(now())
+
+  @@map("custom_activity")
 }

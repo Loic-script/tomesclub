@@ -300,7 +300,7 @@ function LiveRooms({ data }: { data: DashboardData }) {
       style={delay(380)}
       title="Live rooms"
       icon={<RoomIcon className="size-[18px]" />}
-      action={data.rooms.length > 0 ? <Chip tone="good">{data.totals.openRooms} open</Chip> : undefined}
+      action={<SeeAll href="/admin/rooms" label="Manage" />}
     >
       {data.rooms.length === 0 ? (
         <EmptyState icon={<RoomIcon />} title="No room open" text="Rooms opened by members show up here." />

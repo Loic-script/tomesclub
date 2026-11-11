@@ -1,5 +1,6 @@
 "use server";
 
+import { isAdmin } from "@/lib/admin";
 import { closeRoom, getRoom, roomIsOver } from "@/lib/rooms";
 import { requireMember } from "@/lib/session";
 
@@ -9,7 +10,7 @@ import { requireMember } from "@/lib/session";
  * (tout le monde sort) et la supprime.
  */
 export async function endRoomIfOver(roomId: string): Promise<void> {
-  await requireMember();
+  if (!(await isAdmin())) await requireMember();
   const room = await getRoom(roomId);
   if (!room || !roomIsOver(room)) return;
   await closeRoom(room.id);

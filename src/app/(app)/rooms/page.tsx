@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { delay, GlassCard, PageHeader } from "@/components/app-ui";
 import { RoomProgress, RoomTimeLeft } from "@/components/room-timer";
-import { findActivity, levelLabel } from "@/lib/room-activities";
+import { getActivityMap, listActivities } from "@/lib/activities";
+import { levelLabel } from "@/lib/room-activities";
 import { listOpenRooms } from "@/lib/rooms";
 import { requireMember } from "@/lib/session";
 import { CreateRoomForm } from "./create-room-form";
@@ -24,7 +25,8 @@ export default function RoomsPage() {
 
 async function RoomsHome() {
   const user = await requireMember();
-  const rooms = await listOpenRooms(user.id);
+  const [rooms, activities] = await Promise.all([listOpenRooms(user.id), listActivities()]);
+  const activityByKey = await getActivityMap((rooms ?? []).map((room) => room.activity));
 
   return (
     <>
@@ -36,7 +38,7 @@ async function RoomsHome() {
 
       <div className="space-y-5">
         <div className="anim-rise" style={delay(150)}>
-          <CreateRoomForm />
+          <CreateRoomForm activities={activities} />
         </div>
 
         <div className="anim-rise space-y-3" style={delay(280)}>
@@ -60,7 +62,7 @@ async function RoomsHome() {
           ) : (
             <ul className="space-y-4">
               {rooms.map((room, index) => {
-                const activity = findActivity(room.activity);
+                const activity = room.activity ? activityByKey.get(room.activity) : undefined;
                 const level = levelLabel(room.level);
                 const isFull =
                   room.maxParticipants !== null && room.participants >= room.maxParticipants;

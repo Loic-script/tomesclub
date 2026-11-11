@@ -3,7 +3,7 @@ import { connection } from "next/server";
 import { listAdminNotifications, type AdminNotificationItem } from "@/lib/admin-notifications";
 import { ENGLISH_LEVELS } from "@/lib/onboarding-options";
 import { prisma } from "@/lib/prisma";
-import { findActivity } from "@/lib/room-activities";
+import { getActivityMap } from "@/lib/activities";
 import { roomEndsAt, roomIsOver } from "@/lib/rooms";
 
 // Les chiffres du tableau de bord admin (tout est lu au moment de la requête).
@@ -134,10 +134,11 @@ export async function loadDashboard(): Promise<DashboardData> {
   }));
 
   const liveRooms = roomRows.filter((room) => !roomIsOver(room));
+  const activities = await getActivityMap(liveRooms.map((room) => room.activity));
   const rooms = liveRooms
     .slice(0, 5)
     .map((room) => {
-      const found = findActivity(room.activity);
+      const found = room.activity ? activities.get(room.activity) : undefined;
       const end = roomEndsAt(room);
       return {
         id: room.id,
@@ -145,7 +146,7 @@ export async function loadDashboard(): Promise<DashboardData> {
         icon: found?.icon ?? null,
         activity: found?.name ?? null,
         topic: room.topic,
-        host: room.createdBy.name,
+        host: room.createdBy?.name ?? "Coach",
         isPrivate: room.isPrivate,
         endsAt: end ? new Date(end).toISOString() : null,
       };

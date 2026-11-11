@@ -5,7 +5,9 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { VideoRoom } from "@/components/video-room";
 import { createParticipantToken, getBrowserLiveKitUrl } from "@/lib/livekit";
-import { findActivity, levelLabel } from "@/lib/room-activities";
+import { getActivity } from "@/lib/activities";
+import { isAdmin } from "@/lib/admin";
+import { levelLabel } from "@/lib/room-activities";
 import {
   closeRoom,
   getRoom,
@@ -32,8 +34,16 @@ export default function GroupRoomPage({ params }: PageProps<"/room/[id]">) {
   );
 }
 
+/** Qui entre : le coach (session admin), sinon un membre connecté. */
+async function whoIsJoining(): Promise<{ id: string; firstName: string; coach: boolean }> {
+  if (await isAdmin()) return { id: "coach", firstName: "Coach", coach: true };
+  const member = await requireMember();
+  return { id: member.id, firstName: member.firstName, coach: false };
+}
+
 async function Room({ roomId }: { roomId: string }) {
-  const user = await requireMember();
+  const user = await whoIsJoining();
+  const back = user.coach ? "/admin/rooms" : "/rooms";
 
   const room = await getRoom(roomId);
   if (!room) notFound();
@@ -53,7 +63,7 @@ async function Room({ roomId }: { roomId: string }) {
           Its {room.durationMin} minutes are over. Open a new room to keep practising!
         </p>
         <Link
-          href="/rooms"
+          href={back}
           className="mt-6 inline-block rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white"
         >
           Back to rooms
@@ -72,7 +82,7 @@ async function Room({ roomId }: { roomId: string }) {
   ]);
 
   // Ce que la barre du haut affiche : l'activité, le thème, le temps restant.
-  const activity = findActivity(room.activity);
+  const activity = await getActivity(room.activity);
   // La salle est pleine ? (Je peux revenir si j'y suis déjà, par exemple après un rechargement.)
   if (room.maxParticipants !== null) {
     const people = await listRoomPeople(room.id);
@@ -88,7 +98,7 @@ async function Room({ roomId }: { roomId: string }) {
             open your own!
           </p>
           <Link
-            href="/rooms"
+            href={back}
             className="mt-6 inline-block rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white"
           >
             Back to rooms
@@ -105,7 +115,7 @@ async function Room({ roomId }: { roomId: string }) {
     <VideoRoom
       token={token}
       serverUrl={serverUrl}
-      leaveTo="/rooms"
+      leaveTo={back}
       onTimeUp={endRoomIfOver.bind(null, room.id)}
       room={{
         activityIcon: activity?.icon ?? null,

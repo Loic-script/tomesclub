@@ -4,7 +4,7 @@ import { notifyAdmin } from "@/lib/admin-notifications";
 import { createRoomServiceClient } from "@/lib/livekit";
 import { notifyAllMembers } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
-import { findActivity } from "@/lib/room-activities";
+import { getActivity } from "@/lib/activities";
 
 // Les salles de groupe (rooms), ouvertes à tous les membres.
 
@@ -94,7 +94,7 @@ export type NewRoom = {
 };
 
 /** Crée une salle : d'abord dans la base, puis dans LiveKit. */
-export async function createRoom(creatorId: string, input: NewRoom): Promise<{ id: string }> {
+export async function createRoom(creatorId: string | null, input: NewRoom): Promise<{ id: string }> {
   const { name, topic, isPrivate } = input;
   const room = await prisma.room.create({
     data: {
@@ -124,37 +124,37 @@ export async function createRoom(creatorId: string, input: NewRoom): Promise<{ i
     throw error;
   }
 
+  // Le nom de l'hôte : un membre, ou "Coach" (salle ouverte par l'admin).
+  const host = creatorId
+    ? ((await prisma.user.findUnique({ where: { id: creatorId }, select: { name: true } }))?.name ??
+      "A member")
+    : "Coach";
+  const activity = await getActivity(input.activity);
+
   // Une salle ouverte à tous : on prévient les membres (les salles privées, non).
   if (!isPrivate) {
-    const host = await prisma.user.findUnique({
-      where: { id: creatorId },
-      select: { name: true },
-    });
-    const activity = findActivity(input.activity);
     await notifyAllMembers(
       {
         kind: "room",
         title: activity
           ? `New room: ${name.slice(0, 60)} · ${activity.name}`
           : `New room: ${name.slice(0, 60)}`,
-        body: topic
-          ? `${host?.name ?? "A member"} · ${topic}`
-          : `${host?.name ?? "A member"} opened a room. Come and practice!`,
+        body: topic ? `${host} · ${topic}` : `${host} opened a room. Come and practice!`,
         link: `/room/${room.id}`,
       },
-      creatorId,
+      creatorId ?? undefined,
     );
   }
 
-  // L'admin voit toutes les salles qui s'ouvrent (publiques et privées).
-  const host = await prisma.user.findUnique({ where: { id: creatorId }, select: { name: true } });
-  const activity = findActivity(input.activity);
-  await notifyAdmin({
-    kind: "room",
-    title: `${host?.name ?? "A member"} opened a ${isPrivate ? "private " : ""}room`,
-    body: [activity ? `${activity.icon} ${activity.name}` : null, topic].filter(Boolean).join(" · "),
-    link: "/admin",
-  });
+  // L'admin voit toutes les salles que les membres ouvrent (publiques et privées).
+  if (creatorId) {
+    await notifyAdmin({
+      kind: "room",
+      title: `${host} opened a ${isPrivate ? "private " : ""}room`,
+      body: [activity ? `${activity.icon} ${activity.name}` : null, topic].filter(Boolean).join(" · "),
+      link: "/admin/rooms",
+    });
+  }
 
   return room;
 }
@@ -162,9 +162,10 @@ export async function createRoom(creatorId: string, input: NewRoom): Promise<{ i
 /**
  * Les salles encore ouvertes dans LiveKit, avec le nombre de personnes dedans.
  * Les salles privées des autres sont cachées ; les miennes restent visibles pour moi.
+ * viewerId null = l'admin : il voit toutes les salles.
  * Null = serveur vidéo injoignable.
  */
-export async function listOpenRooms(viewerId: string): Promise<OpenRoom[] | null> {
+export async function listOpenRooms(viewerId: string | null): Promise<OpenRoom[] | null> {
   let liveRooms;
   try {
     liveRooms = await createRoomServiceClient().listRooms();
@@ -179,7 +180,7 @@ export async function listOpenRooms(viewerId: string): Promise<OpenRoom[] | null
   const rows = await prisma.room.findMany({
     where: {
       id: { in: open.map((room) => room.name.slice(ROOM_PREFIX.length)) },
-      OR: [{ isPrivate: false }, { createdById: viewerId }],
+      ...(viewerId ? { OR: [{ isPrivate: false }, { createdById: viewerId }] } : {}),
     },
     orderBy: { createdAt: "desc" },
     select: {
@@ -214,10 +215,10 @@ export async function listOpenRooms(viewerId: string): Promise<OpenRoom[] | null
     id: row.id,
     name: row.name,
     topic: row.topic,
-    hostName: row.createdBy.profile?.firstName ?? row.createdBy.name,
+    hostName: row.createdBy ? (row.createdBy.profile?.firstName ?? row.createdBy.name) : "Coach",
     participants: participantsById.get(row.id) ?? 0,
     isPrivate: row.isPrivate,
-    isMine: row.createdById === viewerId,
+    isMine: viewerId !== null && row.createdById === viewerId,
     activity: row.activity,
     format: row.format,
     durationMin: row.durationMin,
