@@ -9,7 +9,7 @@ import {
   ROOM_MAX_PEOPLE,
   ROOM_MIN_PEOPLE,
 } from "@/lib/room-activities";
-import { createRoom } from "@/lib/rooms";
+import { createRoom, deleteRoomByHost } from "@/lib/rooms";
 import { requireMember } from "@/lib/session";
 
 export type CreateRoomState = { error: string | null };
@@ -71,4 +71,10 @@ export async function createRoomAction(
   }
 
   redirect(`/room/${roomId}`);
+}
+
+/** Bouton "Delete" de l hôte : ferme la salle (tout le monde sort) et la supprime. */
+export async function deleteRoomAction(roomId: string): Promise<void> {
+  const user = await requireMember();
+  await deleteRoomByHost(user.id, roomId);
 }

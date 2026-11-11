@@ -57,6 +57,17 @@ export async function closeRoom(id: string): Promise<void> {
   await prisma.room.deleteMany({ where: { id } });
 }
 
+/** L'hôte supprime sa salle. Renvoie false si ce n'est pas sa salle. */
+export async function deleteRoomByHost(userId: string, roomId: string): Promise<boolean> {
+  const room = await prisma.room.findFirst({
+    where: { id: roomId, createdById: userId },
+    select: { id: true },
+  });
+  if (!room) return false;
+  await closeRoom(room.id);
+  return true;
+}
+
 /** Les personnes dans la salle LiveKit (leurs identifiants). Null = serveur injoignable. */
 export async function listRoomPeople(id: string): Promise<string[] | null> {
   try {

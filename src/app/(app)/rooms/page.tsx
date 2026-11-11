@@ -7,6 +7,7 @@ import { findActivity, levelLabel } from "@/lib/room-activities";
 import { listOpenRooms } from "@/lib/rooms";
 import { requireMember } from "@/lib/session";
 import { CreateRoomForm } from "./create-room-form";
+import { DeleteRoomButton } from "./delete-room-button";
 
 export const metadata: Metadata = { title: "Rooms" };
 
@@ -142,7 +143,7 @@ async function RoomsHome() {
                       <div className="flex items-center gap-3 border-t border-white/10 bg-white/[0.03] px-5 py-3">
                         <div className="min-w-0 flex-1">
                           {room.endsAt ? (
-                            <RoomTimeLeft endsAt={room.endsAt} />
+                            <RoomTimeLeft endsAt={room.endsAt} refreshOnEnd />
                           ) : (
                             <span className="text-xs text-white/50">No time limit</span>
                           )}
@@ -152,6 +153,7 @@ async function RoomsHome() {
                             </p>
                           )}
                         </div>
+                        {room.isMine && <DeleteRoomButton roomId={room.id} />}
                         {isFull ? (
                           <span className="shrink-0 rounded-full bg-white/10 px-5 py-2 text-sm font-bold text-white/50">
                             Full

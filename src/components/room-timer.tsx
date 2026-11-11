@@ -1,6 +1,7 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 
 // Le temps d une salle : compte à rebours en direct (chaque seconde).
 // L heure vient du navigateur ; côté serveur on affiche "--:--".
@@ -31,8 +32,26 @@ function format(left: number): string {
 }
 
 /** La pastille "12:34 left", puis "Time is up". */
-export function RoomTimeLeft({ endsAt, className = "" }: { endsAt: string; className?: string }) {
+export function RoomTimeLeft({
+  endsAt,
+  className = "",
+  refreshOnEnd = false,
+}: {
+  endsAt: string;
+  className?: string;
+  /** Recharger la page à la fin (la liste des salles retire alors la salle finie). */
+  refreshOnEnd?: boolean;
+}) {
   const left = useSecondsLeft(endsAt);
+  const router = useRouter();
+  const refreshed = useRef(false);
+  const ended = left !== null && left <= 0;
+
+  useEffect(() => {
+    if (!refreshOnEnd || !ended || refreshed.current) return;
+    refreshed.current = true;
+    router.refresh();
+  }, [refreshOnEnd, ended, router]);
 
   if (left !== null && left <= 0) {
     return (
