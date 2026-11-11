@@ -26,10 +26,13 @@ type FilterKey = (typeof FILTERS)[number]["key"];
 export function ActivityManager({
   activities,
   files,
+  storageReady,
 }: {
   activities: ManagedActivity[];
   /** Les fichiers de chaque activité (clé -> fichiers). */
   files: Record<string, ActivityFileView[]>;
+  /** Un volume est branché : les fichiers restent après un redéploiement. */
+  storageReady: boolean;
 }) {
   const [filter, setFilter] = useState<FilterKey>("all");
   // L'activité dont la fenêtre "Files" est ouverte.
@@ -117,6 +120,7 @@ export function ActivityManager({
 
       {filesActivity && (
         <ActivityFilesDialog
+          storageReady={storageReady}
           activity={filesActivity}
           files={files[filesActivity.key] ?? []}
           onClose={() => setFilesFor(null)}

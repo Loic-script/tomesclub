@@ -46,8 +46,10 @@ function sendFile(activityKey: string, file: File, onProgress: (ratio: number) =
 export function ActivityFilesDialog({
   activity,
   files,
+  storageReady,
   onClose,
 }: {
+  storageReady: boolean;
   activity: { key: string; name: string; icon: string };
   files: ActivityFileView[];
   onClose: () => void;
@@ -150,6 +152,17 @@ export function ActivityFilesDialog({
         </div>
 
         <div className="space-y-5 overflow-y-auto p-5">
+          {/* Pas de volume : les fichiers seraient perdus au prochain déploiement */}
+          {!storageReady && (
+            <div className="rounded-2xl bg-amber-400/10 p-4 text-xs leading-relaxed text-amber-100 ring-1 ring-amber-300/30">
+              <p className="font-bold text-amber-200">⚠️ Storage is not permanent yet</p>
+              <p className="mt-1">
+                Files are kept inside the app only and are deleted at the next deploy. In Mini Railway, add a
+                <strong> volume</strong> to the Tomes Club service (for example mounted on /data), then deploy again.
+              </p>
+            </div>
+          )}
+
           {/* Déposer des fichiers */}
           <button
             type="button"

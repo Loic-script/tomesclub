@@ -143,7 +143,11 @@ async function AdminRooms() {
         }
         icon={<span aria-hidden className="text-base">🎯</span>}
       >
-        <ActivityManager activities={activities} files={files} />
+        <ActivityManager
+          activities={activities}
+          files={files}
+          storageReady={Boolean(process.env.TWINS_VOLUME_MOUNT_PATH || process.env.UPLOAD_DIR)}
+        />
       </Panel>
     </>
   );
