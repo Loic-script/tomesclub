@@ -1,6 +1,7 @@
 import "server-only";
 import { connection } from "next/server";
 import { createRoomServiceClient } from "@/lib/livekit";
+import { notifyAdmin } from "@/lib/admin-notifications";
 import { notifyMembers } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 
@@ -125,6 +126,17 @@ export async function createCall(
       link: `/call/${call.id}`,
     },
   );
+
+  const names = await prisma.user.findMany({
+    where: { id: { in: invited.map((user) => user.id) } },
+    select: { name: true },
+  });
+  await notifyAdmin({
+    kind: "call",
+    title: `${creator?.name ?? "A member"} started a video call`,
+    body: `With ${names.map((user) => user.name).join(", ")}`,
+    link: "/admin",
+  });
 
   return call;
 }

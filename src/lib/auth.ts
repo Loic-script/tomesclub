@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
+import { notifyAdmin } from "@/lib/admin-notifications";
 import { prisma } from "@/lib/prisma";
 
 // Clés Google (console.cloud.google.com). Tant qu'elles sont vides,
@@ -25,6 +26,22 @@ export const auth = betterAuth({
     enabled: process.env.NODE_ENV !== "production",
     minPasswordLength: 8,
     autoSignIn: true,
+  },
+
+  // Un compte vient d'être créé : l'admin est prévenu.
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          await notifyAdmin({
+            kind: "signup",
+            title: `New account: ${user.name}`,
+            body: user.email,
+            link: `/admin/members/${user.id}`,
+          });
+        },
+      },
+    },
   },
 
   // Permet d'utiliser auth.api.* dans les Server Actions (doit rester en dernier).

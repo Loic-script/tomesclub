@@ -30,7 +30,7 @@ export function AdminSideLinks({ unread }: { unread: number }) {
             key={tab.href}
             href={tab.href}
             aria-current={active ? "page" : undefined}
-            className={`group relative flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition-all duration-300 ${
+            className={`group relative flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold outline-none transition-all duration-300 focus-visible:ring-2 focus-visible:ring-accent/60 ${
               active ? "neu-inset text-white" : "text-white/60 hover:bg-white/[0.06] hover:text-white"
             }`}
           >

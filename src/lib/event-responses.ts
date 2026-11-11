@@ -86,12 +86,12 @@ export async function setEventResponse(
       create: { eventId, userId, status },
       update: {},
     });
-    // Quelqu'un dit qu'il vient : l'admin le sait (une seule fois).
-    if (!existing && status === "going") {
+    // Going ou Interested : l'admin le sait (une seule fois par choix).
+    if (!existing) {
       const member = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
       await notifyAdmin({
         kind: "event",
-        title: `${member?.name ?? "A member"} is going`,
+        title: `${member?.name ?? "A member"} ${status === "going" ? "is going" : "is interested"}`,
         body: event.title,
         link: "/admin/events",
       });

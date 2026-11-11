@@ -152,7 +152,8 @@ export function ImageIcon({ className = "size-5" }: IconProps) {
 
 /** L'icône qui va avec une sorte de notification admin. */
 export function KindIcon({ kind, className = "size-5" }: { kind: string; className?: string }) {
-  if (kind === "member") return <UserPlusIcon className={className} />;
+  if (kind === "signup") return <UserPlusIcon className={className} />;
+  if (kind === "member") return <CheckIcon className={className} />;
   if (kind === "room") return <RoomIcon className={className} />;
   if (kind === "event") return <CalendarIcon className={className} />;
   if (kind === "call") return <PhoneIcon className={className} />;
@@ -161,7 +162,8 @@ export function KindIcon({ kind, className = "size-5" }: { kind: string; classNa
 
 /** La couleur de la pastille d'une sorte de notification. */
 export function kindTone(kind: string): string {
-  if (kind === "member") return "from-emerald-400/90 to-teal-500/80";
+  if (kind === "signup") return "from-emerald-400/90 to-teal-500/80";
+  if (kind === "member") return "from-sky-400/90 to-[#6d72ff]";
   if (kind === "room") return "from-accent to-[#ff7a9a]";
   if (kind === "event") return "from-[#6d72ff] to-navy";
   return "from-brand to-[#c2185b]";

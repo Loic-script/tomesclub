@@ -41,7 +41,8 @@ function groupByDay(items: AdminNotificationItem[]) {
 }
 
 const KIND_LABEL: Record<string, string> = {
-  member: "New member",
+  signup: "New account",
+  member: "Profile",
   room: "Room",
   event: "Event",
   call: "Call",
@@ -98,7 +99,7 @@ async function Inbox() {
           <EmptyState
             icon={<BellIcon className="size-7" />}
             title="Nothing yet"
-            text="You will be told here when a member joins, opens a room or signs up for an event."
+            text="You will be told here when someone creates an account, opens a room, starts a call or answers an event."
           />
         </Panel>
       ) : (

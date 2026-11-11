@@ -133,7 +133,7 @@ export async function saveProfileFromForm(
   if (!before?.completedAt) {
     await notifyAdmin({
       kind: "member",
-      title: `New member: ${firstName} ${lastName}`,
+      title: `${firstName} ${lastName} finished their profile`,
       body: [ENGLISH_LEVELS.find((level) => level.value === englishLevel)?.label, text("country")]
         .filter(Boolean)
         .join(" · "),
