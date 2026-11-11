@@ -11,8 +11,21 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 
 const TOPIC = "captions";
 /** Un sous-titre disparaît après ce temps sans nouvelle parole. */
-const KEEP_MS = 4000;
+const KEEP_MS = 3500;
 const MAX_TEXT = 300;
+/** Le sous-titre montre la fin de ce qui est dit (environ 2 lignes). */
+const SHOWN_CHARS = 110;
+/** Au plus un envoi toutes les 120 ms, mais le dernier texte part TOUJOURS. */
+const SEND_EVERY_MS = 120;
+
+/** Garde la fin du texte, coupée proprement sur un mot. */
+function tail(text: string, size: number): string {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= size) return clean;
+  const cut = clean.slice(-size);
+  const space = cut.indexOf(" ");
+  return "…" + (space >= 0 ? cut.slice(space + 1) : cut);
+}
 
 type Message = { t: "cc"; on: boolean } | { t: "line"; text: string; final: boolean };
 export type CaptionLine = { id: string; name: string; text: string; at: number; mine: boolean };
@@ -163,17 +176,41 @@ export function useLiveCaptions(room: Room) {
     recognizer.interimResults = true;
     let stopped = false;
     let lastSent = 0;
+    let pending: { text: string; final: boolean } | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const flush = () => {
+      timer = null;
+      if (!pending) return;
+      lastSent = Date.now();
+      // Texte en cours : rapide (peut se perdre). Phrase finie : garantie.
+      send({ t: "line", text: pending.text, final: pending.final }, pending.final);
+      pending = null;
+    };
 
     recognizer.onresult = (event) => {
-      const result = event.results[event.results.length - 1];
-      if (!result) return;
-      const text = result[0].transcript;
-      const now = Date.now();
-      // Le texte "en cours" part au plus 4 fois par seconde ; la phrase finie part toujours.
-      if (!result.isFinal && now - lastSent < 250) return;
-      lastSent = now;
-      send({ t: "line", text: text.slice(-MAX_TEXT), final: result.isFinal }, result.isFinal);
+      // Tout ce qui a été dit depuis le début de l écoute, puis on garde la fin :
+      // le sous-titre défile au lieu de s effacer à chaque phrase.
+      let spoken = "";
+      for (let index = 0; index < event.results.length; index += 1) {
+        spoken += `${event.results[index]?.[0].transcript ?? ""} `;
+      }
+      const last = event.results[event.results.length - 1];
+      const text = tail(spoken, SHOWN_CHARS);
+      if (!text) return;
+
+      // Chez moi : tout de suite.
       showLine(room.localParticipant, text, true);
+
+      // Chez les autres : tout de suite si possible, sinon un peu plus tard (jamais perdu).
+      pending = { text, final: Boolean(last?.isFinal) };
+      const wait = SEND_EVERY_MS - (Date.now() - lastSent);
+      if (wait <= 0 || pending.final) {
+        if (timer) clearTimeout(timer);
+        flush();
+      } else if (!timer) {
+        timer = setTimeout(flush, wait);
+      }
     };
     // Chrome s'arrête après un silence : on relance tant que le CC est allumé.
     recognizer.onend = () => {
@@ -205,6 +242,7 @@ export function useLiveCaptions(room: Room) {
     }
     return () => {
       stopped = true;
+      if (timer) clearTimeout(timer);
       recognizer.onend = null;
       recognizer.onstart = null;
       recognizer.abort();
