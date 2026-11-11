@@ -1,7 +1,9 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import type { ActivityFileView } from "@/lib/file-kinds";
 import type { RoomActivity } from "@/lib/room-activities";
+import { ActivityFilesDialog } from "./activity-files-dialog";
 import { CheckIcon, TrashIcon } from "../admin-icons";
 import {
   addActivityAction,
@@ -20,8 +22,18 @@ const FILTERS = [
 type FilterKey = (typeof FILTERS)[number]["key"];
 
 // Les activités des rooms : les 13 du catalogue + celles de l'admin (ajouter, modifier, supprimer).
-export function ActivityManager({ activities }: { activities: ManagedActivity[] }) {
+export function ActivityManager({
+  activities,
+  files,
+}: {
+  activities: ManagedActivity[];
+  /** Les fichiers de chaque activité (clé -> fichiers). */
+  files: Record<string, ActivityFileView[]>;
+}) {
   const [filter, setFilter] = useState<FilterKey>("all");
+  // L'activité dont la fenêtre "Files" est ouverte.
+  const [filesFor, setFilesFor] = useState<string | null>(null);
+  const filesActivity = filesFor ? activities.find((activity) => activity.key === filesFor) : undefined;
   // null = pas de formulaire ; "new" = nouvelle activité ; sinon la clé de l'activité modifiée.
   const [form, setForm] = useState<string | null>(null);
   const formTop = useRef<HTMLDivElement>(null);
@@ -91,10 +103,23 @@ export function ActivityManager({ activities }: { activities: ManagedActivity[] 
         <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {shown.map((activity) => (
             <li key={activity.key}>
-              <ActivityCard activity={activity} onEdit={() => openForm(activity.key)} />
+              <ActivityCard
+                activity={activity}
+                fileCount={files[activity.key]?.length ?? 0}
+                onEdit={() => openForm(activity.key)}
+                onFiles={() => setFilesFor(activity.key)}
+              />
             </li>
           ))}
         </ul>
+      )}
+
+      {filesActivity && (
+        <ActivityFilesDialog
+          activity={filesActivity}
+          files={files[filesActivity.key] ?? []}
+          onClose={() => setFilesFor(null)}
+        />
       )}
     </div>
   );
@@ -102,7 +127,17 @@ export function ActivityManager({ activities }: { activities: ManagedActivity[] 
 
 /* ---------- Une carte d'activité ---------- */
 
-function ActivityCard({ activity, onEdit }: { activity: ManagedActivity; onEdit: () => void }) {
+function ActivityCard({
+  activity,
+  fileCount,
+  onEdit,
+  onFiles,
+}: {
+  activity: ManagedActivity;
+  fileCount: number;
+  onEdit: () => void;
+  onFiles: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [armed, setArmed] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -135,6 +170,11 @@ function ActivityCard({ activity, onEdit }: { activity: ManagedActivity; onEdit:
         <span className="rounded-full bg-white/[0.07] px-2.5 py-1 text-white/70">
           {activity.formats.length} {activity.formats.length === 1 ? "format" : "formats"}
         </span>
+        <span
+          className={`rounded-full px-2.5 py-1 ${fileCount > 0 ? "bg-accent/15 font-semibold text-accent" : "bg-white/[0.07] text-white/70"}`}
+        >
+          📎 {fileCount} {fileCount === 1 ? "file" : "files"}
+        </span>
       </div>
 
       {open && (
@@ -166,6 +206,13 @@ function ActivityCard({ activity, onEdit }: { activity: ManagedActivity; onEdit:
           className="rounded-full px-3 py-1.5 text-xs font-semibold text-white/60 transition hover:bg-white/10 hover:text-white"
         >
           {open ? "Hide themes" : "See themes"}
+        </button>
+        <button
+          type="button"
+          onClick={onFiles}
+          className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/15"
+        >
+          Files
         </button>
         {activity.custom && (
           <span className="ml-auto flex items-center gap-1.5">

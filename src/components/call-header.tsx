@@ -25,6 +25,7 @@ export function CallHeader({
   endsAt,
   note,
   captions,
+  files,
 }: {
   room?: RoomInfo;
   /** Fin de l'appel (texte ISO) : affiche le compte à rebours. */
@@ -33,6 +34,8 @@ export function CallHeader({
   note?: string | null;
   /** Le bouton CC (sous-titres en anglais). */
   captions?: { on: boolean; onToggle: () => void };
+  /** L hote : le bouton des fichiers de l activite. */
+  files?: { count: number; active: boolean; onOpen: () => void };
 }) {
   const [showDetails, setShowDetails] = useState(false);
   const hasDetails = Boolean(room?.description || room?.format || room?.level || room?.theme);
@@ -94,6 +97,24 @@ export function CallHeader({
           </>
         )}
 
+        {/* Les fichiers de l activite (hote seulement) */}
+        {files && (
+          <button
+            type="button"
+            onClick={files.onOpen}
+            title="Show a file to everyone"
+            className={`ml-auto flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs font-extrabold ring-1 transition ${
+              files.active
+                ? "bg-accent text-ink ring-accent"
+                : "text-white/80 ring-white/25 hover:text-white hover:ring-white/50"
+            }`}
+          >
+            <span aria-hidden>📁</span>
+            <span className="hidden sm:inline">Files</span>
+            <span className="tabular-nums">{files.count}</span>
+          </button>
+        )}
+
         {/* Le temps restant, toujours à droite */}
         {captions && (
           <button
@@ -101,7 +122,7 @@ export function CallHeader({
             onClick={captions.onToggle}
             aria-pressed={captions.on}
             title={captions.on ? "Turn English captions off" : "Turn English captions on"}
-            className={`ml-auto shrink-0 rounded-md px-2 py-1 text-xs font-extrabold tracking-wide ring-1 transition ${
+            className={`${files ? "" : "ml-auto"} shrink-0 rounded-md px-2 py-1 text-xs font-extrabold tracking-wide ring-1 transition ${
               captions.on
                 ? "bg-accent text-ink ring-accent"
                 : "text-white/70 ring-white/25 hover:text-white hover:ring-white/50"

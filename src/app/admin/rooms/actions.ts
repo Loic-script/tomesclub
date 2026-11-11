@@ -4,6 +4,7 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
 import { addCustomActivity, deleteCustomActivity, updateCustomActivity } from "@/lib/activities";
+import { deleteActivityFile, deleteFilesOfActivity, retryConversion } from "@/lib/activity-files";
 import { readRoomForm } from "@/lib/room-form";
 import type { RoomActivity } from "@/lib/room-activities";
 import { closeRoom, createRoom } from "@/lib/rooms";
@@ -96,6 +97,21 @@ export async function updateActivityAction(
 
 export async function deleteActivityAction(key: string): Promise<void> {
   await requireAdmin();
+  await deleteFilesOfActivity(key);
   await deleteCustomActivity(key);
+  refresh();
+}
+
+/** Supprimer un fichier d une activite. */
+export async function deleteActivityFileAction(id: string): Promise<void> {
+  await requireAdmin();
+  await deleteActivityFile(id);
+  refresh();
+}
+
+/** Refaire la version PDF d un PowerPoint / Word. */
+export async function retryConversionAction(id: string): Promise<void> {
+  await requireAdmin();
+  await retryConversion(id);
   refresh();
 }

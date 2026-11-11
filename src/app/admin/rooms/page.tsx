@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { RoomProgress, RoomTimeLeft } from "@/components/room-timer";
 import { requireAdmin } from "@/lib/admin";
 import { getActivityMap, listActivities } from "@/lib/activities";
+import { listFilesByActivity } from "@/lib/activity-files";
 import { levelLabel } from "@/lib/room-activities";
 import { listOpenRooms } from "@/lib/rooms";
 import { CreateRoomForm } from "../../(app)/rooms/create-room-form";
@@ -26,7 +27,11 @@ export default function AdminRoomsPage() {
 
 async function AdminRooms() {
   await requireAdmin();
-  const [rooms, activities] = await Promise.all([listOpenRooms(null), listActivities()]);
+  const [rooms, activities, files] = await Promise.all([
+    listOpenRooms(null),
+    listActivities(),
+    listFilesByActivity(),
+  ]);
   const activityByKey = await getActivityMap((rooms ?? []).map((room) => room.activity));
   const people = (rooms ?? []).reduce((sum, room) => sum + room.participants, 0);
   const custom = activities.filter((activity) => activity.custom).length;
@@ -138,7 +143,7 @@ async function AdminRooms() {
         }
         icon={<span aria-hidden className="text-base">🎯</span>}
       >
-        <ActivityManager activities={activities} />
+        <ActivityManager activities={activities} files={files} />
       </Panel>
     </>
   );

@@ -304,3 +304,23 @@ model CustomActivity {
 
   @@map("custom_activity")
 }
+
+/// Un fichier joint a une activite de room (PowerPoint, PDF, photo, video...).
+/// Le fichier est sur le disque (volume), pas dans la base.
+model ActivityFile {
+  id          String   @id
+  /// La cle de l activite (catalogue ou "custom-...")
+  activityKey String
+  /// Le nom d origine, ex : "Debate rules.pptx"
+  name        String
+  mime        String
+  size        Int
+  /// pdf | image | video | audio | office | other
+  kind        String
+  /// Pour PowerPoint / Word / Excel : la version PDF (pending | ready | failed)
+  pdfStatus   String?
+  createdAt   DateTime @default(now())
+
+  @@index([activityKey])
+  @@map("activity_file")
+}

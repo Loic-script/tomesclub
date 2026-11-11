@@ -9,6 +9,8 @@ import { useEffect, useRef, useState } from "react";
 import { CallHeader, type RoomInfo } from "@/components/call-header";
 import { CaptionsOverlay, useLiveCaptions } from "@/components/live-captions";
 import { useNow } from "@/components/room-timer";
+import { FilesDrawer, StageView, useStage } from "@/components/stage";
+import type { ActivityFileView } from "@/lib/file-kinds";
 
 /** Temps laissé pour lire le message "Time is up" avant de couper. */
 const ENDING_NOTICE_MS = 3000;
@@ -24,6 +26,7 @@ export function VideoRoom({
   room,
   callMinutes,
   onTimeUp,
+  stage: stageConfig,
 }: {
   token: string;
   serverUrl: string;
@@ -35,6 +38,8 @@ export function VideoRoom({
   callMinutes?: number;
   /** Action serveur appelée à la fin du temps (ferme la salle pour tout le monde). */
   onTimeUp?: () => Promise<void>;
+  /** Salle de groupe : les fichiers de l activite (l hote les montre, les autres regardent). */
+  stage?: { isHost: boolean; files: ActivityFileView[]; activityName: string | null };
 }) {
   const router = useRouter();
   // Notre propre connexion LiveKit : on peut la couper nous-mêmes à la fin du temps.
@@ -47,6 +52,12 @@ export function VideoRoom({
 
   // Les sous-titres en anglais (bouton CC dans la barre du haut).
   const captions = useLiveCaptions(liveRoom);
+
+  // La scene : un fichier montre a tout le monde (l hote controle).
+  const isHost = stageConfig?.isHost ?? false;
+  const stage = useStage(liveRoom, isHost);
+  const [filesOpen, setFilesOpen] = useState(false);
+  const showing = stage.state !== null;
 
   const endsAt = room?.endsAt ?? callEndsAt;
   const note = callMinutes && !callEndsAt ? `${callMinutes}-minute call` : null;
@@ -96,7 +107,25 @@ export function VideoRoom({
         endsAt={endsAt}
         note={note}
         captions={{ on: captions.on, onToggle: captions.toggle }}
+        files={
+          isHost && stageConfig
+            ? { count: stageConfig.files.length, active: showing, onOpen: () => setFilesOpen(true) }
+            : undefined
+        }
       />
+
+      {filesOpen && stageConfig && (
+        <FilesDrawer
+          files={stageConfig.files}
+          activityName={stageConfig.activityName}
+          currentId={stage.state?.file.id ?? null}
+          onClose={() => setFilesOpen(false)}
+          onPick={(file) => {
+            stage.show(file);
+            setFilesOpen(false);
+          }}
+        />
+      )}
 
       {error && (
         <p
@@ -130,8 +159,19 @@ export function VideoRoom({
         </div>
       )}
 
-      {/* La vidéo, avec les sous-titres posés en bas */}
-      <div className="relative flex min-h-0 flex-1 flex-col">
+      {/* La vidéo, avec les sous-titres posés en bas.
+          Un fichier montré : il prend la grande place, les caméras passent sur le côté (ou en bas). */}
+      <div className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
+        {showing && (
+          <StageView stage={stage} isHost={isHost} onOpenFiles={() => setFilesOpen(true)} />
+        )}
+        <div
+          className={
+            showing
+              ? "flex h-[38%] shrink-0 flex-col border-t border-white/10 lg:h-auto lg:w-[360px] lg:border-l lg:border-t-0"
+              : "flex min-h-0 flex-1 flex-col"
+          }
+        >
         <LiveKitRoom
           room={liveRoom}
           token={token}
@@ -161,6 +201,7 @@ export function VideoRoom({
         >
           <VideoConference />
         </LiveKitRoom>
+        </div>
         {captions.on && (
           <CaptionsOverlay lines={captions.lines} notice={captions.notice} />
         )}

@@ -243,6 +243,7 @@ export function getRoom(id: string) {
       durationMin: true,
       maxParticipants: true,
       createdAt: true,
+      createdById: true,
     },
   });
 }

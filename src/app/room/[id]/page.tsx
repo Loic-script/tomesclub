@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { VideoRoom } from "@/components/video-room";
 import { createParticipantToken, getBrowserLiveKitUrl } from "@/lib/livekit";
 import { getActivity } from "@/lib/activities";
+import { listFilesForActivity } from "@/lib/activity-files";
 import { isAdmin } from "@/lib/admin";
 import { levelLabel } from "@/lib/room-activities";
 import {
@@ -83,6 +84,9 @@ async function Room({ roomId }: { roomId: string }) {
 
   // Ce que la barre du haut affiche : l'activité, le thème, le temps restant.
   const activity = await getActivity(room.activity);
+  // L hote (celui qui a ouvert la salle, ou le coach) montre les fichiers de l activite.
+  const isHost = user.coach || (room.createdById !== null && room.createdById === user.id);
+  const files = isHost ? await listFilesForActivity(room.activity) : [];
   // La salle est pleine ? (Je peux revenir si j'y suis déjà, par exemple après un rechargement.)
   if (room.maxParticipants !== null) {
     const people = await listRoomPeople(room.id);
@@ -116,6 +120,7 @@ async function Room({ roomId }: { roomId: string }) {
       token={token}
       serverUrl={serverUrl}
       leaveTo={back}
+      stage={{ isHost, files, activityName: activity?.name ?? null }}
       onTimeUp={endRoomIfOver.bind(null, room.id)}
       room={{
         activityIcon: activity?.icon ?? null,
