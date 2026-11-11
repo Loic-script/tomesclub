@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { fileEmoji, formatSize, type ActivityFileView } from "@/lib/file-kinds";
 import { TrashIcon } from "../admin-icons";
 import { deleteActivityFileAction, retryConversionAction } from "./actions";
@@ -118,7 +119,9 @@ export function ActivityFilesDialog({
     void runQueue();
   }
 
-  return (
+  // Rendue directement dans <body> : une carte animée (transform / flou) autour
+  // ne doit pas servir de cadre à la fenêtre (sinon elle part en bas de la carte).
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -242,7 +245,8 @@ export function ActivityFilesDialog({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
