@@ -27,6 +27,7 @@ type Recognizer = {
   onresult: ((event: { results: SpeechResultList }) => void) | null;
   onend: (() => void) | null;
   onerror: ((event: { error: string }) => void) | null;
+  onstart: (() => void) | null;
   start: () => void;
   abort: () => void;
 };
@@ -43,6 +44,15 @@ function getRecognizer(): RecognizerClass | null {
 
 const noSubscribe = () => () => {};
 
+/** Les erreurs graves de la reconnaissance vocale, expliquées simplement. */
+const ERRORS: Record<string, string> = {
+  "not-allowed": "Captions need microphone access. Allow the microphone in your browser.",
+  "service-not-allowed": "This browser blocks voice captions. Use Chrome or Edge.",
+  network: "The captions service can't be reached (Brave and Opera block it). Use Chrome or Edge.",
+  "audio-capture": "No microphone found for captions.",
+  "language-not-supported": "English captions are not available in this browser.",
+};
+
 /* ---------- Le crochet principal ---------- */
 
 export function useLiveCaptions(room: Room) {
@@ -50,6 +60,8 @@ export function useLiveCaptions(room: Room) {
   const [lines, setLines] = useState<Map<string, CaptionLine>>(new Map());
   const [micOn, setMicOn] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  // Vrai quand le navigateur écoute vraiment (pour afficher "Listening...").
+  const [active, setActive] = useState(false);
   // Le navigateur sait-il transcrire ? (inconnu côté serveur : on suppose que oui)
   const supported = useSyncExternalStore(noSubscribe, () => getRecognizer() !== null, () => true);
 
@@ -172,11 +184,18 @@ export function useLiveCaptions(room: Room) {
         // déjà relancé
       }
     };
+    recognizer.onstart = () => {
+      setActive(true);
+      setProblem(null);
+    };
     recognizer.onerror = (event) => {
-      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
-        stopped = true;
-        setProblem("Captions need microphone access in your browser.");
-      }
+      // "no-speech" et "aborted" sont normaux : on relance tout seul.
+      const message = ERRORS[event.error];
+      if (!message) return;
+      stopped = true;
+      setActive(false);
+      setProblem(message);
+      console.warn("[captions] speech recognition error:", event.error);
     };
 
     try {
@@ -187,7 +206,9 @@ export function useLiveCaptions(room: Room) {
     return () => {
       stopped = true;
       recognizer.onend = null;
+      recognizer.onstart = null;
       recognizer.abort();
+      setActive(false);
     };
   }, [listening, room, send, showLine]);
 
@@ -208,7 +229,9 @@ export function useLiveCaptions(room: Room) {
   if (on) {
     if (problem) notice = problem;
     else if (!supported) notice = "Your browser can't caption your voice. Use Chrome or Edge.";
-    else if (!micOn) notice = "Your microphone is off.";
+    else if (!micOn) notice = "Your microphone is off: your voice is not captioned.";
+    else if (active) notice = "🎙 Listening… speak in English";
+    else notice = "Starting captions…";
   }
 
   return {
