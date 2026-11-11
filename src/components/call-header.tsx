@@ -24,12 +24,15 @@ export function CallHeader({
   room,
   endsAt,
   note,
+  captions,
 }: {
   room?: RoomInfo;
   /** Fin de l'appel (texte ISO) : affiche le compte à rebours. */
   endsAt?: string | null;
   /** Petit texte à droite tant qu'il n'y a pas de compte à rebours. */
   note?: string | null;
+  /** Le bouton CC (sous-titres en anglais). */
+  captions?: { on: boolean; onToggle: () => void };
 }) {
   const [showDetails, setShowDetails] = useState(false);
   const hasDetails = Boolean(room?.description || room?.format || room?.level || room?.theme);
@@ -92,7 +95,23 @@ export function CallHeader({
         )}
 
         {/* Le temps restant, toujours à droite */}
-        <span className="ml-auto shrink-0">
+        {captions && (
+          <button
+            type="button"
+            onClick={captions.onToggle}
+            aria-pressed={captions.on}
+            title={captions.on ? "Turn English captions off" : "Turn English captions on"}
+            className={`ml-auto shrink-0 rounded-md px-2 py-1 text-xs font-extrabold tracking-wide ring-1 transition ${
+              captions.on
+                ? "bg-accent text-ink ring-accent"
+                : "text-white/70 ring-white/25 hover:text-white hover:ring-white/50"
+            }`}
+          >
+            CC<span className="sr-only"> English captions</span>
+          </button>
+        )}
+
+        <span className={`shrink-0 ${captions ? "" : "ml-auto"}`}>
           {endsAt ? (
             <RoomTimeLeft endsAt={endsAt} />
           ) : note ? (

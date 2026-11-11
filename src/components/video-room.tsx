@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CallHeader, type RoomInfo } from "@/components/call-header";
+import { CaptionsOverlay, useLiveCaptions } from "@/components/live-captions";
 import { useNow } from "@/components/room-timer";
 
 /** Temps laissé pour lire le message "Time is up" avant de couper. */
@@ -44,6 +45,9 @@ export function VideoRoom({
   // Vrai seulement si on a vraiment été connecté (pour ne pas cacher une erreur de connexion).
   const wasConnected = useRef(false);
 
+  // Les sous-titres en anglais (bouton CC dans la barre du haut).
+  const captions = useLiveCaptions(liveRoom);
+
   const endsAt = room?.endsAt ?? callEndsAt;
   const note = callMinutes && !callEndsAt ? `${callMinutes}-minute call` : null;
 
@@ -52,7 +56,9 @@ export function VideoRoom({
     if (!callMinutes || callEndsAt) return;
     const start = () => {
       if (liveRoom.remoteParticipants.size > 0) {
-        setCallEndsAt(new Date(Date.now() + callMinutes * 60 * 1000).toISOString());
+        setCallEndsAt(
+          new Date(Date.now() + callMinutes * 60 * 1000).toISOString(),
+        );
       }
     };
     liveRoom.on(RoomEvent.ParticipantConnected, start);
@@ -65,7 +71,8 @@ export function VideoRoom({
 
   // La fin du temps : message, fermeture côté serveur, puis on coupe chez nous.
   const now = useNow();
-  const timeIsUp = endsAt !== null && now !== null && now * 1000 >= new Date(endsAt).getTime();
+  const timeIsUp =
+    endsAt !== null && now !== null && now * 1000 >= new Date(endsAt).getTime();
   const fired = useRef(false);
   useEffect(() => {
     if (!timeIsUp || fired.current) return;
@@ -84,10 +91,18 @@ export function VideoRoom({
 
   return (
     <>
-      <CallHeader room={room} endsAt={endsAt} note={note} />
+      <CallHeader
+        room={room}
+        endsAt={endsAt}
+        note={note}
+        captions={{ on: captions.on, onToggle: captions.toggle }}
+      />
 
       {error && (
-        <p role="alert" className="bg-red-600 px-4 py-2 text-center text-sm text-white">
+        <p
+          role="alert"
+          className="bg-red-600 px-4 py-2 text-center text-sm text-white"
+        >
           {error}{" "}
           <Link href={leaveTo} className="font-semibold underline">
             Back
@@ -105,39 +120,51 @@ export function VideoRoom({
             <p className="text-3xl" aria-hidden>
               ⏰
             </p>
-            <p className="mt-2 font-display text-xl font-bold text-white">Time is up!</p>
-            <p className="mt-1 text-sm text-white/60">Great practice. The call is ending…</p>
+            <p className="mt-2 font-display text-xl font-bold text-white">
+              Time is up!
+            </p>
+            <p className="mt-1 text-sm text-white/60">
+              Great practice. The call is ending…
+            </p>
           </div>
         </div>
       )}
 
-      <LiveKitRoom
-        room={liveRoom}
-        token={token}
-        serverUrl={serverUrl}
-        connect
-        video
-        audio
-        data-lk-theme="default"
-        className="min-h-0 flex-1"
-        onConnected={() => {
-          wasConnected.current = true;
-        }}
-        onDisconnected={() => {
-          // "Leave", fin du temps, ou salle fermée par le serveur : retour à l app.
-          // Si la connexion n a jamais marché, on reste ici pour voir l erreur.
-          if (wasConnected.current) router.push(leaveTo);
-        }}
-        onError={(err) => {
-          console.error("[VideoRoom]", err);
-          setError("Could not connect to the video server.");
-        }}
-        onMediaDeviceFailure={() =>
-          setError("Camera or microphone not available. Check your browser permissions.")
-        }
-      >
-        <VideoConference />
-      </LiveKitRoom>
+      {/* La vidéo, avec les sous-titres posés en bas */}
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <LiveKitRoom
+          room={liveRoom}
+          token={token}
+          serverUrl={serverUrl}
+          connect
+          video
+          audio
+          data-lk-theme="default"
+          className="min-h-0 flex-1"
+          onConnected={() => {
+            wasConnected.current = true;
+          }}
+          onDisconnected={() => {
+            // "Leave", fin du temps, ou salle fermée par le serveur : retour à l app.
+            // Si la connexion n a jamais marché, on reste ici pour voir l erreur.
+            if (wasConnected.current) router.push(leaveTo);
+          }}
+          onError={(err) => {
+            console.error("[VideoRoom]", err);
+            setError("Could not connect to the video server.");
+          }}
+          onMediaDeviceFailure={() =>
+            setError(
+              "Camera or microphone not available. Check your browser permissions.",
+            )
+          }
+        >
+          <VideoConference />
+        </LiveKitRoom>
+        {captions.on && (
+          <CaptionsOverlay lines={captions.lines} notice={captions.notice} />
+        )}
+      </div>
     </>
   );
 }
