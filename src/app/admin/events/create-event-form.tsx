@@ -1,90 +1,145 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { CalendarIcon, ImageIcon, MegaphoneIcon } from "../admin-icons";
 import { createEvent, type CreateEventState } from "./actions";
 
 const initialState: CreateEventState = { error: null };
+
+const KINDS = [
+  { value: "event", label: "Scheduled event", hint: "A class with a date", icon: CalendarIcon },
+  { value: "announcement", label: "Announcement", hint: "News for everyone", icon: MegaphoneIcon },
+] as const;
 
 // Le formulaire admin "publier un événement ou une annonce".
 export function CreateEventForm() {
   const [state, formAction, pending] = useActionState(createEvent, initialState);
   const [kind, setKind] = useState<"event" | "announcement">("event");
+  const [preview, setPreview] = useState<string | null>(null);
+
+  // Libérer l'aperçu de l'image quand il change.
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   const field =
-    "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20";
+    "neu-inset w-full rounded-2xl px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none transition focus:ring-2 focus:ring-accent/60 [color-scheme:dark]";
+  const label = "mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-white/50";
 
   return (
-    <form action={formAction} className="space-y-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
-      <h2 className="font-display text-lg font-bold text-navy">Publish something</h2>
+    <form
+      action={formAction}
+      className="neu anim-rise space-y-5 rounded-3xl p-5 sm:p-6"
+      style={{ "--d": "100ms" } as React.CSSProperties}
+    >
+      <div>
+        <h2 className="font-display text-lg font-bold text-white">Publish something</h2>
+        <p className="mt-1 text-xs text-white/50">All members get a notification.</p>
+      </div>
 
       {/* Type : événement daté ou simple annonce */}
-      <div className="flex gap-2">
-        {(
-          [
-            { value: "event", label: "Scheduled event" },
-            { value: "announcement", label: "Announcement" },
-          ] as const
-        ).map((option) => (
-          <label
-            key={option.value}
-            className={`flex-1 cursor-pointer rounded-xl border px-3 py-2 text-center text-sm font-semibold transition ${
-              kind === option.value
-                ? "border-brand bg-brand/5 text-brand"
-                : "border-zinc-200 text-zinc-600 hover:border-zinc-300"
-            }`}
-          >
-            <input
-              type="radio"
-              name="kind"
-              value={option.value}
-              checked={kind === option.value}
-              onChange={() => setKind(option.value)}
-              className="sr-only"
-            />
-            {option.label}
-          </label>
-        ))}
+      <div role="radiogroup" aria-label="Type" className="grid grid-cols-2 gap-2">
+        {KINDS.map((option) => {
+          const active = kind === option.value;
+          const Icon = option.icon;
+          return (
+            <label
+              key={option.value}
+              className={`cursor-pointer rounded-2xl p-3 transition-all duration-300 focus-within:ring-2 focus-within:ring-accent/60 ${
+                active
+                  ? "bg-gradient-to-br from-accent/90 to-brand text-white shadow-lg shadow-brand/30"
+                  : "neu-sm text-white/65 hover:text-white"
+              }`}
+            >
+              <input
+                type="radio"
+                name="kind"
+                value={option.value}
+                checked={active}
+                onChange={() => setKind(option.value)}
+                className="sr-only"
+              />
+              <Icon className="size-5" />
+              <span className="mt-2 block text-sm font-bold">{option.label}</span>
+              <span className={`block text-[11px] ${active ? "text-white/80" : "text-white/45"}`}>
+                {option.hint}
+              </span>
+            </label>
+          );
+        })}
       </div>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-zinc-700">Title *</span>
-        <input name="title" type="text" required maxLength={120} className={field} placeholder="e.g. English class: daily conversations" />
+        <span className={label}>Title *</span>
+        <input
+          name="title"
+          type="text"
+          required
+          maxLength={120}
+          className={field}
+          placeholder="e.g. English class: daily conversations"
+        />
       </label>
 
       {kind === "event" && (
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium text-zinc-700">Date and time *</span>
-          <input name="startsAt" type="datetime-local" className={field} />
+        <label className="anim-dropdown block">
+          <span className={label}>Date and time *</span>
+          <input name="startsAt" type="datetime-local" required className={field} />
         </label>
       )}
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-zinc-700">Description</span>
-        <textarea name="description" rows={3} maxLength={1000} className={field} placeholder="What should members know?" />
-      </label>
-
-      <label className="block">
-        <span className="mb-1 block text-sm font-medium text-zinc-700">
-          Card image (optional, JPG/PNG/WebP, 3 MB max)
-        </span>
-        <input
-          name="image"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="w-full text-sm text-zinc-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand/10 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-brand hover:file:bg-brand/20"
+        <span className={label}>Description</span>
+        <textarea
+          name="description"
+          rows={3}
+          maxLength={1000}
+          className={`${field} resize-none`}
+          placeholder="What should members know?"
         />
       </label>
 
-      <p aria-live="polite" className="min-h-5 text-sm text-red-600">
-        {state.error}
-      </p>
+      {/* L'image de la carte, avec aperçu */}
+      <label className="group block cursor-pointer">
+        <span className={label}>Card image (optional)</span>
+        <span className="neu-inset relative flex h-36 items-center justify-center overflow-hidden rounded-2xl border border-dashed border-white/15 transition group-hover:border-accent/60">
+          {preview ? (
+            // eslint-disable-next-line @next/next/no-img-element -- aperçu local du fichier choisi
+            <img src={preview} alt="" className="absolute inset-0 size-full object-cover" />
+          ) : (
+            <span className="flex flex-col items-center gap-2 text-center text-white/45">
+              <ImageIcon className="size-7" />
+              <span className="text-xs font-semibold">Click to add a picture</span>
+              <span className="text-[10px]">JPG, PNG or WebP · 3 MB max</span>
+            </span>
+          )}
+          <input
+            name="image"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="sr-only"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              setPreview(file ? URL.createObjectURL(file) : null);
+            }}
+          />
+        </span>
+      </label>
+
+      {state.error && (
+        <p aria-live="polite" className="rounded-2xl bg-red-500/15 px-4 py-3 text-sm font-medium text-red-200">
+          {state.error}
+        </p>
+      )}
 
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-brand px-5 py-2.5 font-semibold text-white transition hover:bg-brand-dark disabled:opacity-60"
+        className="neu-btn w-full rounded-full bg-gradient-to-r from-accent to-brand px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand/30 disabled:opacity-60"
       >
-        {pending ? "Publishing..." : "Publish"}
+        {pending ? "Publishing..." : kind === "event" ? "Publish the event" : "Publish the announcement"}
       </button>
     </form>
   );

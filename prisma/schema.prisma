@@ -267,3 +267,21 @@ model Follow {
   @@index([followingId])
   @@map("follow")
 }
+
+// ===================================================================
+// Notifications de l admin (nouveaux membres, salles, participants...)
+// ===================================================================
+
+/// Ce que l admin doit savoir. Il n y a qu un admin : pas de userId.
+model AdminNotification {
+  id        String    @id @default(cuid())
+  kind      String // member | room | event | call
+  title     String
+  body      String?
+  link      String?
+  readAt    DateTime? // null = pas encore lue
+  createdAt DateTime  @default(now())
+
+  @@index([createdAt])
+  @@map("admin_notification")
+}

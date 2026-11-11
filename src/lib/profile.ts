@@ -5,6 +5,7 @@ import {
   OCCUPATIONS,
   PHOTO_TYPES,
 } from "@/lib/onboarding-options";
+import { notifyAdmin } from "@/lib/admin-notifications";
 import { prisma } from "@/lib/prisma";
 
 // Lire et enregistrer la fiche d'un membre (côté serveur).
@@ -117,11 +118,28 @@ export async function saveProfileFromForm(
     ...(photo ? { photo, photoType } : {}),
   };
 
+  // Première fiche terminée = nouveau membre : on prévient l'admin (après l'écriture).
+  const before = await prisma.profile.findUnique({
+    where: { userId },
+    select: { completedAt: true },
+  });
+
   await prisma.profile.upsert({
     where: { userId },
     create: { userId, ...data },
     update: data,
   });
+
+  if (!before?.completedAt) {
+    await notifyAdmin({
+      kind: "member",
+      title: `New member: ${firstName} ${lastName}`,
+      body: [ENGLISH_LEVELS.find((level) => level.value === englishLevel)?.label, text("country")]
+        .filter(Boolean)
+        .join(" · "),
+      link: `/admin/members/${userId}`,
+    });
+  }
 
   return null;
 }

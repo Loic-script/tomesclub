@@ -1,5 +1,6 @@
 import "server-only";
 import { connection } from "next/server";
+import { notifyAdmin } from "@/lib/admin-notifications";
 import { createRoomServiceClient } from "@/lib/livekit";
 import { notifyAllMembers } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
@@ -144,6 +145,16 @@ export async function createRoom(creatorId: string, input: NewRoom): Promise<{ i
       creatorId,
     );
   }
+
+  // L'admin voit toutes les salles qui s'ouvrent (publiques et privées).
+  const host = await prisma.user.findUnique({ where: { id: creatorId }, select: { name: true } });
+  const activity = findActivity(input.activity);
+  await notifyAdmin({
+    kind: "room",
+    title: `${host?.name ?? "A member"} opened a ${isPrivate ? "private " : ""}room`,
+    body: [activity ? `${activity.icon} ${activity.name}` : null, topic].filter(Boolean).join(" · "),
+    link: "/admin",
+  });
 
   return room;
 }

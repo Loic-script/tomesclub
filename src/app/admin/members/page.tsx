@@ -1,25 +1,26 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/admin";
+import { ENGLISH_LEVELS } from "@/lib/onboarding-options";
 import { prisma } from "@/lib/prisma";
-import { MemberAvatar } from "@/components/member-avatar";
-import { DeleteMemberButton } from "./delete-member-button";
+import { AdminHeader } from "../admin-ui";
+import { MembersBrowser, type AdminMemberRow } from "./members-browser";
 
 export const metadata: Metadata = { title: "Members · Admin" };
 
-// Page /admin/members : la liste des membres, avec accès à chaque fiche.
+const ONLINE_MS = 2 * 60 * 1000;
+
+// Page /admin/members : tous les membres, avec recherche et filtres.
 export default function MembersPage() {
   return (
-    <Suspense fallback={<p className="m-auto text-zinc-500">Loading...</p>}>
+    <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
       <MembersList />
     </Suspense>
   );
 }
 
-async function MembersList() {
-  await requireAdmin();
-
+/** Lit les membres et les prépare pour l'écran (dates déjà mises en texte). */
+async function loadMembers(): Promise<AdminMemberRow[]> {
   const members = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
     select: {
@@ -32,78 +33,48 @@ async function MembersList() {
           firstName: true,
           lastName: true,
           englishLevel: true,
+          country: true,
+          city: true,
           completedAt: true,
           photoType: true,
+          lastSeenAt: true,
         },
       },
     },
   });
+  const now = Date.now();
+  const joined = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
+
+  return members.map((member) => {
+    const profile = member.profile;
+    return {
+      id: member.id,
+      name: profile ? `${profile.firstName} ${profile.lastName}` : member.name,
+      firstName: profile?.firstName ?? member.name,
+      email: member.email,
+      level: ENGLISH_LEVELS.find((level) => level.value === profile?.englishLevel)?.label ?? null,
+      place: [profile?.city, profile?.country].filter(Boolean).join(", ") || null,
+      completed: Boolean(profile?.completedAt),
+      hasPhoto: Boolean(profile?.photoType),
+      online: Boolean(profile?.lastSeenAt && now - profile.lastSeenAt.getTime() < ONLINE_MS),
+      joined: joined.format(member.createdAt),
+    };
+  });
+}
+
+async function MembersList() {
+  await requireAdmin();
+  const members = await loadMembers();
+  const online = members.filter((member) => member.online).length;
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-10">
-      <header className="mb-6">
-        <h1 className="font-display text-2xl font-bold text-navy">
-          Members <span className="text-base font-semibold text-zinc-400">({members.length})</span>
-        </h1>
-      </header>
-
-      {members.length === 0 ? (
-        <p className="rounded-2xl bg-white p-8 text-center text-zinc-500 shadow-sm">
-          No members yet.
-        </p>
-      ) : (
-        <ul className="space-y-3">
-          {members.map((member) => {
-            const displayName = member.profile
-              ? `${member.profile.firstName} ${member.profile.lastName}`
-              : member.name;
-            return (
-              <li
-                key={member.id}
-                className="flex flex-wrap items-center gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5"
-              >
-                <MemberAvatar
-                  userId={member.id}
-                  name={displayName}
-                  hasPhoto={Boolean(member.profile?.photoType)}
-                />
-
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-zinc-900">{displayName}</p>
-                  <p className="truncate text-sm text-zinc-500">{member.email}</p>
-                </div>
-
-                <div className="flex items-center gap-2 text-xs">
-                  {member.profile?.englishLevel && (
-                    <span className="rounded-full bg-navy/10 px-2.5 py-1 font-semibold capitalize text-navy">
-                      {member.profile.englishLevel}
-                    </span>
-                  )}
-                  <span
-                    className={`rounded-full px-2.5 py-1 font-semibold ${
-                      member.profile?.completedAt
-                        ? "bg-green-100 text-green-700"
-                        : "bg-amber-100 text-amber-700"
-                    }`}
-                  >
-                    {member.profile?.completedAt ? "Profile completed" : "Profile not finished"}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={`/admin/members/${member.id}`}
-                    className="rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-brand-dark"
-                  >
-                    View profile
-                  </Link>
-                  <DeleteMemberButton userId={member.id} name={member.profile?.firstName ?? member.name} />
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
+    <>
+      <AdminHeader
+        eyebrow="Community"
+        title="Members"
+        subtitle={`${members.length} ${members.length === 1 ? "member" : "members"} · ${online} online now`}
+      />
+      <MembersBrowser members={members} />
+    </>
   );
 }

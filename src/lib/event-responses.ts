@@ -1,4 +1,5 @@
 import "server-only";
+import { notifyAdmin } from "@/lib/admin-notifications";
 import { prisma } from "@/lib/prisma";
 
 // "Going" (je participe) et "Interested" (ça m intéresse) sur les événements.
@@ -71,16 +72,30 @@ export async function setEventResponse(
 ): Promise<boolean> {
   const event = await prisma.event.findFirst({
     where: { id: eventId, kind: "event" },
-    select: { id: true },
+    select: { id: true, title: true },
   });
   if (!event) return false;
 
   if (on) {
+    const existing = await prisma.eventResponse.findUnique({
+      where: { eventId_userId_status: { eventId, userId, status } },
+      select: { status: true },
+    });
     await prisma.eventResponse.upsert({
       where: { eventId_userId_status: { eventId, userId, status } },
       create: { eventId, userId, status },
       update: {},
     });
+    // Quelqu'un dit qu'il vient : l'admin le sait (une seule fois).
+    if (!existing && status === "going") {
+      const member = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
+      await notifyAdmin({
+        kind: "event",
+        title: `${member?.name ?? "A member"} is going`,
+        body: event.title,
+        link: "/admin/events",
+      });
+    }
   } else {
     await prisma.eventResponse.deleteMany({ where: { eventId, userId, status } });
   }
