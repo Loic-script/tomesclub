@@ -4,6 +4,8 @@ import { useActionState, useState, type ReactNode } from "react";
 import { ActivityIcon } from "@/components/activity-icon";
 import {
   DEFAULT_DURATION,
+  MAX_DURATION,
+  MIN_DURATION,
   DEFAULT_PEOPLE,
   ROOM_MAX_PEOPLE,
   ROOM_MIN_PEOPLE,
@@ -151,6 +153,8 @@ function RoomOptions({
   const [format, setFormat] = useState(activity.formats[0] ?? "");
   const [level, setLevel] = useState("all");
   const [duration, setDuration] = useState<number>(DEFAULT_DURATION);
+  // Le texte du champ "Or your own" (peut être vide pendant la saisie)
+  const [durationText, setDurationText] = useState(String(DEFAULT_DURATION));
   const [people, setPeople] = useState(DEFAULT_PEOPLE);
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   // Thème proposé → description écrite pour l'hôte (et mise à jour avec les options).
@@ -337,7 +341,10 @@ function RoomOptions({
               <ChoiceChip
                 key={minutes}
                 selected={duration === minutes}
-                onClick={() => setDuration(minutes)}
+                onClick={() => {
+                  setDuration(minutes);
+                  setDurationText(String(minutes));
+                }}
                 label={`${minutes} minutes`}
               >
                 {minutes}′
@@ -345,6 +352,29 @@ function RoomOptions({
             ))}
           </div>
         </fieldset>
+        {/* Ou sa propre durée, de 1 à 60 minutes */}
+        <label className="mt-2 flex items-center gap-2 text-xs text-white/60">
+          Or your own:
+          <input
+            type="number"
+            inputMode="numeric"
+            min={MIN_DURATION}
+            max={MAX_DURATION}
+            step={1}
+            value={durationText}
+            onChange={(event) => {
+              setDurationText(event.target.value);
+              const minutes = Math.round(Number(event.target.value));
+              if (minutes >= MIN_DURATION && minutes <= MAX_DURATION) setDuration(minutes);
+            }}
+            onBlur={() => setDurationText(String(duration))}
+            aria-label={`Duration in minutes, from ${MIN_DURATION} to ${MAX_DURATION}`}
+            className={`w-16 rounded-xl bg-white/10 px-2 py-1.5 text-center text-sm font-bold text-white outline-none ring-1 transition focus:ring-2 focus:ring-accent/60 ${
+              (ROOM_DURATIONS as readonly number[]).includes(duration) ? "ring-white/15" : "ring-accent"
+            }`}
+          />
+          min <span className="text-white/35">(1 to 60)</span>
+        </label>
         {duration === 1 && (
           <p className="mt-1.5 text-xs text-white/50">1 minute: handy to test the room.</p>
         )}

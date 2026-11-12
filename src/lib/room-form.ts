@@ -2,7 +2,8 @@ import "server-only";
 import { getActivity } from "@/lib/activities";
 import {
   DEFAULT_PEOPLE,
-  ROOM_DURATIONS,
+  MAX_DURATION,
+  MIN_DURATION,
   ROOM_LEVELS,
   ROOM_MAX_PEOPLE,
   ROOM_MIN_PEOPLE,
@@ -34,8 +35,11 @@ export async function readRoomForm(formData: FormData): Promise<NewRoom | string
   const level = ROOM_LEVELS.some((entry) => entry.value === levelValue) ? levelValue : "all";
 
   const minutes = Number(formData.get("duration"));
-  const durationMin = (ROOM_DURATIONS as readonly number[]).includes(minutes) ? minutes : null;
-  if (durationMin === null) return "Please choose a duration between 1 and 30 minutes.";
+  const durationMin =
+    Number.isInteger(minutes) && minutes >= MIN_DURATION && minutes <= MAX_DURATION ? minutes : null;
+  if (durationMin === null) {
+    return `Please choose a duration between ${MIN_DURATION} and ${MAX_DURATION} minutes.`;
+  }
 
   // La limite de personnes : un nombre entre 2 et 20.
   const people = Math.round(Number(formData.get("maxParticipants")));

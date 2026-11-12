@@ -14,8 +14,12 @@ export type RoomActivity = {
 };
 
 /** La durée d'une salle, en minutes (1 min : pour faire un test). */
-export const ROOM_DURATIONS = [1, 5, 10, 15, 20, 25, 30] as const;
+/** Les boutons rapides. On peut aussi taper sa propre durée (de MIN_DURATION à MAX_DURATION). */
+export const ROOM_DURATIONS = [5, 10, 15, 20, 30, 45, 60] as const;
 export const DEFAULT_DURATION = 15;
+/** Les limites de la durée personnalisée (1 min : pour faire un test). */
+export const MIN_DURATION = 1;
+export const MAX_DURATION = 60;
 
 /** Le nombre de personnes maximum dans une salle (choisi par l'hôte). */
 export const ROOM_MIN_PEOPLE = 2;
