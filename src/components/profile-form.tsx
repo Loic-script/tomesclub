@@ -19,6 +19,7 @@ import {
   MAX_PHOTO_BYTES,
   OCCUPATIONS,
   PHOTO_TYPES,
+  USER_TYPES,
   type OccupationKind,
 } from "@/lib/onboarding-options";
 
@@ -39,6 +40,10 @@ export type ProfileFormInitial = {
   languages: string[];
   englishLevel: string;
   interests: string[];
+  /** member | leader | teacher : le type confirmé, ou la demande en attente. */
+  userType: string;
+  /** true = Leader / Teacher pas encore validé par l'admin. */
+  userTypePending: boolean;
   /** L'adresse de la photo déjà enregistrée (mode edit), sinon null. */
   photoUrl: string | null;
 };
@@ -75,6 +80,7 @@ export function ProfileForm({
   const [country, setCountry] = useState(initial.country);
   const [city, setCity] = useState(initial.city);
   const [phone, setPhone] = useState(initial.phone);
+  const [userType, setUserType] = useState(initial.userType || "member");
 
   // --- Étape 2 ---
   const [occupations, setOccupations] = useState<OccupationState>(
@@ -163,6 +169,7 @@ export function ProfileForm({
     formData.set("country", country);
     formData.set("city", city);
     formData.set("phone", phone);
+    formData.set("userType", userType);
     for (const occupation of OCCUPATIONS) {
       const value = occupations[occupation.kind];
       if (!value.on) continue;
@@ -250,6 +257,36 @@ export function ProfileForm({
             <TextField label="Phone" type="tel" value={phone} onChange={setPhone} placeholder="+261 34 00 000 00" autoComplete="tel" />
             <CountrySelect label="Country" value={country} onChange={setCountry} />
             <TextField label="City (where you live)" value={city} onChange={setCity} placeholder="e.g. Antananarivo" autoComplete="address-level2" />
+
+            {/* Le type d'utilisateur : Leader et Teacher doivent être validés par le coach */}
+            <div className="sm:col-span-2">
+              <p className="mb-2 text-sm font-medium text-zinc-700">You are</p>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {USER_TYPES.map((type) => (
+                  <button
+                    key={type.value}
+                    type="button"
+                    onClick={() => setUserType(type.value)}
+                    aria-pressed={userType === type.value}
+                    className={`rounded-2xl border p-3.5 text-left transition-all duration-200 ${
+                      userType === type.value
+                        ? "border-brand bg-brand/5 shadow-sm ring-1 ring-brand"
+                        : "border-zinc-200 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-sm"
+                    }`}
+                  >
+                    <span className="block font-semibold text-zinc-900">{type.label}</span>
+                    <span className="block text-xs text-zinc-500">{type.hint}</span>
+                  </button>
+                ))}
+              </div>
+              {userType !== "member" && (
+                <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
+                  {initial.userTypePending || userType !== initial.userType
+                    ? "The coach will check your request. You stay a Member until it is accepted."
+                    : "Confirmed by the coach."}
+                </p>
+              )}
+            </div>
           </div>
         )}
 

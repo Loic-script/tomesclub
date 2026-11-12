@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { MemberAvatar } from "@/components/member-avatar";
 import { ArrowIcon, SearchIcon, UsersIcon } from "../admin-icons";
 import { DeleteMemberButton } from "./delete-member-button";
+import { RoleStatus } from "./role-status";
 
 export type AdminMemberRow = {
   id: string;
@@ -14,6 +15,10 @@ export type AdminMemberRow = {
   level: string | null;
   place: string | null;
   completed: boolean;
+  /** member | leader | teacher (confirmé par l admin) */
+  role: string;
+  /** Demande en attente : leader | teacher */
+  roleRequest: string | null;
   hasPhoto: boolean;
   online: boolean;
   joined: string;
@@ -22,7 +27,9 @@ export type AdminMemberRow = {
 const FILTERS = [
   { key: "all", label: "All" },
   { key: "online", label: "Online" },
-  { key: "completed", label: "Profile done" },
+  { key: "waiting", label: "Waiting" },
+  { key: "leader", label: "Leaders" },
+  { key: "teacher", label: "Teachers" },
   { key: "pending", label: "Not finished" },
 ] as const;
 type FilterKey = (typeof FILTERS)[number]["key"];
@@ -34,7 +41,8 @@ function simplify(text: string): string {
 
 function matchesFilter(member: AdminMemberRow, filter: FilterKey): boolean {
   if (filter === "online") return member.online;
-  if (filter === "completed") return member.completed;
+  if (filter === "waiting") return Boolean(member.roleRequest);
+  if (filter === "leader" || filter === "teacher") return member.role === filter;
   if (filter === "pending") return !member.completed;
   return true;
 }
@@ -164,14 +172,7 @@ export function MembersBrowser({ members }: { members: AdminMemberRow[] }) {
                     <span className="block text-[11px] text-white/35">Joined {member.joined}</span>
                   </span>
                   <span className="hidden text-xs xl:block">
-                    <span
-                    className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 font-semibold ${
-                      member.completed ? "bg-emerald-400/15 text-emerald-300" : "bg-amber-400/15 text-amber-300"
-                    }`}
-                  >
-                    <span aria-hidden className={`size-1.5 rounded-full ${member.completed ? "bg-emerald-300" : "bg-amber-300"}`} />
-                    {member.completed ? "Profile done" : "Not finished"}
-                  </span>
+                    <RoleStatus userId={member.id} role={member.role} roleRequest={member.roleRequest} completed={member.completed} />
                   </span>
 
                   <span className="flex shrink-0 items-center justify-end gap-2 xl:w-40">
@@ -193,14 +194,7 @@ export function MembersBrowser({ members }: { members: AdminMemberRow[] }) {
                       {member.level}
                     </span>
                   ) : null}
-                  <span
-                    className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 font-semibold ${
-                      member.completed ? "bg-emerald-400/15 text-emerald-300" : "bg-amber-400/15 text-amber-300"
-                    }`}
-                  >
-                    <span aria-hidden className={`size-1.5 rounded-full ${member.completed ? "bg-emerald-300" : "bg-amber-300"}`} />
-                    {member.completed ? "Profile done" : "Not finished"}
-                  </span>
+                  <RoleStatus userId={member.id} role={member.role} roleRequest={member.roleRequest} completed={member.completed} />
                   {member.place && <span className="truncate text-white/45">· {member.place}</span>}
                 </div>
               </li>

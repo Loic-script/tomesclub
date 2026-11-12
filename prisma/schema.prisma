@@ -121,6 +121,10 @@ model Profile {
   occupations  Json?
   languages    String[]  @default([]) // langues parlées
   englishLevel String? // beginner | elementary | intermediate | advanced
+  /// Le type confirmé : member (tout le monde au départ) | leader | teacher
+  role         String    @default("member")
+  /// La demande en attente de validation par l admin : leader | teacher (null = aucune)
+  roleRequest  String?
   interests    String[]  @default([]) // centres d'intérêt
   photo        Bytes? // la photo du membre (petite image)
   photoType    String? // ex : image/jpeg

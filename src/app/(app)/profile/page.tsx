@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { delay, PageHeader } from "@/components/app-ui";
 import { MemberAvatar } from "@/components/member-avatar";
-import { OCCUPATIONS } from "@/lib/onboarding-options";
+import { OCCUPATIONS, userTypeLabel } from "@/lib/onboarding-options";
 import { getFullProfile } from "@/lib/profile";
 import { requireMember } from "@/lib/session";
 
@@ -93,8 +93,13 @@ async function ProfileHome() {
                 {profile.firstName} {profile.lastName}
               </h2>
               <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-zinc-400">
-                Tomes Club member
+                Tomes Club {userTypeLabel(profile.role).toLowerCase()}
               </p>
+              {profile.roleRequest && (
+                <p className="mt-1 text-[11px] font-medium text-amber-600">
+                  {userTypeLabel(profile.roleRequest)} request: waiting for the coach
+                </p>
+              )}
               {profile.englishLevel && (
                 <span className="mt-2 inline-block rounded-full bg-accent px-3 py-0.5 text-xs font-bold capitalize text-white shadow-sm">
                   {profile.englishLevel} english

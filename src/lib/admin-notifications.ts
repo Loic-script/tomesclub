@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 // Les notifications de l'admin : ce qui se passe dans le club.
 // (Une seule personne admin : pas besoin de destinataire.)
 
-export type AdminNotificationKind = "signup" | "member" | "room" | "event" | "call" | "message";
+export type AdminNotificationKind = "signup" | "member" | "room" | "event" | "call" | "message" | "role";
 
 export type AdminNotificationItem = {
   id: string;

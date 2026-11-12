@@ -167,6 +167,7 @@ export function KindIcon({ kind, className = "size-5" }: { kind: string; classNa
   if (kind === "event") return <CalendarIcon className={className} />;
   if (kind === "call") return <PhoneIcon className={className} />;
   if (kind === "message") return <ChatIcon className={className} />;
+  if (kind === "role") return <UserPlusIcon className={className} />;
   return <MegaphoneIcon className={className} />;
 }
 
@@ -177,5 +178,6 @@ export function kindTone(kind: string): string {
   if (kind === "room") return "from-accent to-[#ff7a9a]";
   if (kind === "event") return "from-[#6d72ff] to-navy";
   if (kind === "message") return "from-accent to-brand";
+  if (kind === "role") return "from-amber-400 to-accent";
   return "from-brand to-[#c2185b]";
 }

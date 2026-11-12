@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { ArrowIcon, CalendarIcon, PhoneIcon, RoomIcon, UsersIcon } from "../../admin-icons";
 import { Chip, delay, Panel } from "../../admin-ui";
 import { DeleteMemberButton } from "../delete-member-button";
+import { RoleStatus } from "../role-status";
 
 export const metadata: Metadata = { title: "Member profile · Admin" };
 
@@ -49,6 +50,8 @@ async function loadMember(userId: string) {
           photoType: true,
           completedAt: true,
           lastSeenAt: true,
+          role: true,
+          roleRequest: true,
         },
       },
       _count: {
@@ -138,11 +141,13 @@ async function MemberProfile({ userId }: { userId: string }) {
             <p className="mt-1 truncate text-sm text-white/55">{member.email}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {member.online ? <Chip tone="good">● Online now</Chip> : <Chip>Offline</Chip>}
-              {profile?.completedAt ? (
-                <Chip tone="good">Profile done</Chip>
-              ) : (
-                <Chip tone="warn">Profile not finished</Chip>
-              )}
+              <RoleStatus
+                userId={member.id}
+                role={profile?.role ?? "member"}
+                roleRequest={profile?.roleRequest ?? null}
+                completed={Boolean(profile?.completedAt)}
+                large
+              />
               {level && <Chip tone="navy">{level}</Chip>}
               <Chip>Member since {date(member.createdAt)}</Chip>
             </div>

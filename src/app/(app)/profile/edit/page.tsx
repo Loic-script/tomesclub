@@ -45,6 +45,8 @@ async function EditGate() {
         languages: profile.languages,
         englishLevel: profile.englishLevel ?? "",
         interests: profile.interests,
+        userType: profile.roleRequest ?? profile.role,
+        userTypePending: Boolean(profile.roleRequest),
         photoUrl: profile.photoType ? `/api/profile/photo/${user.id}` : null,
       }}
     />

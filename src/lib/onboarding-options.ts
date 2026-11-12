@@ -36,6 +36,21 @@ export const OCCUPATIONS = [
 
 export type OccupationKind = (typeof OCCUPATIONS)[number]["kind"];
 
+/**
+ * Le type d utilisateur. Tout le monde est "member" au départ :
+ * Leader et Teacher sont des demandes que l admin doit valider.
+ */
+export const USER_TYPES = [
+  { value: "member", label: "Member", hint: "I practice my English" },
+  { value: "leader", label: "Leader", hint: "I lead a group" },
+  { value: "teacher", label: "Teacher", hint: "I teach English" },
+] as const;
+
+export type UserType = (typeof USER_TYPES)[number]["value"];
+
+export const userTypeLabel = (value: string | null | undefined): string =>
+  USER_TYPES.find((type) => type.value === value)?.label ?? "Member";
+
 export const ENGLISH_LEVELS = [
   { value: "beginner", label: "Beginner", hint: "I am just starting" },
   { value: "elementary", label: "Elementary", hint: "I know simple phrases" },

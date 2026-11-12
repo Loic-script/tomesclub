@@ -47,6 +47,7 @@ const KIND_LABEL: Record<string, string> = {
   event: "Event",
   call: "Call",
   message: "Message",
+  role: "Request",
 };
 
 async function Inbox() {

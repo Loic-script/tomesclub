@@ -48,6 +48,8 @@ async function OnboardingGate() {
         languages: [],
         englishLevel: "",
         interests: [],
+        userType: "member",
+        userTypePending: false,
         photoUrl: null,
       }}
     />

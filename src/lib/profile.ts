@@ -4,6 +4,8 @@ import {
   MAX_PHOTO_BYTES,
   OCCUPATIONS,
   PHOTO_TYPES,
+  USER_TYPES,
+  userTypeLabel,
 } from "@/lib/onboarding-options";
 import { notifyAdmin } from "@/lib/admin-notifications";
 import { prisma } from "@/lib/prisma";
@@ -35,6 +37,8 @@ export function getFullProfile(userId: string) {
       interests: true,
       photoType: true,
       completedAt: true,
+      role: true,
+      roleRequest: true,
     },
   });
 }
@@ -92,6 +96,10 @@ export async function saveProfileFromForm(
   const languages = cleanList(formData.getAll("languages"));
   const interests = cleanList(formData.getAll("interests"));
 
+  // --- Type d'utilisateur (Leader / Teacher = demande à valider par l'admin) ---
+  const userType = String(formData.get("userType") ?? "member");
+  if (!USER_TYPES.some((type) => type.value === userType)) return "Please choose a valid user type.";
+
   // --- Photo (facultative ; si absente, on garde l'ancienne) ---
   let photo: Uint8Array<ArrayBuffer> | null = null;
   let photoType: string | null = null;
@@ -121,14 +129,29 @@ export async function saveProfileFromForm(
   // Première fiche terminée = nouveau membre : on prévient l'admin (après l'écriture).
   const before = await prisma.profile.findUnique({
     where: { userId },
-    select: { completedAt: true },
+    select: { completedAt: true, role: true, roleRequest: true },
   });
+
+  // Le type : "member" est immédiat. Leader / Teacher restent en attente jusqu'à la validation.
+  const currentRole = before?.role ?? "member";
+  const roleRequest = userType === "member" || userType === currentRole ? null : userType;
+  const roleData = userType === "member" ? { role: "member", roleRequest } : { roleRequest };
+  const newRequest = roleRequest !== null && roleRequest !== before?.roleRequest;
 
   await prisma.profile.upsert({
     where: { userId },
-    create: { userId, ...data },
-    update: data,
+    create: { userId, ...data, ...roleData },
+    update: { ...data, ...roleData },
   });
+
+  if (newRequest) {
+    await notifyAdmin({
+      kind: "role",
+      title: `${firstName} ${lastName} asks to be a ${userTypeLabel(userType)}`,
+      body: "Open the profile to accept or refuse.",
+      link: `/admin/members/${userId}`,
+    });
+  }
 
   if (!before?.completedAt) {
     await notifyAdmin({
