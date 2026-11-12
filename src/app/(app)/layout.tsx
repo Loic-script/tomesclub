@@ -1,5 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 import { BottomNav } from "@/components/bottom-nav";
+import { CoachChat } from "@/components/coach-chat";
 import { PresencePing } from "@/components/presence-ping";
 import { SideCalendar } from "@/components/side-calendar";
 import { SideCalendarWithEvents } from "@/components/side-calendar-events";
@@ -64,6 +65,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <Suspense fallback={null}>
         <BottomNav />
       </Suspense>
+
+      {/* Le bouton rond en bas à droite : discuter avec le coach. */}
+      <CoachChat />
 
       {/* Dit au serveur que je suis en ligne (rien ne s'affiche). */}
       <PresencePing />

@@ -42,6 +42,9 @@ model User {
   // Les notifications reçues (appels, événements, annonces)
   notifications Notification[]
 
+  // La discussion avec le coach (admin)
+  coachMessages CoachMessage[]
+
   // Abonnements : les membres que je suis, et ceux qui me suivent
   following Follow[] @relation("Following")
   followers Follow[] @relation("Followers")
@@ -323,4 +326,26 @@ model ActivityFile {
 
   @@index([activityKey])
   @@map("activity_file")
+}
+
+// ===================================================================
+// Messages entre le coach (admin) et un membre
+// ===================================================================
+
+/// Un message de la discussion "coach <-> membre". Une discussion par membre.
+model CoachMessage {
+  id        String    @id @default(cuid())
+  /// Le membre de cette discussion
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// true = ecrit par le coach, false = ecrit par le membre
+  fromCoach Boolean
+  body      String
+  /// Lu par celui qui le recoit (null = pas encore lu)
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([fromCoach, readAt])
+  @@map("coach_message")
 }

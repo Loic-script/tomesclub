@@ -3,9 +3,10 @@ import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { isAdmin } from "@/lib/admin";
 import { countAdminUnread } from "@/lib/admin-notifications";
+import { countUnreadForCoach } from "@/lib/coach-chat";
 import { adminSignOut } from "../(auth)/admin/login/actions";
 import { LogoutIcon } from "./admin-icons";
-import { AdminBottomLinks, AdminLiveRefresh, AdminSideLinks } from "./admin-nav";
+import { AdminBottomLinks, AdminLiveRefresh, AdminSideLinks, type AdminBadges } from "./admin-nav";
 
 // Le cadre de l'espace admin : le même fond sombre et le même verre que l'espace membre.
 // Grand écran : une barre latérale en verre. Téléphone : une pilule en bas.
@@ -117,14 +118,19 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   );
 }
 
+/** Les pastilles des onglets (0 sans session admin). */
+async function loadBadges(): Promise<AdminBadges> {
+  if (!(await isAdmin())) return { inbox: 0, messages: 0 };
+  const [inbox, messages] = await Promise.all([countAdminUnread(), countUnreadForCoach()]);
+  return { inbox, messages };
+}
+
 async function SideLinksWithCount() {
-  const unread = (await isAdmin()) ? await countAdminUnread() : 0;
-  return <AdminSideLinks unread={unread} />;
+  return <AdminSideLinks badges={await loadBadges()} />;
 }
 
 async function BottomLinksWithCount() {
-  const unread = (await isAdmin()) ? await countAdminUnread() : 0;
-  return <AdminBottomLinks unread={unread} />;
+  return <AdminBottomLinks badges={await loadBadges()} />;
 }
 
 /** La mise à jour automatique : seulement pour une session admin valide. */

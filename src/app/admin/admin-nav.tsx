@@ -3,15 +3,19 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { BellIcon, CalendarIcon, GridIcon, RoomIcon, UsersIcon } from "./admin-icons";
+import { BellIcon, CalendarIcon, ChatIcon, GridIcon, RoomIcon, UsersIcon } from "./admin-icons";
+
+/** Les pastilles : notifications pas lues + messages pas lus. */
+export type AdminBadges = { inbox: number; messages: number };
 
 // Les onglets de l'espace admin : barre latérale (ordinateur) ou barre du bas (téléphone).
 const TABS = [
-  { href: "/admin", label: "Overview", icon: GridIcon, exact: true },
-  { href: "/admin/members", label: "Members", icon: UsersIcon, exact: false },
-  { href: "/admin/rooms", label: "Rooms", icon: RoomIcon, exact: false },
-  { href: "/admin/events", label: "Events", icon: CalendarIcon, exact: false },
-  { href: "/admin/notifications", label: "Inbox", icon: BellIcon, exact: false },
+  { href: "/admin", label: "Overview", icon: GridIcon, exact: true, badge: null },
+  { href: "/admin/members", label: "Members", icon: UsersIcon, exact: false, badge: null },
+  { href: "/admin/rooms", label: "Rooms", icon: RoomIcon, exact: false, badge: null },
+  { href: "/admin/events", label: "Events", icon: CalendarIcon, exact: false, badge: null },
+  { href: "/admin/messages", label: "Messages", icon: ChatIcon, exact: false, badge: "messages" },
+  { href: "/admin/notifications", label: "Inbox", icon: BellIcon, exact: false, badge: "inbox" },
 ] as const;
 
 function isActive(pathname: string, href: string, exact: boolean) {
@@ -19,13 +23,14 @@ function isActive(pathname: string, href: string, exact: boolean) {
 }
 
 /** Les liens de la barre latérale (grand écran). */
-export function AdminSideLinks({ unread }: { unread: number }) {
+export function AdminSideLinks({ badges }: { badges: AdminBadges }) {
   const pathname = usePathname();
   return (
     <nav aria-label="Admin sections" className="space-y-1.5">
       {TABS.map((tab) => {
         const active = isActive(pathname, tab.href, tab.exact);
         const Icon = tab.icon;
+        const unread = tab.badge ? badges[tab.badge] : 0;
         return (
           <Link
             key={tab.href}
@@ -49,7 +54,7 @@ export function AdminSideLinks({ unread }: { unread: number }) {
               <Icon className="size-[18px]" />
             </span>
             <span className="flex-1">{tab.label}</span>
-            {tab.href === "/admin/notifications" && unread > 0 && (
+            {unread > 0 && (
               <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold text-navy">
                 {unread > 99 ? "99+" : unread}
               </span>
@@ -62,7 +67,7 @@ export function AdminSideLinks({ unread }: { unread: number }) {
 }
 
 /** La barre du bas (téléphone et tablette), comme dans l'espace membre. */
-export function AdminBottomLinks({ unread }: { unread: number }) {
+export function AdminBottomLinks({ badges }: { badges: AdminBadges }) {
   const pathname = usePathname();
   return (
     <nav
@@ -73,19 +78,20 @@ export function AdminBottomLinks({ unread }: { unread: number }) {
         {TABS.map((tab) => {
           const active = isActive(pathname, tab.href, tab.exact);
           const Icon = tab.icon;
+          const unread = tab.badge ? badges[tab.badge] : 0;
           return (
             <li key={tab.href} className="flex-1">
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`relative flex flex-col items-center gap-0.5 rounded-full px-0.5 py-2 text-[10px] font-semibold leading-tight transition-all duration-300 sm:text-[11px] ${
+                className={`relative flex flex-col items-center gap-0.5 rounded-full px-0.5 py-2 text-[9px] min-[400px]:text-[10px] font-semibold leading-tight transition-all duration-300 sm:text-[11px] ${
                   active ? "neu-inset text-accent" : "text-white/60 hover:-translate-y-0.5 hover:text-white"
                 }`}
               >
                 <Icon />
                 {tab.label}
-                {tab.href === "/admin/notifications" && unread > 0 && (
-                  <span className="absolute right-[22%] top-1 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold text-navy">
+                {unread > 0 && (
+                  <span className="absolute right-[18%] top-1 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold text-navy">
                     {unread > 9 ? "9+" : unread}
                   </span>
                 )}

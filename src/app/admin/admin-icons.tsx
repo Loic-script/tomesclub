@@ -150,6 +150,15 @@ export function ImageIcon({ className = "size-5" }: IconProps) {
   );
 }
 
+export function ChatIcon({ className = "size-5" }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.4A8.5 8.5 0 1 1 21 11.5Z" />
+      <path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01" />
+    </svg>
+  );
+}
+
 /** L'icône qui va avec une sorte de notification admin. */
 export function KindIcon({ kind, className = "size-5" }: { kind: string; className?: string }) {
   if (kind === "signup") return <UserPlusIcon className={className} />;
@@ -157,6 +166,7 @@ export function KindIcon({ kind, className = "size-5" }: { kind: string; classNa
   if (kind === "room") return <RoomIcon className={className} />;
   if (kind === "event") return <CalendarIcon className={className} />;
   if (kind === "call") return <PhoneIcon className={className} />;
+  if (kind === "message") return <ChatIcon className={className} />;
   return <MegaphoneIcon className={className} />;
 }
 
@@ -166,5 +176,6 @@ export function kindTone(kind: string): string {
   if (kind === "member") return "from-sky-400/90 to-[#6d72ff]";
   if (kind === "room") return "from-accent to-[#ff7a9a]";
   if (kind === "event") return "from-[#6d72ff] to-navy";
+  if (kind === "message") return "from-accent to-brand";
   return "from-brand to-[#c2185b]";
 }
