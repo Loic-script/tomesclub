@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { ActivityIcon } from "@/components/activity-icon";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { fileEmoji, formatSize, type ActivityFileView } from "@/lib/file-kinds";
@@ -134,8 +135,8 @@ export function ActivityFilesDialog({
       <div className="anim-rise flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-[2rem] border border-white/15 bg-[#22102f]/95 shadow-2xl shadow-black/60 sm:rounded-[2rem]">
         {/* En-tête */}
         <div className="flex items-center gap-3 border-b border-white/10 px-5 py-4">
-          <span className="flex size-11 items-center justify-center rounded-2xl bg-white/10 text-2xl">
-            {activity.icon}
+          <span className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-brand text-white shadow-lg ring-1 ring-white/20">
+            <ActivityIcon icon={activity.icon} className="size-6" />
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent">Activity files</p>

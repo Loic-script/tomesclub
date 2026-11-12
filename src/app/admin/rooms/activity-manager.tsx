@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { ACTIVITY_ICON_CHOICES, ActivityIcon, activityIconKey } from "@/components/activity-icon";
 import type { ActivityFileView } from "@/lib/file-kinds";
 import type { RoomActivity } from "@/lib/room-activities";
 import { ActivityFilesDialog } from "./activity-files-dialog";
@@ -151,8 +152,8 @@ function ActivityCard({
   return (
     <article className="neu-sm group flex h-full flex-col rounded-3xl p-4 transition hover:ring-1 hover:ring-accent/40">
       <div className="flex items-start gap-3">
-        <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-white/15 to-white/5 text-2xl ring-1 ring-white/10">
-          {activity.icon}
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-brand text-white shadow-lg shadow-brand/30 ring-1 ring-white/20">
+          <ActivityIcon icon={activity.icon} className="size-6" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -282,7 +283,6 @@ function ActivityCard({
 
 /* ---------- Le formulaire : ajouter ou modifier ---------- */
 
-const QUICK_ICONS = ["✨", "📚", "🎬", "🎵", "🍳", "✈️", "🧠", "🎨", "⚽", "🌍", "💡", "🗺️"];
 
 type CategoryDraft = { id: number; name: string; topics: string };
 
@@ -344,27 +344,26 @@ function ActivityForm({ activity, onDone }: { activity?: ManagedActivity; onDone
           <div>
             <span className={label}>Icon</span>
             <div className="flex flex-wrap items-center gap-1.5">
-              <input
-                name="icon"
-                value={icon}
-                onChange={(event) => setIcon(event.target.value)}
-                maxLength={8}
-                aria-label="Icon (an emoji)"
-                className="w-14 rounded-xl bg-black/25 px-2 py-2 text-center text-xl outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-accent/60"
-              />
-              {QUICK_ICONS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => setIcon(emoji)}
-                  aria-label={`Use ${emoji}`}
-                  className={`flex size-9 items-center justify-center rounded-xl text-lg transition ${
-                    icon === emoji ? "bg-accent/25 ring-1 ring-accent" : "bg-white/[0.06] hover:bg-white/10"
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
+              <input type="hidden" name="icon" value={icon} />
+              {ACTIVITY_ICON_CHOICES.map((choice) => {
+                const chosen = activityIconKey(icon) === choice;
+                return (
+                  <button
+                    key={choice}
+                    type="button"
+                    onClick={() => setIcon(choice)}
+                    aria-label="Use this icon"
+                    aria-pressed={chosen}
+                    className={`flex size-10 items-center justify-center rounded-xl transition ${
+                      chosen
+                        ? "bg-gradient-to-br from-accent to-brand text-white shadow-lg ring-1 ring-white/30"
+                        : "bg-white/[0.06] text-white/70 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    <ActivityIcon icon={choice} className="size-5" />
+                  </button>
+                );
+              })}
             </div>
           </div>
 

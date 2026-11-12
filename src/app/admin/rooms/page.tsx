@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ActivityIcon } from "@/components/activity-icon";
 import Link from "next/link";
 import { Suspense } from "react";
 import { RoomProgress, RoomTimeLeft } from "@/components/room-timer";
@@ -71,8 +72,8 @@ async function AdminRooms() {
                 return (
                   <li key={room.id} className="neu-inset overflow-hidden rounded-2xl">
                     <div className="flex flex-wrap items-center gap-3 p-3.5">
-                      <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-2xl">
-                        {activity?.icon ?? "💬"}
+                      <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-brand text-white shadow-lg ring-1 ring-white/20">
+                        <ActivityIcon icon={activity?.icon} className="size-6" />
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[11px] font-bold uppercase tracking-wider text-accent">

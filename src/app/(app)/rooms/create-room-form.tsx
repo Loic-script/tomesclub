@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState, type ReactNode } from "react";
+import { ActivityIcon } from "@/components/activity-icon";
 import {
   DEFAULT_DURATION,
   DEFAULT_PEOPLE,
@@ -118,8 +119,8 @@ function ActivityPicker({
               title={activity.description}
               className="flex h-full w-full items-center gap-2.5 rounded-2xl px-3 py-2.5 text-left ring-1 ring-white/10 transition hover:bg-white/10 hover:ring-accent/50"
             >
-              <span aria-hidden className="text-2xl leading-none">
-                {activity.icon}
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-accent/30 to-brand/30 text-accent ring-1 ring-white/10">
+                <ActivityIcon icon={activity.icon} className="size-5" />
               </span>
               <span className="text-sm font-semibold leading-tight text-white">{activity.name}</span>
             </button>
@@ -192,8 +193,8 @@ function RoomOptions({
 
       {/* L'activité choisie */}
       <div className="flex items-start gap-3 rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
-        <span aria-hidden className="text-3xl leading-none">
-          {activity.icon}
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-brand text-white shadow-lg ring-1 ring-white/20">
+          <ActivityIcon icon={activity.icon} className="size-6" />
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-accent">Activity</p>
@@ -431,8 +432,8 @@ function RoomOptions({
       {/* ----- Le résumé à confirmer ----- */}
       <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-accent/30">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-accent">Your room</p>
-        <p className="mt-1 text-sm font-semibold text-white">
-          {activity.icon} {activity.name}
+        <p className="mt-1 flex flex-wrap items-center gap-1.5 text-sm font-semibold text-white">
+          <ActivityIcon icon={activity.icon} className="size-4 text-accent" /> {activity.name}
           {topic ? ` — ${topic}` : ""}
         </p>
         <p className="mt-1 text-xs text-white/60">

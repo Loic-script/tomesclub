@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ActivityIcon } from "@/components/activity-icon";
 import Link from "next/link";
 import { Suspense } from "react";
 import { delay, GlassCard, PageHeader } from "@/components/app-ui";
@@ -81,9 +82,7 @@ async function RoomsHome() {
                           className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-brand font-display text-xl font-bold text-white shadow-lg ring-1 ring-white/20"
                         >
                           {activity ? (
-                            <span aria-hidden className="text-3xl leading-none drop-shadow">
-                              {activity.icon}
-                            </span>
+                            <ActivityIcon icon={activity.icon} className="size-7 drop-shadow" />
                           ) : (
                             (room.name[0]?.toUpperCase() ?? "R")
                           )}

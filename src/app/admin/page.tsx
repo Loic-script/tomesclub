@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ActivityIcon } from "@/components/activity-icon";
 import Link from "next/link";
 import { Suspense } from "react";
 import { MemberAvatar } from "@/components/member-avatar";
@@ -308,8 +309,8 @@ function LiveRooms({ data }: { data: DashboardData }) {
         <ul className="space-y-2.5">
           {data.rooms.map((room) => (
             <li key={room.id} className="neu-inset flex items-center gap-3 rounded-2xl p-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl">
-                {room.icon ?? "💬"}
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-accent/30 to-brand/30 text-accent ring-1 ring-white/10">
+                <ActivityIcon icon={room.icon} className="size-5" />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1.5">

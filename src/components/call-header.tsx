@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { ActivityIcon } from "@/components/activity-icon";
 import { useState } from "react";
 import { RoomTimeLeft } from "@/components/room-timer";
 
@@ -65,9 +66,7 @@ export function CallHeader({
               aria-expanded={showDetails}
               className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-1 py-1 text-left transition hover:bg-white/5 disabled:hover:bg-transparent"
             >
-              <span aria-hidden className="text-lg leading-none">
-                {room.activityIcon}
-              </span>
+              {room.activityIcon && <ActivityIcon icon={room.activityIcon} className="size-5 shrink-0 text-accent" />}
               <span className="min-w-0">
                 <span className="block truncate text-[11px] font-semibold uppercase leading-tight tracking-wide text-accent">
                   {room.activityName}
