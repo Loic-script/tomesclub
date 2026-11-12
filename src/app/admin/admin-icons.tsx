@@ -172,9 +172,19 @@ export function KindIcon({ kind, className = "size-5" }: { kind: string; classNa
 }
 
 /**
- * La couleur de la pastille d'une notification : la même pour toutes (les couleurs de Tomes Club).
- * C'est la forme de l'icône qui dit de quoi il s'agit.
+ * La couleur de la pastille d'une notification : une couleur par catégorie.
+ * Même intensité pour toutes (500 → 600), pour que l'ensemble reste harmonieux.
  */
-export function kindTone(): string {
-  return "from-accent to-brand";
+const KIND_TONES: Record<string, string> = {
+  signup: "from-emerald-500 to-emerald-600", // nouveau compte
+  member: "from-sky-500 to-sky-600", // profil terminé
+  role: "from-amber-500 to-amber-600", // demande Leader / Teacher
+  event: "from-violet-500 to-violet-600", // événement, inscription
+  room: "from-accent to-brand", // room
+  message: "from-rose-500 to-rose-600", // message
+  call: "from-cyan-500 to-cyan-600", // appel
+};
+
+export function kindTone(kind: string): string {
+  return KIND_TONES[kind] ?? "from-accent to-brand";
 }

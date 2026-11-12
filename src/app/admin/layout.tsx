@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { isAdmin } from "@/lib/admin";
@@ -29,17 +28,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
       {/* ----- Barre latérale (grand écran) ----- */}
       <aside className="neu fixed inset-y-4 left-4 z-30 hidden w-64 flex-col rounded-[2rem] p-4 lg:flex">
-        <Link href="/admin" className="mb-8 flex items-center gap-3 px-2 pt-2">
-          <span className="relative flex size-11 items-center justify-center">
-            <span aria-hidden className="anim-halo absolute inset-0 rounded-full bg-accent/40 blur-md" />
-            <Image
-              src="/logo.png"
-              alt=""
-              width={40}
-              height={40}
-              className="relative rounded-full ring-2 ring-white/20"
-            />
-          </span>
+        <Link href="/admin" className="mb-8 flex items-center gap-3 px-3 pt-3">
           <span>
             <span className="block font-display text-lg font-extrabold leading-tight text-white">
               Tomes Club
@@ -72,9 +61,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
       {/* ----- Le contenu ----- */}
       <main className="relative z-10 flex-1 lg:pl-72">
-        {/* Le logo en haut, sur téléphone */}
+        {/* Le nom en haut, sur téléphone */}
         <div className="flex items-center gap-2.5 px-4 pt-5 sm:px-6 lg:hidden">
-          <Image src="/logo.png" alt="" width={30} height={30} className="rounded-full ring-2 ring-white/20" />
           <span className="font-display text-base font-extrabold text-white">Tomes Club</span>
           <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent">
             Admin
