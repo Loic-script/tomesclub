@@ -106,7 +106,7 @@ export async function createEvent(
             hour: "2-digit",
             minute: "2-digit",
           }).format(startsAt)
-        : "New announcement from your coach.",
+        : "New announcement from the admin.",
     link: "/events",
   });
 

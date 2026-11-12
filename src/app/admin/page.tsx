@@ -41,7 +41,7 @@ async function AdminHome() {
         eyebrow="Overview"
         title={
           <>
-            Hello, <span className="text-highlight">Coach</span>
+            Hello, <span className="text-highlight">Admin</span>
           </>
         }
         subtitle={

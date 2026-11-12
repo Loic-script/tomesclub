@@ -86,7 +86,7 @@ async function NotificationsHome() {
             <SettingRow
               field="notifyEvents"
               label="Events and news"
-              hint="New classes and announcements from the coach"
+              hint="New classes and announcements from the admin"
               value={settings.notifyEvents}
               icon={<CalendarIcon />}
             />

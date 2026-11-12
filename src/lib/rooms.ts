@@ -128,7 +128,7 @@ export async function createRoom(creatorId: string | null, input: NewRoom): Prom
   const host = creatorId
     ? ((await prisma.user.findUnique({ where: { id: creatorId }, select: { name: true } }))?.name ??
       "A member")
-    : "Coach";
+    : "Admin";
   const activity = await getActivity(input.activity);
 
   // Une salle ouverte à tous : on prévient les membres (les salles privées, non).
@@ -215,7 +215,7 @@ export async function listOpenRooms(viewerId: string | null): Promise<OpenRoom[]
     id: row.id,
     name: row.name,
     topic: row.topic,
-    hostName: row.createdBy ? (row.createdBy.profile?.firstName ?? row.createdBy.name) : "Coach",
+    hostName: row.createdBy ? (row.createdBy.profile?.firstName ?? row.createdBy.name) : "Admin",
     participants: participantsById.get(row.id) ?? 0,
     isPrivate: row.isPrivate,
     isMine: viewerId !== null && row.createdById === viewerId,

@@ -282,8 +282,8 @@ export function ProfileForm({
               {userType !== "member" && (
                 <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
                   {initial.userTypePending || userType !== initial.userType
-                    ? "The coach will check your request. You stay a Member until it is accepted."
-                    : "Confirmed by the coach."}
+                    ? "The admin will check your request. You stay a Member until it is accepted."
+                    : "Confirmed by the admin."}
                 </p>
               )}
             </div>

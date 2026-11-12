@@ -37,7 +37,7 @@ export default function GroupRoomPage({ params }: PageProps<"/room/[id]">) {
 
 /** Qui entre : le coach (session admin), sinon un membre connecté. */
 async function whoIsJoining(): Promise<{ id: string; firstName: string; coach: boolean }> {
-  if (await isAdmin()) return { id: "coach", firstName: "Coach", coach: true };
+  if (await isAdmin()) return { id: "coach", firstName: "Admin", coach: true };
   const member = await requireMember();
   return { id: member.id, firstName: member.firstName, coach: false };
 }

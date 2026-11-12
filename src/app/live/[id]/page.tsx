@@ -26,7 +26,7 @@ export default function LiveEventPage({ params }: PageProps<"/live/[id]">) {
 
 /** Qui entre : le coach (session admin), sinon un membre connecté. */
 async function whoIsJoining(): Promise<{ id: string; name: string; coach: boolean }> {
-  if (await isAdmin()) return { id: "coach", name: "Coach", coach: true };
+  if (await isAdmin()) return { id: "coach", name: "Admin", coach: true };
   const user = await requireMember();
   return { id: user.id, name: user.firstName, coach: false };
 }
@@ -50,7 +50,7 @@ async function LiveEvent({ eventId }: { eventId: string }) {
         <p className="mt-2 text-sm text-white/60">
           {event.liveEndedAt
             ? "Thanks for coming! See you at the next class."
-            : "The coach has not started this event yet. You will get a notification."}
+            : "The admin has not started this event yet. You will get a notification."}
         </p>
         <Link
           href={leaveTo}

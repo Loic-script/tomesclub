@@ -97,7 +97,7 @@ async function ProfileHome() {
               </p>
               {profile.roleRequest && (
                 <p className="mt-1 text-[11px] font-medium text-amber-600">
-                  {userTypeLabel(profile.roleRequest)} request: waiting for the coach
+                  {userTypeLabel(profile.roleRequest)} request: waiting for the admin
                 </p>
               )}
               {profile.englishLevel && (

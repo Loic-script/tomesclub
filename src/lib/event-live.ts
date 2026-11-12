@@ -54,7 +54,7 @@ export async function startEventLive(eventId: string): Promise<boolean> {
   await notifyAllMembers({
     kind: "event",
     title: `Live now: ${event.title}`,
-    body: "The coach has started. Tap to join!",
+    body: "The admin has started. Tap to join!",
     link: `/live/${event.id}`,
   });
   return true;

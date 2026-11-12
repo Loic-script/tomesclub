@@ -150,7 +150,7 @@ export async function loadDashboard(): Promise<DashboardData> {
         icon: found?.icon ?? null,
         activity: found?.name ?? null,
         topic: room.topic,
-        host: room.createdBy?.name ?? "Coach",
+        host: room.createdBy?.name ?? "Admin",
         isPrivate: room.isPrivate,
         endsAt: end ? new Date(end).toISOString() : null,
       };

@@ -124,7 +124,7 @@ async function AdminRooms() {
         <section className="anim-rise space-y-3 xl:col-span-2" style={delay(160)}>
           <div className="px-1">
             <h2 className="font-display text-lg font-bold text-white">Open a room</h2>
-            <p className="text-xs text-white/50">You will be the host, shown as “Coach”.</p>
+            <p className="text-xs text-white/50">You will be the host, shown as “Admin”.</p>
           </div>
           <CreateRoomForm activities={activities} action={adminCreateRoomAction} />
         </section>

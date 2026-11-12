@@ -22,8 +22,8 @@ export async function answerRoleRequest(userId: string, accept: boolean): Promis
     kind: "announcement",
     title: accept ? `You are now a ${label}! 🎉` : `Your ${label} request was not accepted`,
     body: accept
-      ? "The coach confirmed your status."
-      : "You stay a Member. Write to the coach if you have a question.",
+      ? "The admin confirmed your status."
+      : "You stay a Member. Write to the admin if you have a question.",
     link: "/profile",
   });
 }

@@ -137,7 +137,7 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                               </p>
                             ) : (
                               <p className="rounded-xl bg-amber-400/10 px-3 py-2 text-center text-xs font-medium text-amber-200">
-                                Payment: {formatEventPrice(event)} · waiting for the coach to confirm
+                                Payment: {formatEventPrice(event)} · waiting for the admin to confirm
                               </p>
                             )
                           ) : (
