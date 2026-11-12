@@ -5,7 +5,7 @@ import { MemberAvatar } from "@/components/member-avatar";
 import { formatEventPrice } from "@/lib/event-price";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { CalendarIcon, CheckIcon, ImageIcon, MegaphoneIcon } from "../admin-icons";
-import { endEventAction, startEventAction, updateEvent, type UpdateEventState } from "./actions";
+import { endEventAction, setPaidAction, startEventAction, updateEvent, type UpdateEventState } from "./actions";
 import { DeleteEventButton } from "./delete-event-button";
 import { EventPriceFields } from "./event-price-fields";
 
@@ -24,7 +24,7 @@ export type AdminEventView = {
   price: number | null;
   currency: string | null;
   /** Les membres inscrits (du premier au dernier). */
-  registered: { id: string; name: string; hasPhoto: boolean }[];
+  registered: { id: string; name: string; hasPhoto: boolean; paid: boolean }[];
   past: boolean;
   live: boolean;
 };
@@ -35,6 +35,7 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
   const [pending, startTransition] = useTransition();
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [showPeople, setShowPeople] = useState(false);
+  const paidCount = event.registered.filter((person) => person.paid).length;
 
   return (
     <li
@@ -94,6 +95,15 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
                   </span>
                 )}
                 {event.registered.length} registered
+                {event.isPaid && event.registered.length > 0 && (
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                      paidCount === event.registered.length ? "bg-emerald-400/15 text-emerald-300" : "bg-amber-400/15 text-amber-300"
+                    }`}
+                  >
+                    {paidCount}/{event.registered.length} paid
+                  </span>
+                )}
                 {event.registered.length > 0 && (
                   <span aria-hidden className={`transition-transform ${showPeople ? "rotate-180" : ""}`}>▾</span>
                 )}
@@ -181,15 +191,16 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
       {showPeople && event.registered.length > 0 && (
         <ul className="anim-dropdown grid gap-1.5 border-t border-white/10 p-3 sm:grid-cols-2 lg:grid-cols-3">
           {event.registered.map((person, index) => (
-            <li key={person.id}>
+            <li key={person.id} className="flex items-center gap-1 rounded-xl transition hover:bg-white/[0.06]">
               <Link
                 href={`/admin/members/${person.id}`}
-                className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 text-sm text-white/85 transition hover:bg-white/[0.06] hover:text-white"
+                className="flex min-w-0 flex-1 items-center gap-2.5 px-2 py-1.5 text-sm text-white/85 hover:text-white"
               >
                 <span className="w-5 text-right text-[11px] tabular-nums text-white/35">{index + 1}</span>
                 <MemberAvatar userId={person.id} name={person.name} hasPhoto={person.hasPhoto} size="size-7" />
                 <span className="truncate">{person.name}</span>
               </Link>
+              {event.isPaid && <PaidToggle eventId={event.id} userId={person.id} paid={person.paid} />}
             </li>
           ))}
         </ul>
@@ -197,6 +208,35 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
 
       {editing && <EditEventForm event={event} onDone={() => setEditing(false)} />}
     </li>
+  );
+}
+
+/**
+ * Événement payant : "Paid ✓" (vert) ou "Not paid" (orange).
+ * Un clic confirme le paiement ; un clic sur "Paid" l'annule (en cas d'erreur).
+ */
+function PaidToggle({ eventId, userId, paid }: { eventId: string; userId: string; paid: boolean }) {
+  const [pending, startTransition] = useTransition();
+  const [current, setCurrent] = useState(paid);
+  return (
+    <button
+      type="button"
+      disabled={pending}
+      onClick={() => {
+        const next = !current;
+        setCurrent(next);
+        startTransition(() => setPaidAction(eventId, userId, next));
+      }}
+      title={current ? "Click to mark as not paid" : "Click to confirm the payment"}
+      aria-pressed={current}
+      className={`mr-1 shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold transition disabled:opacity-60 ${
+        current
+          ? "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/40 hover:bg-emerald-500/30"
+          : "bg-amber-400/15 text-amber-300 ring-1 ring-amber-300/30 hover:bg-amber-400/25"
+      }`}
+    >
+      {current ? "Paid ✓" : "Not paid"}
+    </button>
   );
 }
 

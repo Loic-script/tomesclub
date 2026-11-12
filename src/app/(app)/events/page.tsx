@@ -124,12 +124,27 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                             Join the live
                           </Link>
                         )}
-                        <RegisterButton eventId={event.id} registered={registrations?.mine ?? false} />
-                        {event.isPaid && (
-                          <p className="text-center text-[11px] text-white/50">
-                            Paid event · {formatEventPrice(event)} per person
-                          </p>
-                        )}
+                        <RegisterButton
+                          eventId={event.id}
+                          registered={registrations?.mine ?? false}
+                          locked={registrations?.minePaid ?? false}
+                        />
+                        {event.isPaid &&
+                          (registrations?.mine ? (
+                            registrations.minePaid ? (
+                              <p className="rounded-xl bg-emerald-500/15 px-3 py-2 text-center text-xs font-semibold text-emerald-200">
+                                Payment confirmed ✓ · {formatEventPrice(event)}
+                              </p>
+                            ) : (
+                              <p className="rounded-xl bg-amber-400/10 px-3 py-2 text-center text-xs font-medium text-amber-200">
+                                Payment: {formatEventPrice(event)} · waiting for the coach to confirm
+                              </p>
+                            )
+                          ) : (
+                            <p className="text-center text-[11px] text-white/50">
+                              Paid event · {formatEventPrice(event)} per person
+                            </p>
+                          ))}
 
                         {people.length > 0 && (
                           <details className="group/who">

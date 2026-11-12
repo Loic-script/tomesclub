@@ -227,6 +227,8 @@ model EventResponse {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   status    String // registered
+  /// Événement payant : la date où l admin a confirmé le paiement (null = pas encore payé)
+  paidAt    DateTime?
   createdAt DateTime @default(now())
 
   @@id([eventId, userId, status])

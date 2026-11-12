@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
 import { endEventLive, startEventLive } from "@/lib/event-live";
 import { EVENT_CURRENCIES } from "@/lib/event-price";
+import { setRegistrationPaid } from "@/lib/event-responses";
 import { notifyAllMembers } from "@/lib/notifications";
 import { MAX_PHOTO_BYTES, PHOTO_TYPES } from "@/lib/onboarding-options";
 import { prisma } from "@/lib/prisma";
@@ -168,5 +169,12 @@ export async function startEventAction(eventId: string): Promise<void> {
 export async function endEventAction(eventId: string): Promise<void> {
   await requireAdmin();
   await endEventLive(eventId);
+  refresh();
+}
+
+/** Événement payant : confirmer (ou annuler) le paiement d'un inscrit. */
+export async function setPaidAction(eventId: string, userId: string, paid: boolean): Promise<void> {
+  await requireAdmin();
+  await setRegistrationPaid(eventId, userId, paid === true);
   refresh();
 }

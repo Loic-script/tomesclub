@@ -1,5 +1,7 @@
 import "server-only";
 import { notifyAdmin } from "@/lib/admin-notifications";
+import { formatEventPrice } from "@/lib/event-price";
+import { notifyMembers } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 
 // Les inscriptions aux événements : un membre s'inscrit (ou se désinscrit).
@@ -7,12 +9,20 @@ import { prisma } from "@/lib/prisma";
 
 export const REGISTERED = "registered";
 
-export type EventPerson = { id: string; name: string; hasPhoto: boolean };
+export type EventPerson = {
+  id: string;
+  name: string;
+  hasPhoto: boolean;
+  /** Événement payant : l'admin a confirmé le paiement. */
+  paid: boolean;
+};
 
 export type EventRegistrations = {
   people: EventPerson[];
   /** Je suis inscrit. */
   mine: boolean;
+  /** Mon paiement est confirmé (événement payant). */
+  minePaid: boolean;
 };
 
 /** Les inscrits de plusieurs événements (du premier inscrit au dernier), et si je le suis. */
@@ -20,7 +30,7 @@ export async function getEventRegistrations(
   eventIds: string[],
   viewerId: string | null,
 ): Promise<Map<string, EventRegistrations>> {
-  const result = new Map<string, EventRegistrations>(eventIds.map((id) => [id, { people: [], mine: false }]));
+  const result = new Map<string, EventRegistrations>(eventIds.map((id) => [id, { people: [], mine: false, minePaid: false }]));
   if (eventIds.length === 0) return result;
 
   const rows = await prisma.eventResponse.findMany({
@@ -28,6 +38,7 @@ export async function getEventRegistrations(
     orderBy: { createdAt: "asc" },
     select: {
       eventId: true,
+      paidAt: true,
       user: {
         select: {
           id: true,
@@ -46,8 +57,12 @@ export async function getEventRegistrations(
       id: row.user.id,
       name: profile ? `${profile.firstName} ${profile.lastName}`.trim() : row.user.name,
       hasPhoto: Boolean(profile?.photoType),
+      paid: Boolean(row.paidAt),
     });
-    if (row.user.id === viewerId) entry.mine = true;
+    if (row.user.id === viewerId) {
+      entry.mine = true;
+      entry.minePaid = Boolean(row.paidAt);
+    }
   }
   return result;
 }
@@ -88,4 +103,28 @@ export async function setEventRegistration(userId: string, eventId: string, on: 
     link: "/admin/events",
   });
   return true;
+}
+
+/**
+ * L'admin confirme (paid = true) ou annule le paiement d'un inscrit.
+ * Le membre reçoit une notification quand son paiement est confirmé.
+ */
+export async function setRegistrationPaid(eventId: string, userId: string, paid: boolean): Promise<void> {
+  const event = await prisma.event.findUnique({
+    where: { id: eventId },
+    select: { title: true, isPaid: true, price: true, currency: true },
+  });
+  if (!event?.isPaid) return;
+  const result = await prisma.eventResponse.updateMany({
+    where: { eventId, userId, status: REGISTERED, paidAt: paid ? null : { not: null } },
+    data: { paidAt: paid ? new Date() : null },
+  });
+  if (paid && result.count > 0) {
+    await notifyMembers([userId], {
+      kind: "event",
+      title: "Payment confirmed ✓",
+      body: `${event.title} · ${formatEventPrice(event)}`,
+      link: `/events?event=${eventId}`,
+    });
+  }
 }
