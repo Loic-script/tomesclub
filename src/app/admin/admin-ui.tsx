@@ -34,10 +34,16 @@ export function AdminHeader({
   bell?: boolean;
 }) {
   return (
-    <header className="anim-rise relative z-30 mb-6 sm:mb-8" style={delay(40)}>
-      <div className="flex items-start gap-3 sm:items-end sm:gap-4">
+    <header
+      className={`anim-rise relative z-30 ${title ? "mb-6 sm:mb-8" : "-mt-2 mb-4 lg:-mt-6"}`}
+      style={delay(40)}
+    >
+      {/* Sans titre : le petit mot et la cloche restent tout en haut, sur la même ligne */}
+      <div className={`flex gap-3 sm:gap-4 ${title ? "items-start sm:items-end" : "items-center"}`}>
       <div className="min-w-0 flex-1">
-        <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
+        <p
+          className={`flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent ${title ? "mb-2" : ""}`}
+        >
           <span aria-hidden className="h-px w-5 rounded-full bg-accent/70" />
           {eyebrow}
         </p>
