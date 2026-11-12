@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { Suspense, type CSSProperties, type ReactNode } from "react";
-import { NotificationBell, NotificationBellFallback } from "@/components/notification-bell";
+import type { CSSProperties, ReactNode } from "react";
 
 // Petits morceaux d'interface du "mode application" (fond clair, relief doux).
 
@@ -60,7 +59,6 @@ export function PageHeader({
   eyebrow,
   subtitle,
   right,
-  bell = true,
   members = true,
 }: {
   title: ReactNode;
@@ -68,7 +66,7 @@ export function PageHeader({
   eyebrow?: string;
   subtitle?: string;
   right?: ReactNode;
-  /** La cloche des notifications (cachée sur la page Notifications elle-même). */
+  /** Ancienne option : la cloche est maintenant dans la barre du bas. */
   bell?: boolean;
   /** L'icône "membres" (téléphone et tablette ; cachée sur la page Members elle-même). */
   members?: boolean;
@@ -92,12 +90,6 @@ export function PageHeader({
         )}
       </div>
       {members && <MembersLink />}
-      {bell && (
-        // La cloche compte les notifications : lecture au moment de la requête.
-        <Suspense fallback={<NotificationBellFallback />}>
-          <NotificationBell />
-        </Suspense>
-      )}
       {right}
     </header>
   );

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 
 // La barre de navigation en bas, style application mobile (pilule en verre).
@@ -11,6 +11,7 @@ const TABS = [
   { href: "/calls", label: "Calls", icon: PhoneIcon },
   { href: "/rooms", label: "Rooms", icon: RoomsIcon },
   { href: "/events", label: "Events", icon: CalendarIcon },
+  { href: "/notifications", label: "Alerts", icon: BellIcon },
   { href: "/profile", label: "Profile", icon: UserIcon },
 ] as const;
 
@@ -18,6 +19,7 @@ export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
+  const unread = useUnreadCount(pathname);
 
   async function signOut() {
     setSigningOut(true);
@@ -40,13 +42,23 @@ export function BottomNav() {
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center gap-0.5 rounded-full px-1 py-2 text-[10px] font-semibold leading-tight transition-all duration-300 sm:px-3 sm:text-[11px] ${
+                className={`flex flex-col items-center gap-0.5 rounded-full px-0.5 py-2 text-[9px] min-[400px]:text-[10px] font-semibold leading-tight transition-all duration-300 sm:px-3 sm:text-[11px] ${
                   active
                     ? "neu-inset text-accent"
                     : "text-white/60 hover:-translate-y-0.5 hover:text-white"
                 }`}
               >
-                <Icon />
+                <span className="relative">
+                  <Icon />
+                  {tab.href === "/notifications" && unread > 0 && (
+                    <span
+                      aria-label={`${unread} new`}
+                      className="absolute -right-2.5 -top-2 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold leading-4 text-navy ring-2 ring-[#2a1238]"
+                    >
+                      {unread > 9 ? "9+" : unread}
+                    </span>
+                  )}
+                </span>
                 {tab.label}
               </Link>
             </li>
@@ -59,7 +71,7 @@ export function BottomNav() {
             type="button"
             onClick={signOut}
             disabled={signingOut}
-            className="flex w-full flex-col items-center gap-0.5 rounded-full px-1 py-2 text-[10px] font-semibold leading-tight text-white/60 transition-all duration-300 hover:-translate-y-0.5 hover:text-accent disabled:opacity-60 sm:px-3 sm:text-[11px]"
+            className="flex w-full flex-col items-center gap-0.5 rounded-full px-0.5 py-2 text-[9px] min-[400px]:text-[10px] font-semibold leading-tight text-white/60 transition-all duration-300 hover:-translate-y-0.5 hover:text-accent disabled:opacity-60 sm:px-3 sm:text-[11px]"
           >
             <LogoutIcon />
             {signingOut ? "..." : "Logout"}
@@ -68,6 +80,35 @@ export function BottomNav() {
       </ul>
     </nav>
   );
+}
+
+/**
+ * Le nombre de notifications pas lues : relu à chaque changement de page
+ * et toutes les 30 secondes (seulement si l onglet est visible).
+ */
+function useUnreadCount(pathname: string): number {
+  const [unread, setUnread] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      if (document.visibilityState === "hidden") return;
+      try {
+        const response = await fetch("/api/notifications/unread", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = (await response.json()) as { unread?: number };
+        if (alive) setUnread(data.unread ?? 0);
+      } catch {
+        // Pas de réseau : on réessaie au prochain tour.
+      }
+    };
+    void load();
+    const timer = setInterval(load, 30 * 1000);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [pathname]);
+  return unread;
 }
 
 /* Icônes fines (traits blancs) */
@@ -124,6 +165,15 @@ function CalendarIcon() {
     <svg {...iconProps}>
       <rect x="3" y="5" width="18" height="16" rx="2.5" />
       <path d="M8 3v4M16 3v4M3 10h18" />
+    </svg>
+  );
+}
+
+function BellIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6" />
+      <path d="M10.5 20a2 2 0 0 0 3 0" />
     </svg>
   );
 }
