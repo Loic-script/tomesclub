@@ -128,27 +128,16 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                           eventId={event.id}
                           registered={registrations?.mine ?? false}
                           locked={registrations?.minePaid ?? false}
+                          payment={
+                            event.isPaid
+                              ? { label: formatEventPrice(event), paid: registrations?.minePaid ?? false }
+                              : null
+                          }
                         />
-                        {event.isPaid &&
-                          (registrations?.mine ? (
-                            registrations.minePaid ? (
-                              <p className="rounded-xl bg-emerald-500/15 px-3 py-2 text-center text-xs font-semibold text-emerald-200">
-                                Payment confirmed ✓ · {formatEventPrice(event)}
-                              </p>
-                            ) : (
-                              <p className="rounded-xl bg-amber-400/10 px-3 py-2 text-center text-xs font-medium text-amber-200">
-                                Payment: {formatEventPrice(event)} · waiting for the admin to confirm
-                              </p>
-                            )
-                          ) : (
-                            <p className="text-center text-[11px] text-white/50">
-                              Paid event · {formatEventPrice(event)} per person
-                            </p>
-                          ))}
 
                         {people.length > 0 && (
                           <details className="group/who">
-                            <summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl text-xs text-white/65 transition hover:text-white [&::-webkit-details-marker]:hidden">
+                            <summary className="flex cursor-pointer list-none items-center gap-2.5 rounded-xl px-1 py-1 text-xs text-white/65 transition hover:text-white [&::-webkit-details-marker]:hidden">
                               <span className="flex -space-x-2">
                                 {people.slice(0, 5).map((person) => (
                                   <span key={person.id} className="rounded-full ring-2 ring-[#2b1538]">
@@ -162,8 +151,9 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                                 ))}
                               </span>
                               <span>
-                                {people.length} registered · see who
+                                <strong className="font-semibold text-white">{people.length}</strong> registered
                               </span>
+                              <span className="ml-auto text-white/45">See who</span>
                               <span aria-hidden className="transition-transform group-open/who:rotate-180">
                                 ▾
                               </span>
