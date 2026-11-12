@@ -93,6 +93,10 @@ export type NewRoom = {
   maxParticipants: number;
   /** Salle privée : les membres invités par l'hôte. */
   invitees: string[];
+  /** Salle privée payante : mvola | orange, la référence de la transaction, le montant (Ar). */
+  paymentMethod: string | null;
+  paymentRef: string | null;
+  paymentAmount: number | null;
 };
 
 /** Ouvre la salle dans LiveKit (la vidéo). */
@@ -130,6 +134,9 @@ export async function createRoom(
       maxParticipants: input.maxParticipants,
       createdById: creatorId,
       pendingApproval: waiting,
+      paymentMethod: input.paymentMethod,
+      paymentRef: input.paymentRef,
+      paymentAmount: input.paymentAmount,
     },
     select: { id: true },
   });

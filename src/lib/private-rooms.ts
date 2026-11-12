@@ -115,6 +115,9 @@ export type PendingRoom = {
   hostRole: string;
   invitees: string[];
   createdAt: Date;
+  paymentMethod: string | null;
+  paymentRef: string | null;
+  paymentAmount: number | null;
 };
 
 /** Les demandes de salles privées qui attendent l'admin. */
@@ -130,6 +133,9 @@ export async function listPendingRooms(): Promise<PendingRoom[]> {
       durationMin: true,
       createdAt: true,
       createdById: true,
+      paymentMethod: true,
+      paymentRef: true,
+      paymentAmount: true,
       createdBy: { select: { name: true, profile: { select: { firstName: true, lastName: true, role: true } } } },
       invites: {
         select: { user: { select: { name: true, profile: { select: { firstName: true, lastName: true } } } } },
@@ -151,6 +157,9 @@ export async function listPendingRooms(): Promise<PendingRoom[]> {
       invite.user.profile ? `${invite.user.profile.firstName} ${invite.user.profile.lastName}` : invite.user.name,
     ),
     createdAt: row.createdAt,
+    paymentMethod: row.paymentMethod,
+    paymentRef: row.paymentRef,
+    paymentAmount: row.paymentAmount,
   }));
 }
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { privateRoomPayment } from "@/lib/private-room-payment";
 import { listInvitableMembers, privateModeFor } from "@/lib/private-rooms";
 import { ActivityIcon } from "@/components/activity-icon";
 import Link from "next/link";
@@ -45,7 +46,12 @@ async function RoomsHome() {
 
       <div className="space-y-5">
         <div className="anim-rise" style={delay(150)}>
-          <CreateRoomForm activities={activities} privateMode={privateMode} members={members} />
+          <CreateRoomForm
+            activities={activities}
+            privateMode={privateMode}
+            members={members}
+            payment={privateRoomPayment()}
+          />
         </div>
 
         <div className="anim-rise space-y-3" style={delay(280)}>

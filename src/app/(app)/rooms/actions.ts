@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { privateRoomPayment } from "@/lib/private-room-payment";
 import { privateModeFor } from "@/lib/private-rooms";
 import { readRoomForm } from "@/lib/room-form";
 import { createRoom, deleteRoomByHost } from "@/lib/rooms";
@@ -21,6 +22,12 @@ export async function createRoomAction(
   // Salle privée : verrouillée pour un simple membre ; Leader / Teacher → l'admin doit accepter.
   if (input.isPrivate && (await privateModeFor(user.id)) === "locked") {
     return { error: "Only Leaders and Teachers can open a private room." };
+  }
+  if (input.isPrivate) {
+    if (!input.paymentMethod || !input.paymentRef || input.paymentRef.length < 4) {
+      return { error: "Please pay with MVola or Orange Money and write the transaction reference." };
+    }
+    input.paymentAmount = privateRoomPayment().price;
   }
 
   let roomId: string;

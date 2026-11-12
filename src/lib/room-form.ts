@@ -61,5 +61,11 @@ export async function readRoomForm(formData: FormData): Promise<NewRoom | string
     invitees: isPrivate
       ? [...new Set(formData.getAll("invite").map(String).filter(Boolean))].slice(0, 50)
       : [],
+    // Le paiement (vérifié par l'action du membre ; le montant est mis par le serveur).
+    paymentMethod: isPrivate && ["mvola", "orange"].includes(text(formData, "paymentMethod", 10))
+      ? text(formData, "paymentMethod", 10)
+      : null,
+    paymentRef: isPrivate ? text(formData, "paymentRef", 60) || null : null,
+    paymentAmount: null,
   };
 }
