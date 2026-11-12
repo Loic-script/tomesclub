@@ -43,7 +43,7 @@ export function CallHeader({
 
   return (
     <header className="relative z-20 shrink-0 border-b border-white/10 bg-zinc-950/95">
-      <div className="flex h-12 items-center gap-3 px-3 sm:px-4">
+      <div className="flex h-14 items-center gap-3 px-3 sm:h-16 sm:px-4">
         {/* Le logo */}
         <span className="flex shrink-0 items-center gap-2">
           <Image src="/logo.png" alt="Tomes Club" width={28} height={28} className="rounded-full" />
@@ -55,24 +55,24 @@ export function CallHeader({
         </span>
 
         {room?.activityName && (
-          <>
-            <span aria-hidden className="hidden h-5 w-px bg-white/15 md:block" />
-
-            {/* L'activité et le thème : un clic ouvre les détails */}
+          // L'activité et le thème, au milieu de la barre : un clic ouvre les détails
+          <div className="flex min-w-0 flex-1 justify-center">
             <button
               type="button"
               onClick={() => setShowDetails((value) => !value)}
               disabled={!hasDetails}
               aria-expanded={showDetails}
-              className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-1 py-1 text-left transition hover:bg-white/5 disabled:hover:bg-transparent"
+              className="flex min-w-0 max-w-full items-center gap-2.5 rounded-xl px-2 py-1 text-center transition hover:bg-white/5 disabled:hover:bg-transparent"
             >
-              {room.activityIcon && <ActivityIcon icon={room.activityIcon} className="size-5 shrink-0 text-accent" />}
+              {room.activityIcon && (
+                <ActivityIcon icon={room.activityIcon} className="size-6 shrink-0 text-accent sm:size-7" />
+              )}
               <span className="min-w-0">
-                <span className="block truncate text-[11px] font-semibold uppercase leading-tight tracking-wide text-accent">
+                <span className="block truncate text-[11px] font-bold uppercase leading-tight tracking-[0.16em] text-accent sm:text-xs">
                   {room.activityName}
                 </span>
                 {room.theme && (
-                  <span className="block truncate text-sm leading-tight text-white/90">
+                  <span className="block truncate font-display text-[15px] font-semibold leading-snug text-white sm:text-lg">
                     {room.theme}
                   </span>
                 )}
