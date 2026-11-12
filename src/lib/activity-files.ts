@@ -21,16 +21,95 @@ import { prisma } from "@/lib/prisma";
 /** Taille maximum d un fichier (Mo), reglable avec MAX_UPLOAD_MB. */
 export const MAX_UPLOAD_BYTES = Number(process.env.MAX_UPLOAD_MB ?? 1024) * 1024 * 1024;
 
-/** Le dossier des fichiers : le volume Mini Railway, sinon UPLOAD_DIR, sinon ./uploads */
+/** Le dossier racine des fichiers : le volume Mini Railway, sinon UPLOAD_DIR, sinon ./uploads */
+export function storageRoot(): string {
+  return process.env.TWINS_VOLUME_MOUNT_PATH || process.env.UPLOAD_DIR || path.join(process.cwd(), "uploads");
+}
+
 function baseDir(): string {
-  const root =
-    process.env.TWINS_VOLUME_MOUNT_PATH || process.env.UPLOAD_DIR || path.join(process.cwd(), "uploads");
-  return path.join(root, "activity-files");
+  return path.join(storageRoot(), "activity-files");
+}
+
+/** Le nom d un fichier envoye, nettoye. */
+export function cleanFileName(raw: string): string {
+  return raw.replace(/[\/\u0000-\u001f]/g, "").trim().slice(0, 160) || "file";
+}
+
+/** "photo.JPG" -> ".jpg" (vide si pas d extension). */
+export function safeExtension(name: string): string {
+  const ext = extensionOf(name).replace(/[^a-z0-9]/g, "").slice(0, 10);
+  return ext ? `.${ext}` : "";
+}
+
+/**
+ * Ecrit un fichier envoye sur le disque (en flux, sans tout garder en memoire).
+ * Rend sa taille. Rejette avec UploadTooBigError au-dela de la limite.
+ */
+export async function writeUpload(body: ReadableStream<Uint8Array>, target: string): Promise<number> {
+  const partial = `${target}.part`;
+  await mkdir(path.dirname(target), { recursive: true });
+  let size = 0;
+  const counter = new Transform({
+    transform(chunk: Buffer, _encoding, done) {
+      size += chunk.length;
+      if (size > MAX_UPLOAD_BYTES) done(new UploadTooBigError("too big"));
+      else done(null, chunk);
+    },
+  });
+  try {
+    await pipeline(Readable.fromWeb(body as import("node:stream/web").ReadableStream), counter, createWriteStream(partial));
+  } catch (error) {
+    await rm(partial, { force: true });
+    throw error;
+  }
+  await rename(partial, target);
+  return size;
+}
+
+/** Envoie un fichier du disque au navigateur (gere "Range" pour avancer dans une video). */
+export function fileResponse(
+  request: Request,
+  file: { path: string; size: number; mime: string; name: string },
+): Response {
+  const url = new URL(request.url);
+  const disposition = `${url.searchParams.get("download") ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(file.name)}`;
+  const headers: Record<string, string> = {
+    "Content-Type": file.mime,
+    "Accept-Ranges": "bytes",
+    "Content-Disposition": disposition,
+    "Cache-Control": "private, max-age=3600",
+    "X-Content-Type-Options": "nosniff",
+  };
+
+  const range = request.headers.get("range")?.match(/^bytes=(\d*)-(\d*)$/);
+  if (range && file.size > 0) {
+    let start = range[1] ? Number(range[1]) : NaN;
+    let end = range[2] ? Number(range[2]) : file.size - 1;
+    if (Number.isNaN(start)) {
+      // "bytes=-500" : les 500 derniers octets
+      start = Math.max(0, file.size - end);
+      end = file.size - 1;
+    }
+    end = Math.min(end, file.size - 1);
+    if (start > end || start >= file.size) {
+      return new Response(null, { status: 416, headers: { "Content-Range": `bytes */${file.size}` } });
+    }
+    return new Response(fileStream(file.path, start, end), {
+      status: 206,
+      headers: {
+        ...headers,
+        "Content-Range": `bytes ${start}-${end}/${file.size}`,
+        "Content-Length": String(end - start + 1),
+      },
+    });
+  }
+  return new Response(fileStream(file.path), {
+    headers: { ...headers, "Content-Length": String(file.size) },
+  });
 }
 
 function originalPath(id: string, name: string): string {
-  const ext = extensionOf(name).replace(/[^a-z0-9]/g, "").slice(0, 10);
-  return path.join(baseDir(), ext ? `${id}.${ext}` : id);
+  return path.join(baseDir(), `${id}${safeExtension(name)}`);
 }
 
 function pdfPath(id: string): string {
@@ -73,27 +152,9 @@ export async function saveActivityFile(input: {
   body: ReadableStream<Uint8Array>;
 }): Promise<{ id: string; kind: string }> {
   const id = randomUUID();
-  const name = input.name.replace(/[\/\u0000-\u001f]/g, "").trim().slice(0, 160) || "file";
+  const name = cleanFileName(input.name);
   const kind = fileKindOf(name, input.mime);
-  const target = originalPath(id, name);
-  const partial = `${target}.part`;
-  await mkdir(path.dirname(target), { recursive: true });
-
-  let size = 0;
-  const counter = new Transform({
-    transform(chunk: Buffer, _encoding, done) {
-      size += chunk.length;
-      if (size > MAX_UPLOAD_BYTES) done(new UploadTooBigError("too big"));
-      else done(null, chunk);
-    },
-  });
-  try {
-    await pipeline(Readable.fromWeb(input.body as import("node:stream/web").ReadableStream), counter, createWriteStream(partial));
-  } catch (error) {
-    await rm(partial, { force: true });
-    throw error;
-  }
-  await rename(partial, target);
+  const size = await writeUpload(input.body, originalPath(id, name));
 
   await prisma.activityFile.create({
     data: {

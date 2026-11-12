@@ -79,7 +79,7 @@ export function MessagesBoard({
   }
 
   return (
-    <div className="neu anim-rise grid h-[calc(100dvh-14rem)] min-h-[440px] overflow-hidden rounded-3xl lg:h-[calc(100dvh-10rem)] lg:grid-cols-[320px_1fr]">
+    <div className="neu anim-rise grid h-[calc(100dvh-14rem)] min-h-[440px] overflow-hidden rounded-3xl lg:-mb-8 lg:h-[calc(100dvh-6.5rem)] lg:grid-cols-[320px_1fr]">
       {/* ----- La liste des membres ----- */}
       <aside className={`min-h-0 flex-col border-white/10 lg:flex lg:border-r ${selected ? "hidden" : "flex"}`}>
         <div className="p-3">
@@ -168,6 +168,7 @@ export function MessagesBoard({
               key={selected.userId}
               getUrl={`/api/admin/chat?user=${encodeURIComponent(selected.userId)}`}
               postUrl="/api/admin/chat"
+              uploadUrl={`/api/admin/chat/files?user=${encodeURIComponent(selected.userId)}`}
               extra={{ userId: selected.userId }}
               side="coach"
               emptyText={`No message yet. Write the first one to ${selected.name}.`}

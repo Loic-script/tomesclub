@@ -340,7 +340,14 @@ model CoachMessage {
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   /// true = ecrit par le coach, false = ecrit par le membre
   fromCoach Boolean
+  /// Le texte (vide si le message est seulement un fichier)
   body      String
+  /// Un fichier joint (photo, video, document...) : sur le disque, dossier chat-files/<id du message>
+  fileName  String?
+  fileMime  String?
+  fileSize  Int?
+  /// pdf | image | video | audio | office | other
+  fileKind  String?
   /// Lu par celui qui le recoit (null = pas encore lu)
   readAt    DateTime?
   createdAt DateTime  @default(now())

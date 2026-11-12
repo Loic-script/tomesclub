@@ -1,22 +1,61 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
+import { rm, stat } from "node:fs/promises";
+import path from "node:path";
 import { notifyAdmin } from "@/lib/admin-notifications";
-import { MAX_MESSAGE_LENGTH, type ChatMessage, type Conversation } from "@/lib/chat-types";
+import { cleanFileName, safeExtension, storageRoot, writeUpload } from "@/lib/activity-files";
+import { MAX_MESSAGE_LENGTH, messagePreview, type ChatMessage, type Conversation } from "@/lib/chat-types";
+import { fileKindOf } from "@/lib/file-kinds";
 import { prisma } from "@/lib/prisma";
 
 // La messagerie entre le coach (admin) et chaque membre.
 // Une discussion par membre : toutes les lignes qui ont son userId.
+// Les fichiers joints sont sur le disque : <dossier des fichiers>/chat-files/<id du message>.<ext>
 
 /** Combien de messages on montre dans une discussion (les plus récents). */
 const THREAD_LIMIT = 200;
 
-type Row = { id: string; fromCoach: boolean; body: string; createdAt: Date };
+const SELECT = {
+  id: true,
+  fromCoach: true,
+  body: true,
+  fileName: true,
+  fileMime: true,
+  fileSize: true,
+  fileKind: true,
+  createdAt: true,
+} as const;
+
+type Row = {
+  id: string;
+  fromCoach: boolean;
+  body: string;
+  fileName: string | null;
+  fileMime: string | null;
+  fileSize: number | null;
+  fileKind: string | null;
+  createdAt: Date;
+};
 
 const toMessage = (row: Row): ChatMessage => ({
   id: row.id,
   fromCoach: row.fromCoach,
   body: row.body,
+  file: row.fileName
+    ? {
+        name: row.fileName,
+        mime: row.fileMime ?? "application/octet-stream",
+        size: row.fileSize ?? 0,
+        kind: row.fileKind ?? "other",
+        url: `/api/chat-files/${row.id}`,
+      }
+    : null,
   createdAt: row.createdAt.toISOString(),
 });
+
+function chatFilePath(id: string, name: string): string {
+  return path.join(storageRoot(), "chat-files", `${id}${safeExtension(name)}`);
+}
 
 /** Nettoie le texte tapé. null = message vide ou pas du texte. */
 export function cleanMessage(raw: unknown): string | null {
@@ -31,40 +70,87 @@ export async function listThread(userId: string): Promise<ChatMessage[]> {
     where: { userId },
     orderBy: { createdAt: "desc" },
     take: THREAD_LIMIT,
-    select: { id: true, fromCoach: true, body: true, createdAt: true },
+    select: SELECT,
   });
   return rows.reverse().map(toMessage);
 }
 
+type NewFile = { name: string; mime: string; body: ReadableStream<Uint8Array> };
+
+/** Enregistre un message (texte et/ou fichier). */
+async function createMessage(userId: string, fromCoach: boolean, body: string, file?: NewFile): Promise<ChatMessage> {
+  if (!file) {
+    const row = await prisma.coachMessage.create({ data: { userId, fromCoach, body }, select: SELECT });
+    return toMessage(row);
+  }
+  const id = randomUUID();
+  const name = cleanFileName(file.name);
+  const target = chatFilePath(id, name);
+  const size = await writeUpload(file.body, target);
+  try {
+    const row = await prisma.coachMessage.create({
+      data: {
+        id,
+        userId,
+        fromCoach,
+        body,
+        fileName: name,
+        fileMime: file.mime || "application/octet-stream",
+        fileSize: size,
+        fileKind: fileKindOf(name, file.mime),
+      },
+      select: SELECT,
+    });
+    return toMessage(row);
+  } catch (error) {
+    await rm(target, { force: true });
+    throw error;
+  }
+}
+
 /** Un membre écrit au coach. L'admin reçoit une notification (une seule tant qu'il n'a pas lu). */
-export async function sendMemberMessage(user: { id: string; name: string }, body: string): Promise<ChatMessage> {
+export async function sendMemberMessage(
+  user: { id: string; name: string },
+  body: string,
+  file?: NewFile,
+): Promise<ChatMessage> {
   const alreadyWaiting = await prisma.coachMessage.count({
     where: { userId: user.id, fromCoach: false, readAt: null },
   });
-  const row = await prisma.coachMessage.create({
-    data: { userId: user.id, fromCoach: false, body },
-    select: { id: true, fromCoach: true, body: true, createdAt: true },
-  });
+  const message = await createMessage(user.id, false, body, file);
   if (alreadyWaiting === 0) {
     await notifyAdmin({
       kind: "message",
       title: `${user.name} sent you a message`,
-      body,
+      body: messagePreview(body, message.file?.name),
       link: `/admin/messages?m=${user.id}`,
     });
   }
-  return toMessage(row);
+  return message;
 }
 
 /** Le coach écrit à un membre. null = ce membre n'existe pas. */
-export async function sendCoachMessage(userId: string, body: string): Promise<ChatMessage | null> {
+export async function sendCoachMessage(userId: string, body: string, file?: NewFile): Promise<ChatMessage | null> {
   const member = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
   if (!member) return null;
-  const row = await prisma.coachMessage.create({
-    data: { userId, fromCoach: true, body },
-    select: { id: true, fromCoach: true, body: true, createdAt: true },
+  return createMessage(userId, true, body, file);
+}
+
+/** Le fichier joint d'un message, si la personne a le droit de le voir (admin, ou le membre de la discussion). */
+export async function openChatFile(
+  id: string,
+  viewer: { admin: true } | { userId: string },
+): Promise<{ path: string; size: number; mime: string; name: string } | null> {
+  const row = await prisma.coachMessage.findUnique({
+    where: { id },
+    select: { userId: true, fileName: true, fileMime: true },
   });
-  return toMessage(row);
+  if (!row?.fileName) return null;
+  if (!("admin" in viewer) && viewer.userId !== row.userId) return null;
+  const file = chatFilePath(id, row.fileName);
+  const info = await stat(file).catch(() => null);
+  if (!info) return null;
+  return { path: file, size: info.size, mime: row.fileMime ?? "application/octet-stream", name: row.fileName };
 }
 
 /** Le membre a ouvert la discussion : les messages du coach sont lus. */
@@ -107,7 +193,7 @@ export async function listConversations(): Promise<Conversation[]> {
         coachMessages: {
           orderBy: { createdAt: "desc" },
           take: 1,
-          select: { body: true, fromCoach: true, createdAt: true },
+          select: { body: true, fileName: true, fromCoach: true, createdAt: true },
         },
       },
     }),
@@ -126,7 +212,7 @@ export async function listConversations(): Promise<Conversation[]> {
       userId: user.id,
       name: fullName || user.name,
       hasPhoto: Boolean(user.profile?.photoType),
-      lastBody: last?.body ?? null,
+      lastBody: last ? messagePreview(last.body, last.fileName) : null,
       lastFromCoach: last?.fromCoach ?? false,
       lastAt: last?.createdAt.toISOString() ?? null,
       unread: unreadBy.get(user.id) ?? 0,

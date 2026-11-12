@@ -79,6 +79,7 @@ export function CoachChat() {
           <ChatThread
             getUrl="/api/chat"
             postUrl="/api/chat"
+            uploadUrl="/api/chat/files"
             side="member"
             emptyText="Say hello to your coach! Ask a question about English, the classes or the app."
           />
