@@ -171,13 +171,10 @@ export function KindIcon({ kind, className = "size-5" }: { kind: string; classNa
   return <MegaphoneIcon className={className} />;
 }
 
-/** La couleur de la pastille d'une sorte de notification. */
-export function kindTone(kind: string): string {
-  if (kind === "signup") return "from-emerald-400/90 to-teal-500/80";
-  if (kind === "member") return "from-sky-400/90 to-[#6d72ff]";
-  if (kind === "room") return "from-accent to-[#ff7a9a]";
-  if (kind === "event") return "from-[#6d72ff] to-navy";
-  if (kind === "message") return "from-accent to-brand";
-  if (kind === "role") return "from-amber-400 to-accent";
-  return "from-brand to-[#c2185b]";
+/**
+ * La couleur de la pastille d'une notification : la même pour toutes (les couleurs de Tomes Club).
+ * C'est la forme de l'icône qui dit de quoi il s'agit.
+ */
+export function kindTone(): string {
+  return "from-accent to-brand";
 }

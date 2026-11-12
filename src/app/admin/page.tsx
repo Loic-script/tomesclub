@@ -389,7 +389,7 @@ function RecentActivity({ data }: { data: DashboardData }) {
           {data.activity.map((item) => (
             <li key={item.id} className="relative flex items-start gap-3">
               <span
-                className={`relative flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${kindTone(item.kind)} text-white ring-4 ring-[#2a1238]`}
+                className={`relative flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${kindTone()} text-white ring-4 ring-[#2a1238]`}
               >
                 <KindIcon kind={item.kind} className="size-4" />
               </span>

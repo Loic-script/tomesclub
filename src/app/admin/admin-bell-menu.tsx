@@ -97,7 +97,7 @@ export function AdminBellMenu({ unread, items }: { unread: number; items: BellIt
                 const inside = (
                   <>
                     <span
-                      className={`flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${kindTone(item.kind)} text-white`}
+                      className={`flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${kindTone()} text-white`}
                     >
                       <KindIcon kind={item.kind} className="size-4" />
                     </span>

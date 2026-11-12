@@ -131,7 +131,7 @@ function NotificationRow({ item }: { item: AdminNotificationItem }) {
   const inside = (
     <>
       <span
-        className={`flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${kindTone(item.kind)} text-white shadow-lg shadow-black/20 ${item.read ? "opacity-60" : ""}`}
+        className={`flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${kindTone()} text-white shadow-lg shadow-black/20 ${item.read ? "opacity-60" : ""}`}
       >
         <KindIcon kind={item.kind} />
       </span>
