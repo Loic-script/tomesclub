@@ -27,24 +27,6 @@ export const OCCUPATIONS = [
     placeholder: "e.g. Tourism",
   },
   {
-    kind: "leader",
-    label: "Leader",
-    detailLabel: "What do you lead?",
-    placeholder: "e.g. Youth group, team",
-  },
-  {
-    kind: "teacher",
-    label: "Teacher",
-    detailLabel: "What do you teach?",
-    placeholder: "e.g. English, maths",
-  },
-  {
-    kind: "admin",
-    label: "Admin",
-    detailLabel: "Where are you an admin?",
-    placeholder: "e.g. School office, company",
-  },
-  {
     kind: "other",
     label: "Other",
     detailLabel: "Tell us more",
