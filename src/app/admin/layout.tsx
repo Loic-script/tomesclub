@@ -56,18 +56,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </Suspense>
 
         <div className="mt-auto space-y-3">
-          <div className="neu-inset rounded-2xl p-4">
-            <p className="flex items-center gap-2 text-xs font-semibold text-white">
-              <span className="relative flex size-2">
-                <span className="anim-ping absolute inset-0 rounded-full bg-emerald-300" />
-                <span className="relative size-2 rounded-full bg-emerald-300" />
-              </span>
-              Live
-            </p>
-            <p className="mt-1 text-[11px] leading-relaxed text-white/50">
-              Members, rooms and notifications update every 30 seconds.
-            </p>
-          </div>
           <form action={adminSignOut}>
             <button
               type="submit"
