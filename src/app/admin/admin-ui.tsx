@@ -34,38 +34,38 @@ export function AdminHeader({
   bell?: boolean;
 }) {
   return (
-    <header
-      className={`anim-rise relative z-30 ${title ? "mb-6 sm:mb-8" : "-mt-2 mb-4 lg:-mt-6"}`}
-      style={delay(40)}
-    >
-      {/* Sans titre : le petit mot et la cloche restent tout en haut, sur la même ligne */}
-      <div className={`flex gap-3 sm:gap-4 ${title ? "items-start sm:items-end" : "items-center"}`}>
-      <div className="min-w-0 flex-1">
-        <p
-          className={`flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent ${title ? "mb-2" : ""}`}
-        >
-          <span aria-hidden className="h-px w-5 rounded-full bg-accent/70" />
-          {eyebrow}
+    <header className={`anim-rise relative z-30 -mt-2 lg:-mt-6 ${title ? "mb-6 sm:mb-8" : "mb-4"}`} style={delay(40)}>
+      {/* En haut, sur la même ligne dans toutes les pages : le petit mot orange et la cloche */}
+      <div className="flex items-center gap-3">
+        <p className="flex min-w-0 flex-1 items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
+          <span aria-hidden className="h-px w-5 shrink-0 rounded-full bg-accent/70" />
+          <span className="truncate">{eyebrow}</span>
         </p>
-        {title && (
-        <h1 className="text-headline break-words font-display text-[1.85rem] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[2.6rem]">
-          {title}
-        </h1>
-        )}
-        {subtitle && (
-          <p className="mt-2 max-w-2xl text-sm font-medium leading-relaxed text-white/60 sm:text-[15px]">
-            {subtitle}
-          </p>
+        {bell && (
+          <Suspense fallback={<AdminBellFallback />}>
+            <AdminBell />
+          </Suspense>
         )}
       </div>
-      {/* Les boutons : à droite sur grand écran, sous le titre sur téléphone */}
-      {right && <div className="hidden shrink-0 items-center gap-3 sm:flex">{right}</div>}
-      {bell && (
-        <Suspense fallback={<AdminBellFallback />}>
-          <AdminBell />
-        </Suspense>
+
+      {(title || subtitle || right) && (
+        <div className="mt-1 flex items-end gap-4">
+          <div className="min-w-0 flex-1">
+            {title && (
+              <h1 className="text-headline break-words font-display text-[1.85rem] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[2.6rem]">
+                {title}
+              </h1>
+            )}
+            {subtitle && (
+              <p className="mt-2 max-w-2xl text-sm font-medium leading-relaxed text-white/60 sm:text-[15px]">
+                {subtitle}
+              </p>
+            )}
+          </div>
+          {/* Les boutons : à droite sur grand écran, sous le titre sur téléphone */}
+          {right && <div className="hidden shrink-0 items-center gap-3 sm:flex">{right}</div>}
+        </div>
       )}
-      </div>
       {right && <div className="mt-4 flex flex-wrap items-center gap-2 sm:hidden">{right}</div>}
     </header>
   );
