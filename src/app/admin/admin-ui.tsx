@@ -28,7 +28,7 @@ export function AdminHeader({
   bell = true,
 }: {
   eyebrow: string;
-  title: ReactNode;
+  title?: ReactNode;
   subtitle?: ReactNode;
   right?: ReactNode;
   bell?: boolean;
@@ -41,9 +41,11 @@ export function AdminHeader({
           <span aria-hidden className="h-px w-5 rounded-full bg-accent/70" />
           {eyebrow}
         </p>
+        {title && (
         <h1 className="text-headline break-words font-display text-[1.85rem] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[2.6rem]">
           {title}
         </h1>
+        )}
         {subtitle && (
           <p className="mt-2 max-w-2xl text-sm font-medium leading-relaxed text-white/60 sm:text-[15px]">
             {subtitle}
