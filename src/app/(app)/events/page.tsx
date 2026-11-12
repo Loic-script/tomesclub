@@ -6,9 +6,10 @@ import { delay, GlassCard, PageHeader } from "@/components/app-ui";
 import { prisma } from "@/lib/prisma";
 import { MemberAvatar } from "@/components/member-avatar";
 import { eventIsLive } from "@/lib/event-live";
-import { getEventResponses, type EventPerson } from "@/lib/event-responses";
+import { formatEventPrice } from "@/lib/event-price";
+import { getEventRegistrations, type EventPerson } from "@/lib/event-responses";
 import { requireMember } from "@/lib/session";
-import { EventResponseButtons } from "./event-response-buttons";
+import { RegisterButton } from "./event-response-buttons";
 import { ScrollToEvent } from "./scroll-to-event";
 
 export const metadata: Metadata = { title: "Events" };
@@ -28,7 +29,7 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
   const wanted = (await searchParams).event;
   const focusId = typeof wanted === "string" ? wanted : null;
   const [upcoming, announcements] = await loadEvents();
-  const responsesById = await getEventResponses(
+  const registrationsById = await getEventRegistrations(
     upcoming.map((event) => event.id),
     user.id,
   );
@@ -50,14 +51,8 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
           ) : (
             <ul className="space-y-4">
               {upcoming.map((event, index) => {
-                const responses = responsesById.get(event.id);
-                const going = responses?.going ?? [];
-                const interested = responses?.interested ?? [];
-                // Une personne peut être dans les deux listes : une seule photo par personne.
-                const everyone = [...going, ...interested].filter(
-                  (person, position, list) =>
-                    list.findIndex((other) => other.id === person.id) === position,
-                );
+                const registrations = registrationsById.get(event.id);
+                const people = registrations?.people ?? [];
                 return (
                   <li
                     key={event.id}
@@ -97,6 +92,15 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                           </span>
                         )}
 
+                        {/* Le prix : gratuit ou payant */}
+                        <span
+                          className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-bold shadow-lg ${
+                            event.isPaid ? "bg-accent text-navy" : "bg-emerald-500 text-white"
+                          }`}
+                        >
+                          {formatEventPrice(event)}
+                        </span>
+
                         <div className="absolute inset-x-4 bottom-4">
                           <h3 className="font-display text-xl font-bold uppercase tracking-wide text-white drop-shadow">
                             {event.title}
@@ -120,18 +124,18 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                             Join the live
                           </Link>
                         )}
-                        <EventResponseButtons
-                          eventId={event.id}
-                          mine={responses?.mine ?? { going: false, interested: false }}
-                          goingCount={going.length}
-                          interestedCount={interested.length}
-                        />
+                        <RegisterButton eventId={event.id} registered={registrations?.mine ?? false} />
+                        {event.isPaid && (
+                          <p className="text-center text-[11px] text-white/50">
+                            Paid event · {formatEventPrice(event)} per person
+                          </p>
+                        )}
 
-                        {everyone.length > 0 && (
+                        {people.length > 0 && (
                           <details className="group/who">
                             <summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl text-xs text-white/65 transition hover:text-white [&::-webkit-details-marker]:hidden">
                               <span className="flex -space-x-2">
-                                {everyone.slice(0, 4).map((person) => (
+                                {people.slice(0, 5).map((person) => (
                                   <span key={person.id} className="rounded-full ring-2 ring-[#2b1538]">
                                     <MemberAvatar
                                       userId={person.id}
@@ -142,14 +146,15 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                                   </span>
                                 ))}
                               </span>
-                              <span>See who is going or interested</span>
+                              <span>
+                                {people.length} registered · see who
+                              </span>
                               <span aria-hidden className="transition-transform group-open/who:rotate-180">
                                 ▾
                               </span>
                             </summary>
-                            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                              <PeopleList title="Going" people={going} />
-                              <PeopleList title="Interested" people={interested} />
+                            <div className="mt-3">
+                              <PeopleList title="Registered" people={people} />
                             </div>
                           </details>
                         )}
@@ -194,7 +199,7 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
   );
 }
 
-/** Une liste de personnes (Going ou Interested), chaque nom ouvre la fiche. */
+/** La liste des inscrits, chaque nom ouvre la fiche. */
 function PeopleList({ title, people }: { title: string; people: EventPerson[] }) {
   return (
     <div className="rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
@@ -237,6 +242,9 @@ const EVENT_FIELDS = {
   createdAt: true,
   liveStartedAt: true,
   liveEndedAt: true,
+  isPaid: true,
+  price: true,
+  currency: true,
 } as const;
 
 /** Charge les événements à venir et les annonces (dépend de l'heure de la requête). */

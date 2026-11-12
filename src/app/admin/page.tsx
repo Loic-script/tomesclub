@@ -361,8 +361,8 @@ function UpcomingEvents({ data }: { data: DashboardData }) {
                 <span className="block text-[11px] text-white/45">{time.format(event.startsAt)}</span>
               </span>
               <span className="flex shrink-0 flex-col items-end gap-1 text-[11px]">
-                <span className="font-semibold text-emerald-300">{event.going} going</span>
-                <span className="text-white/45">{event.interested} interested</span>
+                <span className="font-semibold text-emerald-300">{event.registered} registered</span>
+                <span className="text-white/45">{event.priceLabel}</span>
               </span>
             </li>
           ))}

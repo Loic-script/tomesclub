@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { MemberAvatar } from "@/components/member-avatar";
+import { formatEventPrice } from "@/lib/event-price";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { CalendarIcon, CheckIcon, ImageIcon, MegaphoneIcon } from "../admin-icons";
 import { endEventAction, startEventAction, updateEvent, type UpdateEventState } from "./actions";
 import { DeleteEventButton } from "./delete-event-button";
+import { EventPriceFields } from "./event-price-fields";
 
 export type AdminEventView = {
   id: string;
@@ -17,8 +20,11 @@ export type AdminEventView = {
   monthLabel: string | null;
   whenLabel: string;
   hasImage: boolean;
-  going: number;
-  interested: number;
+  isPaid: boolean;
+  price: number | null;
+  currency: string | null;
+  /** Les membres inscrits (du premier au dernier). */
+  registered: { id: string; name: string; hasPhoto: boolean }[];
   past: boolean;
   live: boolean;
 };
@@ -28,6 +34,7 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [showPeople, setShowPeople] = useState(false);
 
   return (
     <li
@@ -62,9 +69,35 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
           <span className="mt-1 block truncate text-sm font-semibold text-white">{event.title}</span>
           <span className="block truncate text-[11px] text-white/45">{event.whenLabel}</span>
           {event.kind === "event" && (
-            <span className="mt-1.5 flex gap-3 text-[11px]">
-              <span className="font-semibold text-emerald-300">{event.going} going</span>
-              <span className="text-white/50">{event.interested} interested</span>
+            <span className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px]">
+              <span
+                className={`rounded-full px-2 py-0.5 font-bold ${
+                  event.isPaid ? "bg-accent/20 text-accent" : "bg-emerald-400/15 text-emerald-300"
+                }`}
+              >
+                {formatEventPrice(event)}
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowPeople((value) => !value)}
+                disabled={event.registered.length === 0}
+                aria-expanded={showPeople}
+                className="flex items-center gap-1.5 rounded-full font-semibold text-white/75 transition hover:text-white disabled:cursor-default disabled:text-white/45"
+              >
+                {event.registered.length > 0 && (
+                  <span className="flex -space-x-1.5">
+                    {event.registered.slice(0, 4).map((person) => (
+                      <span key={person.id} className="rounded-full ring-2 ring-[#2a1238]">
+                        <MemberAvatar userId={person.id} name={person.name} hasPhoto={person.hasPhoto} size="size-5" />
+                      </span>
+                    ))}
+                  </span>
+                )}
+                {event.registered.length} registered
+                {event.registered.length > 0 && (
+                  <span aria-hidden className={`transition-transform ${showPeople ? "rotate-180" : ""}`}>▾</span>
+                )}
+              </button>
             </span>
           )}
         </span>
@@ -143,6 +176,24 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
           </span>
         </span>
       </div>
+
+      {/* La liste des inscrits */}
+      {showPeople && event.registered.length > 0 && (
+        <ul className="anim-dropdown grid gap-1.5 border-t border-white/10 p-3 sm:grid-cols-2 lg:grid-cols-3">
+          {event.registered.map((person, index) => (
+            <li key={person.id}>
+              <Link
+                href={`/admin/members/${person.id}`}
+                className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 text-sm text-white/85 transition hover:bg-white/[0.06] hover:text-white"
+              >
+                <span className="w-5 text-right text-[11px] tabular-nums text-white/35">{index + 1}</span>
+                <MemberAvatar userId={person.id} name={person.name} hasPhoto={person.hasPhoto} size="size-7" />
+                <span className="truncate">{person.name}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {editing && <EditEventForm event={event} onDone={() => setEditing(false)} />}
     </li>
@@ -244,6 +295,17 @@ function EditEventForm({ event, onDone }: { event: AdminEventView; onDone: () =>
               className={field}
             />
           </label>
+        )}
+        {kind === "event" && (
+          <div className="sm:col-span-2">
+            <EventPriceFields
+              defaultPaid={event.isPaid}
+              defaultPrice={event.price}
+              defaultCurrency={event.currency}
+              fieldClass={field}
+              labelClass={label}
+            />
+          </div>
         )}
         <label className="block sm:col-span-2">
           <span className={label}>Description</span>

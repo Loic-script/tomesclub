@@ -4,6 +4,7 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
 import { endEventLive, startEventLive } from "@/lib/event-live";
+import { EVENT_CURRENCIES } from "@/lib/event-price";
 import { notifyAllMembers } from "@/lib/notifications";
 import { MAX_PHOTO_BYTES, PHOTO_TYPES } from "@/lib/onboarding-options";
 import { prisma } from "@/lib/prisma";
@@ -16,6 +17,10 @@ type EventInput = {
   title: string;
   description: string | null;
   startsAt: Date | null;
+  /** Payant : le tarif et la monnaie (null si gratuit). */
+  isPaid: boolean;
+  price: number | null;
+  currency: string | null;
   image: { bytes: Uint8Array<ArrayBuffer>; type: string } | null;
 };
 
@@ -38,6 +43,18 @@ async function readEventForm(formData: FormData): Promise<EventInput | string> {
     startsAt = parsed;
   }
 
+  // Gratuit ou payant (seulement pour un événement daté).
+  const isPaid = kind === "event" && formData.get("isPaid") === "on";
+  let price: number | null = null;
+  let currency: string | null = null;
+  if (isPaid) {
+    price = Math.round(Number(formData.get("price") ?? ""));
+    if (!Number.isFinite(price) || price <= 0) return "Please write the price of the event.";
+    if (price > 100_000_000) return "The price is too high.";
+    const chosen = String(formData.get("currency") ?? "Ar");
+    currency = (EVENT_CURRENCIES as readonly string[]).includes(chosen) ? chosen : "Ar";
+  }
+
   // L'image de la carte (facultative).
   let image: EventInput["image"] = null;
   const file = formData.get("image");
@@ -47,7 +64,7 @@ async function readEventForm(formData: FormData): Promise<EventInput | string> {
     image = { bytes: new Uint8Array(await file.arrayBuffer()), type: file.type };
   }
 
-  return { kind, title, description: description || null, startsAt, image };
+  return { kind, title, description: description || null, startsAt, isPaid, price, currency, image };
 }
 
 /** Formulaire admin : publier un événement (avec date) ou une annonce. */
@@ -59,7 +76,7 @@ export async function createEvent(
 
   const input = await readEventForm(formData);
   if (typeof input === "string") return { error: input };
-  const { kind, title, description, startsAt, image } = input;
+  const { kind, title, description, startsAt, isPaid, price, currency, image } = input;
 
   await prisma.event.create({
     data: {
@@ -67,6 +84,9 @@ export async function createEvent(
       title,
       description,
       startsAt,
+      isPaid,
+      price,
+      currency,
       image: image?.bytes ?? null,
       imageType: image?.type ?? null,
     },
@@ -111,6 +131,9 @@ export async function updateEvent(
       title: input.title,
       description: input.description,
       startsAt: input.startsAt,
+      isPaid: input.isPaid,
+      price: input.price,
+      currency: input.currency,
       ...(input.image
         ? { image: input.image.bytes, imageType: input.image.type }
         : removeImage

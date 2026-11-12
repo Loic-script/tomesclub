@@ -2,40 +2,32 @@ import "server-only";
 import { notifyAdmin } from "@/lib/admin-notifications";
 import { prisma } from "@/lib/prisma";
 
-// "Going" (je participe) et "Interested" (ça m intéresse) sur les événements.
-// Les deux sont indépendants : on peut choisir l un, l autre, ou les deux.
+// Les inscriptions aux événements : un membre s'inscrit (ou se désinscrit).
+// Une ligne event_response avec status = "registered".
 
-export type EventStatus = "going" | "interested";
-
-export function isEventStatus(value: string): value is EventStatus {
-  return value === "going" || value === "interested";
-}
+export const REGISTERED = "registered";
 
 export type EventPerson = { id: string; name: string; hasPhoto: boolean };
 
-export type EventResponses = {
-  going: EventPerson[];
-  interested: EventPerson[];
-  /** Mes réponses à moi. */
-  mine: { going: boolean; interested: boolean };
+export type EventRegistrations = {
+  people: EventPerson[];
+  /** Je suis inscrit. */
+  mine: boolean;
 };
 
-/** Les réponses de plusieurs événements, avec la mienne. */
-export async function getEventResponses(
+/** Les inscrits de plusieurs événements (du premier inscrit au dernier), et si je le suis. */
+export async function getEventRegistrations(
   eventIds: string[],
-  viewerId: string,
-): Promise<Map<string, EventResponses>> {
-  const result = new Map<string, EventResponses>(
-    eventIds.map((id) => [id, { going: [], interested: [], mine: { going: false, interested: false } }]),
-  );
+  viewerId: string | null,
+): Promise<Map<string, EventRegistrations>> {
+  const result = new Map<string, EventRegistrations>(eventIds.map((id) => [id, { people: [], mine: false }]));
   if (eventIds.length === 0) return result;
 
   const rows = await prisma.eventResponse.findMany({
-    where: { eventId: { in: eventIds } },
+    where: { eventId: { in: eventIds }, status: REGISTERED },
     orderBy: { createdAt: "asc" },
     select: {
       eventId: true,
-      status: true,
       user: {
         select: {
           id: true,
@@ -48,56 +40,52 @@ export async function getEventResponses(
 
   for (const row of rows) {
     const entry = result.get(row.eventId);
-    if (!entry || !isEventStatus(row.status)) continue;
+    if (!entry) continue;
     const profile = row.user.profile;
-    entry[row.status].push({
+    entry.people.push({
       id: row.user.id,
       name: profile ? `${profile.firstName} ${profile.lastName}`.trim() : row.user.name,
       hasPhoto: Boolean(profile?.photoType),
     });
-    if (row.user.id === viewerId) entry.mine[row.status] = true;
+    if (row.user.id === viewerId) entry.mine = true;
   }
   return result;
 }
 
 /**
- * Allume (on = true) ou éteint "going" ou "interested" pour un événement.
- * Renvoie false si l événement n existe pas (ou est une annonce).
+ * Inscrit (on = true) ou désinscrit un membre.
+ * Renvoie false si l'événement n'existe pas (ou est une annonce).
  */
-export async function setEventResponse(
-  userId: string,
-  eventId: string,
-  status: EventStatus,
-  on: boolean,
-): Promise<boolean> {
+export async function setEventRegistration(userId: string, eventId: string, on: boolean): Promise<boolean> {
   const event = await prisma.event.findFirst({
     where: { id: eventId, kind: "event" },
     select: { id: true, title: true },
   });
   if (!event) return false;
 
-  if (on) {
-    const existing = await prisma.eventResponse.findUnique({
-      where: { eventId_userId_status: { eventId, userId, status } },
-      select: { status: true },
-    });
-    await prisma.eventResponse.upsert({
-      where: { eventId_userId_status: { eventId, userId, status } },
-      create: { eventId, userId, status },
-      update: {},
-    });
-    // Going ou Interested : l'admin le sait (une seule fois par choix).
-    if (!existing) {
-      const member = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
-      await notifyAdmin({
-        kind: "event",
-        title: `${member?.name ?? "A member"} ${status === "going" ? "is going" : "is interested"}`,
-        body: event.title,
-        link: "/admin/events",
-      });
-    }
-  } else {
-    await prisma.eventResponse.deleteMany({ where: { eventId, userId, status } });
+  if (!on) {
+    await prisma.eventResponse.deleteMany({ where: { eventId, userId, status: REGISTERED } });
+    return true;
   }
+
+  const existing = await prisma.eventResponse.findUnique({
+    where: { eventId_userId_status: { eventId, userId, status: REGISTERED } },
+    select: { status: true },
+  });
+  if (existing) return true;
+  await prisma.eventResponse.create({ data: { eventId, userId, status: REGISTERED } });
+
+  // Une nouvelle inscription : l'admin le sait.
+  const member = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true, profile: { select: { firstName: true, lastName: true } } },
+  });
+  const name = member?.profile ? `${member.profile.firstName} ${member.profile.lastName}` : member?.name;
+  await notifyAdmin({
+    kind: "event",
+    title: `${name ?? "A member"} registered`,
+    body: event.title,
+    link: "/admin/events",
+  });
   return true;
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getEventRegistrations } from "@/lib/event-responses";
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
@@ -34,14 +35,19 @@ async function loadEvents() {
       createdAt: true,
       liveStartedAt: true,
       liveEndedAt: true,
-      responses: { select: { status: true } },
+      isPaid: true,
+      price: true,
+      currency: true,
     },
   });
+  const registrations = await getEventRegistrations(
+    rows.map((row) => row.id),
+    null,
+  );
   const now = Date.now();
-  return rows.map(({ responses, ...event }) => ({
+  return rows.map((event) => ({
     ...event,
-    going: responses.filter((response) => response.status === "going").length,
-    interested: responses.filter((response) => response.status === "interested").length,
+    registered: registrations.get(event.id)?.people ?? [],
     past: Boolean(event.startsAt && event.startsAt.getTime() < now),
     live: eventIsLive(event),
   }));
@@ -116,8 +122,10 @@ async function AdminEvents() {
                       ? full.format(event.startsAt)
                       : `Posted ${full.format(event.createdAt)}`,
                     hasImage: Boolean(event.imageType),
-                    going: event.going,
-                    interested: event.interested,
+                    isPaid: event.isPaid,
+                    price: event.price,
+                    currency: event.currency,
+                    registered: event.registered,
                     past: event.past,
                     live: event.live,
                   }}

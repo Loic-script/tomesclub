@@ -209,6 +209,10 @@ model Event {
   /// Le direct vidéo de l événement : lancé par l admin, terminé par l admin.
   liveStartedAt DateTime?
   liveEndedAt   DateTime?
+  /// Payant ou gratuit. Si payant : le tarif (nombre entier) et la monnaie (Ar, €, $).
+  isPaid      Boolean   @default(false)
+  price       Int?
+  currency    String?
   createdAt   DateTime  @default(now())
   responses   EventResponse[]
 
@@ -216,14 +220,13 @@ model Event {
   @@map("event")
 }
 
-/// Un membre participe ("going") et/ou est intéressé ("interested") par un événement.
-/// Les deux sont possibles en même temps (une ligne pour chacun).
+/// Un membre inscrit à un événement (status = "registered").
 model EventResponse {
   eventId   String
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status    String // going | interested
+  status    String // registered
   createdAt DateTime @default(now())
 
   @@id([eventId, userId, status])

@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { CalendarIcon, ImageIcon, MegaphoneIcon } from "../admin-icons";
 import { createEvent, type CreateEventState } from "./actions";
+import { EventPriceFields } from "./event-price-fields";
 
 const initialState: CreateEventState = { error: null };
 
@@ -89,6 +90,8 @@ export function CreateEventForm() {
           <input name="startsAt" type="datetime-local" required className={field} />
         </label>
       )}
+
+      {kind === "event" && <EventPriceFields fieldClass={field} labelClass={label} />}
 
       <label className="block">
         <span className={label}>Description</span>

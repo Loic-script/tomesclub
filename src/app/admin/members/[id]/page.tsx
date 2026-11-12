@@ -60,7 +60,7 @@ async function loadMember(userId: string) {
           followers: true,
           following: true,
           roomsCreated: true,
-          eventResponses: { where: { status: "going" } },
+          eventResponses: { where: { status: "registered" } },
         },
       },
     },
@@ -97,7 +97,7 @@ async function MemberProfile({ userId }: { userId: string }) {
     { label: "Video calls", value: member._count.callParticipation, icon: <PhoneIcon className="size-4" /> },
     { label: "Followers", value: member._count.followers, icon: <UsersIcon className="size-4" /> },
     { label: "Following", value: member._count.following, icon: <UsersIcon className="size-4" /> },
-    { label: "Events going", value: member._count.eventResponses, icon: <CalendarIcon className="size-4" /> },
+    { label: "Events registered", value: member._count.eventResponses, icon: <CalendarIcon className="size-4" /> },
   ];
 
   return (

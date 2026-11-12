@@ -1,4 +1,5 @@
 import "server-only";
+import { formatEventPrice } from "@/lib/event-price";
 import { connection } from "next/server";
 import { listAdminNotifications, type AdminNotificationItem } from "@/lib/admin-notifications";
 import { ENGLISH_LEVELS } from "@/lib/onboarding-options";
@@ -37,7 +38,7 @@ export type DashboardData = {
     isPrivate: boolean;
     endsAt: string | null;
   }[];
-  events: { id: string; title: string; startsAt: Date; going: number; interested: number }[];
+  events: { id: string; title: string; startsAt: Date; registered: number; priceLabel: string }[];
   activity: AdminNotificationItem[];
   newest: { id: string; name: string; email: string; hasPhoto: boolean; createdAt: Date }[];
 };
@@ -97,6 +98,9 @@ export async function loadDashboard(): Promise<DashboardData> {
         id: true,
         title: true,
         startsAt: true,
+        isPaid: true,
+        price: true,
+        currency: true,
         responses: { select: { status: true } },
       },
     }),
@@ -156,8 +160,8 @@ export async function loadDashboard(): Promise<DashboardData> {
     id: event.id,
     title: event.title,
     startsAt: event.startsAt ?? new Date(now),
-    going: event.responses.filter((response) => response.status === "going").length,
-    interested: event.responses.filter((response) => response.status === "interested").length,
+    registered: event.responses.filter((response) => response.status === "registered").length,
+    priceLabel: formatEventPrice(event),
   }));
 
   const upcomingEvents = await prisma.event.count({
