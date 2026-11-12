@@ -92,8 +92,7 @@ export function CallHeader({
                 </svg>
               )}
             </button>
-
-          </>
+          </div>
         )}
 
         {/* Les fichiers de l activite (hote seulement) */}
