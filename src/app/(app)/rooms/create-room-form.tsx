@@ -395,28 +395,61 @@ function RoomOptions({
           </div>
         </fieldset>
         {/* Ou sa propre durée, de 1 à 60 minutes */}
-        <label className="mt-2 flex items-center gap-2 text-xs text-white/60">
-          Or your own:
-          <input
-            type="number"
-            inputMode="numeric"
-            min={MIN_DURATION}
-            max={MAX_DURATION}
-            step={1}
-            value={durationText}
-            onChange={(event) => {
-              setDurationText(event.target.value);
-              const minutes = Math.round(Number(event.target.value));
-              if (minutes >= MIN_DURATION && minutes <= MAX_DURATION) setDuration(minutes);
-            }}
-            onBlur={() => setDurationText(String(duration))}
-            aria-label={`Duration in minutes, from ${MIN_DURATION} to ${MAX_DURATION}`}
-            className={`w-16 rounded-xl bg-white/10 px-2 py-1.5 text-center text-sm font-bold text-white outline-none ring-1 transition focus:ring-2 focus:ring-accent/60 ${
-              (ROOM_DURATIONS as readonly number[]).includes(duration) ? "ring-white/15" : "ring-accent"
+        <div className="mt-2.5 flex items-center gap-3">
+          <span className="text-xs text-white/60">Or your own</span>
+          {/* Le sélecteur : − [15 min] + (on peut aussi taper le nombre) */}
+          <div
+            className={`neu-inset flex items-center rounded-full p-1 transition ${
+              (ROOM_DURATIONS as readonly number[]).includes(duration) ? "" : "ring-1 ring-accent"
             }`}
-          />
-          min <span className="text-white/35">(1 to 60)</span>
-        </label>
+          >
+            <button
+              type="button"
+              onClick={() => {
+                const minutes = Math.max(MIN_DURATION, duration - 1);
+                setDuration(minutes);
+                setDurationText(String(minutes));
+              }}
+              disabled={duration <= MIN_DURATION}
+              aria-label="One minute less"
+              className="flex size-8 items-center justify-center rounded-full text-lg font-bold leading-none text-white/80 transition hover:bg-white/10 hover:text-white disabled:opacity-30"
+            >
+              −
+            </button>
+            <label className="flex items-baseline gap-1 px-1">
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={durationText}
+                onChange={(event) => {
+                  const value = event.target.value.replace(/[^0-9]/g, "").slice(0, 2);
+                  setDurationText(value);
+                  const minutes = Number(value);
+                  if (minutes >= MIN_DURATION && minutes <= MAX_DURATION) setDuration(minutes);
+                }}
+                onBlur={() => setDurationText(String(duration))}
+                aria-label={`Duration in minutes, from ${MIN_DURATION} to ${MAX_DURATION}`}
+                className="w-7 bg-transparent text-center font-display text-lg font-extrabold tabular-nums text-white outline-none"
+              />
+              <span className="text-xs font-semibold text-white/50">min</span>
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                const minutes = Math.min(MAX_DURATION, duration + 1);
+                setDuration(minutes);
+                setDurationText(String(minutes));
+              }}
+              disabled={duration >= MAX_DURATION}
+              aria-label="One minute more"
+              className="flex size-8 items-center justify-center rounded-full text-lg font-bold leading-none text-white/80 transition hover:bg-white/10 hover:text-white disabled:opacity-30"
+            >
+              +
+            </button>
+          </div>
+          <span className="text-[11px] text-white/35">1 – 60</span>
+        </div>
         {duration === 1 && (
           <p className="mt-1.5 text-xs text-white/50">1 minute: handy to test the room.</p>
         )}
