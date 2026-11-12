@@ -2,7 +2,7 @@ import "server-only";
 import { connection } from "next/server";
 import { notifyAdmin } from "@/lib/admin-notifications";
 import { createRoomServiceClient } from "@/lib/livekit";
-import { notifyAllMembers } from "@/lib/notifications";
+import { notifyAllMembers, notifyMembers } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { getActivity } from "@/lib/activities";
 
@@ -91,11 +91,32 @@ export type NewRoom = {
   level: string | null;
   durationMin: number | null;
   maxParticipants: number;
+  /** Salle privée : les membres invités par l'hôte. */
+  invitees: string[];
 };
 
-/** Crée une salle : d'abord dans la base, puis dans LiveKit. */
-export async function createRoom(creatorId: string | null, input: NewRoom): Promise<{ id: string }> {
+/** Ouvre la salle dans LiveKit (la vidéo). */
+export async function openLiveKitRoom(id: string, maxParticipants: number): Promise<void> {
+  await createRoomServiceClient().createRoom({
+    name: `${ROOM_PREFIX}${id}`,
+    emptyTimeout: EMPTY_TIMEOUT_SECONDS,
+    // LiveKit refuse lui-même les personnes en trop.
+    maxParticipants: Math.min(maxParticipants, MAX_PARTICIPANTS),
+  });
+}
+
+/**
+ * Crée une salle : d'abord dans la base, puis dans LiveKit.
+ * needsApproval (salle privée d'un Leader / Teacher) : la salle attend l'accord de l'admin,
+ * elle ne s'ouvre dans LiveKit qu'après (voir approvePrivateRoom).
+ */
+export async function createRoom(
+  creatorId: string | null,
+  input: NewRoom,
+  needsApproval = false,
+): Promise<{ id: string }> {
   const { name, topic, isPrivate } = input;
+  const waiting = isPrivate && needsApproval;
   const room = await prisma.room.create({
     data: {
       name: name.slice(0, 60),
@@ -108,20 +129,30 @@ export async function createRoom(creatorId: string | null, input: NewRoom): Prom
       durationMin: input.durationMin,
       maxParticipants: input.maxParticipants,
       createdById: creatorId,
+      pendingApproval: waiting,
     },
     select: { id: true },
   });
 
-  try {
-    await createRoomServiceClient().createRoom({
-      name: `${ROOM_PREFIX}${room.id}`,
-      emptyTimeout: EMPTY_TIMEOUT_SECONDS,
-      // LiveKit refuse lui-même les personnes en trop.
-      maxParticipants: Math.min(input.maxParticipants, MAX_PARTICIPANTS),
+  // Les invités (salle privée) : seulement des membres qui existent, sans l'hôte.
+  if (isPrivate && input.invitees.length > 0) {
+    const valid = await prisma.user.findMany({
+      where: { id: { in: input.invitees.filter((id) => id !== creatorId) } },
+      select: { id: true },
     });
-  } catch (error) {
-    await prisma.room.delete({ where: { id: room.id } });
-    throw error;
+    await prisma.roomInvite.createMany({
+      data: valid.map((user) => ({ roomId: room.id, userId: user.id })),
+      skipDuplicates: true,
+    });
+  }
+
+  if (!waiting) {
+    try {
+      await openLiveKitRoom(room.id, input.maxParticipants);
+    } catch (error) {
+      await prisma.room.delete({ where: { id: room.id } });
+      throw error;
+    }
   }
 
   // Le nom de l'hôte : un membre, ou "Coach" (salle ouverte par l'admin).
@@ -146,12 +177,30 @@ export async function createRoom(creatorId: string | null, input: NewRoom): Prom
     );
   }
 
+  // Salle privée ouverte tout de suite (par l'admin) : les invités sont prévenus.
+  if (isPrivate && !waiting) {
+    const invites = await prisma.roomInvite.findMany({ where: { roomId: room.id }, select: { userId: true } });
+    await notifyMembers(
+      invites.map((invite) => invite.userId),
+      {
+        kind: "room",
+        title: `${host} invites you to a private room`,
+        body: name.slice(0, 60),
+        link: `/room/${room.id}`,
+      },
+    );
+  }
+
   // L'admin voit toutes les salles que les membres ouvrent (publiques et privées).
   if (creatorId) {
     await notifyAdmin({
       kind: "room",
-      title: `${host} opened a ${isPrivate ? "private " : ""}room`,
-      body: [activity ? `${activity.icon} ${activity.name}` : null, topic].filter(Boolean).join(" · "),
+      title: waiting
+        ? `${host} asks to open a private room`
+        : `${host} opened a ${isPrivate ? "private " : ""}room`,
+      body: waiting
+        ? "Accept or refuse it in Rooms."
+        : [activity ? activity.name : null, topic].filter(Boolean).join(" · "),
       link: "/admin/rooms",
     });
   }
@@ -180,7 +229,11 @@ export async function listOpenRooms(viewerId: string | null): Promise<OpenRoom[]
   const rows = await prisma.room.findMany({
     where: {
       id: { in: open.map((room) => room.name.slice(ROOM_PREFIX.length)) },
-      ...(viewerId ? { OR: [{ isPrivate: false }, { createdById: viewerId }] } : {}),
+      pendingApproval: false,
+      // Les salles privées : seulement pour leur hôte et leurs invités (l'admin voit tout).
+      ...(viewerId
+        ? { OR: [{ isPrivate: false }, { createdById: viewerId }, { invites: { some: { userId: viewerId } } }] }
+        : {}),
     },
     orderBy: { createdAt: "desc" },
     select: {
@@ -244,6 +297,8 @@ export function getRoom(id: string) {
       maxParticipants: true,
       createdAt: true,
       createdById: true,
+      isPrivate: true,
+      pendingApproval: true,
     },
   });
 }

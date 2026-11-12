@@ -36,6 +36,7 @@ model User {
 
   // Salles de groupe créées + file d'attente "appel au hasard"
   roomsCreated Room[]      @relation("RoomsCreated")
+  roomInvites  RoomInvite[]
   eventResponses EventResponse[]
   matchQueue   MatchQueue?
 
@@ -191,10 +192,27 @@ model Room {
   /// null = salle ouverte par le coach (session admin, sans compte membre)
   createdById String?
   createdBy   User?    @relation("RoomsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  /// Salle privée d un Leader / Teacher : en attente de l accord de l admin (pas encore dans LiveKit)
+  pendingApproval Boolean @default(false)
+  /// Les membres invités par l hôte (salle privée)
+  invites     RoomInvite[]
   createdAt   DateTime @default(now())
 
   @@index([createdById])
   @@map("room")
+}
+
+/// Un membre invité dans une salle privée.
+model RoomInvite {
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([roomId, userId])
+  @@index([userId])
+  @@map("room_invite")
 }
 
 /// Un événement du club (cours programmé...) ou une annonce de l'admin.

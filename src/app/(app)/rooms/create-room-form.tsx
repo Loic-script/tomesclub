@@ -2,6 +2,7 @@
 
 import { useActionState, useState, type ReactNode } from "react";
 import { ActivityIcon } from "@/components/activity-icon";
+import { MemberAvatar } from "@/components/member-avatar";
 import {
   DEFAULT_DURATION,
   MAX_DURATION,
@@ -16,9 +17,19 @@ import {
 import { createRoomAction, type CreateRoomState } from "./actions";
 
 const VISIBILITIES = [
-  { value: "public", label: "Public", hint: "Everyone sees it in the list." },
-  { value: "private", label: "Private", hint: "Only people with the link can join." },
+  { value: "public", label: "Public" },
+  { value: "private", label: "Private" },
 ] as const;
+
+/** Qui peut ouvrir une salle privée : personne (membre), après accord (Leader / Teacher), tout de suite (admin). */
+export type PrivateMode = "locked" | "approval" | "direct";
+export type InviteChoice = { id: string; name: string; hasPhoto: boolean };
+
+const PRIVATE_HINT: Record<PrivateMode, string> = {
+  locked: "Private rooms are for Leaders and Teachers.",
+  approval: "Only the members you invite can join. The admin must approve it first.",
+  direct: "Only the members you invite can join.",
+};
 
 const initialState: CreateRoomState = { error: null };
 
@@ -56,7 +67,13 @@ export function CreateRoomForm({
   activities,
   action = createRoomAction,
   defaultOpen = false,
+  privateMode = "locked",
+  members = [],
 }: {
+  /** Qui peut ouvrir une salle privée (voir PrivateMode). */
+  privateMode?: PrivateMode;
+  /** Les membres qu'on peut inviter dans une salle privée. */
+  members?: InviteChoice[];
   /** Le catalogue (les 13 activités + celles ajoutées par l'admin). */
   activities: RoomActivity[];
   /** L'action serveur qui crée la salle (membre ou admin). */
@@ -90,6 +107,8 @@ export function CreateRoomForm({
               formAction={formAction}
               pending={pending}
               error={state.error}
+              privateMode={privateMode}
+              members={members}
             />
           ) : (
             <ActivityPicker activities={activities} onPick={setActivity} />
@@ -141,12 +160,16 @@ function RoomOptions({
   formAction,
   pending,
   error,
+  privateMode,
+  members,
 }: {
   activity: RoomActivity;
   onChangeActivity: () => void;
   formAction: (formData: FormData) => void;
   pending: boolean;
   error: string | null;
+  privateMode: PrivateMode;
+  members: InviteChoice[];
 }) {
   const [category, setCategory] = useState(activity.categories[0]?.name ?? "");
   const [topic, setTopic] = useState("");
@@ -157,6 +180,9 @@ function RoomOptions({
   const [durationText, setDurationText] = useState(String(DEFAULT_DURATION));
   const [people, setPeople] = useState(DEFAULT_PEOPLE);
   const [visibility, setVisibility] = useState<"public" | "private">("public");
+  // Les membres invités (salle privée)
+  const [invited, setInvited] = useState<string[]>([]);
+  const [inviteSearch, setInviteSearch] = useState("");
   // Thème proposé → description écrite pour l'hôte (et mise à jour avec les options).
   // Thème écrit par l'hôte → il écrit sa propre description.
   const [autoDescription, setAutoDescription] = useState(false);
@@ -430,34 +456,103 @@ function RoomOptions({
       <div>
         <span className={labelText}>Who can see it?</span>
         <div className="flex gap-2">
-          {VISIBILITIES.map((option) => (
-            <label
-              key={option.value}
-              className={`flex-1 cursor-pointer rounded-xl px-3 py-2 text-center transition-all duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent ${
-                visibility === option.value
-                  ? "neu-inset text-accent"
-                  : "text-white/60 ring-1 ring-white/15 hover:text-white"
-              }`}
-            >
-              <input
-                type="radio"
-                name="visibility"
-                value={option.value}
-                checked={visibility === option.value}
-                onChange={() => setVisibility(option.value)}
-                className="sr-only"
-              />
-              <span className="flex items-center justify-center gap-1.5 text-sm font-semibold">
-                {option.value === "private" && <LockIcon />}
-                {option.label}
-              </span>
-            </label>
-          ))}
+          {VISIBILITIES.map((option) => {
+            const locked = option.value === "private" && privateMode === "locked";
+            return (
+              <label
+                key={option.value}
+                title={locked ? PRIVATE_HINT.locked : undefined}
+                className={`flex-1 rounded-xl px-3 py-2 text-center transition-all duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent ${
+                  locked
+                    ? "cursor-not-allowed text-white/30 ring-1 ring-white/10"
+                    : visibility === option.value
+                      ? "neu-inset cursor-pointer text-accent"
+                      : "cursor-pointer text-white/60 ring-1 ring-white/15 hover:text-white"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="visibility"
+                  value={option.value}
+                  checked={visibility === option.value}
+                  disabled={locked}
+                  onChange={() => setVisibility(option.value)}
+                  className="sr-only"
+                />
+                <span className="flex items-center justify-center gap-1.5 text-sm font-semibold">
+                  {option.value === "private" && <LockIcon />}
+                  {option.label}
+                </span>
+              </label>
+            );
+          })}
         </div>
         <p className="mt-1.5 text-xs text-white/50">
-          {VISIBILITIES.find((option) => option.value === visibility)?.hint}
+          {visibility === "private"
+            ? PRIVATE_HINT[privateMode]
+            : privateMode === "locked"
+              ? `Everyone sees it in the list. ${PRIVATE_HINT.locked}`
+              : "Everyone sees it in the list."}
         </p>
       </div>
+
+      {/* ----- Salle privée : l'hôte choisit qui il invite ----- */}
+      {visibility === "private" && privateMode !== "locked" && (
+        <div className="anim-dropdown">
+          <span className={labelText}>
+            Invite members <span className="text-white/40">({invited.length} chosen)</span>
+          </span>
+          {invited.map((id) => (
+            <input key={id} type="hidden" name="invite" value={id} />
+          ))}
+          <input
+            type="search"
+            value={inviteSearch}
+            onChange={(event) => setInviteSearch(event.target.value)}
+            placeholder="Search a member"
+            aria-label="Search a member to invite"
+            className={`${field} mb-2 text-sm`}
+          />
+          <ul className="max-h-52 space-y-1 overflow-y-auto rounded-xl bg-white/5 p-1.5 ring-1 ring-white/10">
+            {members
+              .filter((member) => member.name.toLowerCase().includes(inviteSearch.trim().toLowerCase()))
+              .map((member) => {
+                const chosen = invited.includes(member.id);
+                return (
+                  <li key={member.id}>
+                    <button
+                      type="button"
+                      aria-pressed={chosen}
+                      onClick={() =>
+                        setInvited((list) =>
+                          chosen ? list.filter((id) => id !== member.id) : [...list, member.id],
+                        )
+                      }
+                      className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm transition ${
+                        chosen ? "bg-accent/15 text-white" : "text-white/75 hover:bg-white/10"
+                      }`}
+                    >
+                      <MemberAvatar userId={member.id} name={member.name} hasPhoto={member.hasPhoto} size="size-7" />
+                      <span className="min-w-0 flex-1 truncate">{member.name}</span>
+                      <span
+                        aria-hidden
+                        className={`flex size-5 items-center justify-center rounded-md text-[11px] font-bold ${
+                          chosen ? "bg-accent text-navy" : "ring-1 ring-white/25"
+                        }`}
+                      >
+                        {chosen ? "✓" : ""}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            {members.length === 0 && <li className="px-2 py-3 text-center text-xs text-white/45">No member yet.</li>}
+          </ul>
+          {invited.length === 0 && (
+            <p className="mt-1.5 text-xs text-amber-300">Choose at least one member to invite.</p>
+          )}
+        </div>
+      )}
 
       {/* ----- Le résumé à confirmer ----- */}
       <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-accent/30">
@@ -480,10 +575,14 @@ function RoomOptions({
       </p>
       <button
         type="submit"
-        disabled={pending || !topic.trim()}
+        disabled={pending || !topic.trim() || (visibility === "private" && invited.length === 0)}
         className="neu-btn w-full rounded-full bg-brand px-5 py-3 font-bold text-white shadow-md disabled:opacity-60"
       >
-        {pending ? "Opening the room..." : "Confirm and open the room"}
+        {pending
+          ? "Opening the room..."
+          : visibility === "private" && privateMode === "approval"
+            ? "Send to the admin for approval"
+            : "Confirm and open the room"}
       </button>
     </form>
   );

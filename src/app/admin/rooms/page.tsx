@@ -7,13 +7,15 @@ import { requireAdmin } from "@/lib/admin";
 import { getActivityMap, listActivities } from "@/lib/activities";
 import { listFilesByActivity } from "@/lib/activity-files";
 import { levelLabel } from "@/lib/room-activities";
+import { listInvitableMembers, listPendingRooms } from "@/lib/private-rooms";
 import { listOpenRooms } from "@/lib/rooms";
 import { CreateRoomForm } from "../../(app)/rooms/create-room-form";
 import { RoomIcon, UsersIcon } from "../admin-icons";
-import { AdminHeader, Chip, delay, EmptyState, Panel } from "../admin-ui";
+import { AdminHeader, Chip, delay, EmptyState, Panel, timeAgo } from "../admin-ui";
 import { ActivityManager } from "./activity-manager";
 import { adminCreateRoomAction } from "./actions";
 import { CloseRoomButton } from "./close-room-button";
+import { PendingPrivateRooms } from "./pending-private-rooms";
 
 export const metadata: Metadata = { title: "Rooms · Admin" };
 
@@ -28,12 +30,17 @@ export default function AdminRoomsPage() {
 
 async function AdminRooms() {
   await requireAdmin();
-  const [rooms, activities, files] = await Promise.all([
+  const [rooms, activities, files, pendingRooms, members] = await Promise.all([
     listOpenRooms(null),
     listActivities(),
     listFilesByActivity(),
+    listPendingRooms(),
+    listInvitableMembers(null),
   ]);
-  const activityByKey = await getActivityMap((rooms ?? []).map((room) => room.activity));
+  const activityByKey = await getActivityMap([
+    ...(rooms ?? []).map((room) => room.activity),
+    ...pendingRooms.map((room) => room.activity),
+  ]);
   const people = (rooms ?? []).reduce((sum, room) => sum + room.participants, 0);
   const custom = activities.filter((activity) => activity.custom).length;
 
@@ -44,6 +51,35 @@ async function AdminRooms() {
         title="Rooms"
         subtitle={`${rooms?.length ?? 0} live ${rooms?.length === 1 ? "room" : "rooms"} · ${people} people inside · ${activities.length} activities`}
       />
+
+      {/* ----- Les salles privées qui attendent l admin ----- */}
+      {pendingRooms.length > 0 && (
+        <Panel
+          className="mb-5 ring-1 ring-amber-300/30"
+          style={delay(80)}
+          title="Private room requests"
+          icon={<span aria-hidden>🔒</span>}
+          action={<Chip tone="warn">{pendingRooms.length} waiting</Chip>}
+        >
+          <PendingPrivateRooms
+            rooms={pendingRooms.map((room) => {
+              const activity = room.activity ? activityByKey.get(room.activity) : undefined;
+              return {
+                id: room.id,
+                name: room.name,
+                topic: room.topic,
+                activityIcon: activity?.icon ?? null,
+                activityName: activity?.name ?? null,
+                durationMin: room.durationMin,
+                hostName: room.hostName,
+                hostRole: room.hostRole,
+                invitees: room.invitees,
+                askedLabel: timeAgo(room.createdAt),
+              };
+            })}
+          />
+        </Panel>
+      )}
 
       <div className="grid items-start gap-5 xl:grid-cols-5">
         {/* ----- Les salles ouvertes ----- */}
@@ -126,7 +162,12 @@ async function AdminRooms() {
             <h2 className="font-display text-lg font-bold text-white">Open a room</h2>
             <p className="text-xs text-white/50">You will be the host, shown as “Admin”.</p>
           </div>
-          <CreateRoomForm activities={activities} action={adminCreateRoomAction} />
+          <CreateRoomForm
+            activities={activities}
+            action={adminCreateRoomAction}
+            privateMode="direct"
+            members={members}
+          />
         </section>
       </div>
 

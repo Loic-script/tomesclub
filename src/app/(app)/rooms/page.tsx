@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { listInvitableMembers, privateModeFor } from "@/lib/private-rooms";
 import { ActivityIcon } from "@/components/activity-icon";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -26,7 +27,12 @@ export default function RoomsPage() {
 
 async function RoomsHome() {
   const user = await requireMember();
-  const [rooms, activities] = await Promise.all([listOpenRooms(user.id), listActivities()]);
+  const [rooms, activities, privateMode, members] = await Promise.all([
+    listOpenRooms(user.id),
+    listActivities(),
+    privateModeFor(user.id),
+    listInvitableMembers(user.id),
+  ]);
   const activityByKey = await getActivityMap((rooms ?? []).map((room) => room.activity));
 
   return (
@@ -39,7 +45,7 @@ async function RoomsHome() {
 
       <div className="space-y-5">
         <div className="anim-rise" style={delay(150)}>
-          <CreateRoomForm activities={activities} />
+          <CreateRoomForm activities={activities} privateMode={privateMode} members={members} />
         </div>
 
         <div className="anim-rise space-y-3" style={delay(280)}>

@@ -7,7 +7,9 @@ import { VideoRoom } from "@/components/video-room";
 import { createParticipantToken, getBrowserLiveKitUrl } from "@/lib/livekit";
 import { getActivity } from "@/lib/activities";
 import { listFilesForActivity } from "@/lib/activity-files";
+import { AdminLiveRefresh } from "@/app/admin/admin-nav";
 import { isAdmin } from "@/lib/admin";
+import { isInvited } from "@/lib/private-rooms";
 import { levelLabel } from "@/lib/room-activities";
 import {
   closeRoom,
@@ -49,6 +51,54 @@ async function Room({ roomId }: { roomId: string }) {
   const room = await getRoom(roomId);
   if (!room) notFound();
 
+  const hosting = user.coach || (room.createdById !== null && room.createdById === user.id);
+
+  // Salle privée d'un Leader / Teacher pas encore acceptée par l'admin.
+  if (room.pendingApproval) {
+    return (
+      <div className="m-auto max-w-sm px-6 text-center">
+        {/* La page se recharge toute seule : dès que l'admin accepte, l'appel s'ouvre. */}
+        <AdminLiveRefresh seconds={5} />
+        <p className="text-4xl" aria-hidden>
+          ⏳
+        </p>
+        <h1 className="mt-3 font-display text-2xl font-bold text-white">
+          {hosting ? "Waiting for the admin" : "This room is not open yet"}
+        </h1>
+        <p className="mt-2 text-sm text-white/60">
+          {hosting
+            ? "Your private room must be approved by the admin. You will get a notification, and this page opens the call by itself."
+            : "The admin has not approved this private room yet."}
+        </p>
+        <Link
+          href={back}
+          className="mt-6 inline-block rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white"
+        >
+          Back to rooms
+        </Link>
+      </div>
+    );
+  }
+
+  // Salle privée : seulement l'hôte, l'admin et les membres invités.
+  if (room.isPrivate && !hosting && !(await isInvited(room.id, user.id))) {
+    return (
+      <div className="m-auto max-w-sm px-6 text-center">
+        <p className="text-4xl" aria-hidden>
+          🔒
+        </p>
+        <h1 className="mt-3 font-display text-2xl font-bold text-white">This room is private</h1>
+        <p className="mt-2 text-sm text-white/60">Only the people invited by the host can join.</p>
+        <Link
+          href={back}
+          className="mt-6 inline-block rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white"
+        >
+          Back to rooms
+        </Link>
+      </div>
+    );
+  }
+
   // Le temps choisi par l hôte est fini : la salle est fermée.
   await connection();
   if (roomIsOver(room)) {
@@ -85,7 +135,7 @@ async function Room({ roomId }: { roomId: string }) {
   // Ce que la barre du haut affiche : l'activité, le thème, le temps restant.
   const activity = await getActivity(room.activity);
   // L hote (celui qui a ouvert la salle, ou le coach) montre les fichiers de l activite.
-  const isHost = user.coach || (room.createdById !== null && room.createdById === user.id);
+  const isHost = hosting;
   const files = isHost ? await listFilesForActivity(room.activity) : [];
   // La salle est pleine ? (Je peux revenir si j'y suis déjà, par exemple après un rechargement.)
   if (room.maxParticipants !== null) {

@@ -3,6 +3,7 @@
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
+import { approvePrivateRoom, refusePrivateRoom } from "@/lib/private-rooms";
 import {
   addCustomActivity,
   deleteCustomActivity,
@@ -126,5 +127,23 @@ export async function deleteActivityFileAction(id: string): Promise<void> {
 export async function retryConversionAction(id: string): Promise<void> {
   await requireAdmin();
   await retryConversion(id);
+  refresh();
+}
+
+/** Salle privée d'un Leader / Teacher : accepter (elle s'ouvre, les invités sont prévenus). */
+export async function approvePrivateRoomAction(roomId: string): Promise<void> {
+  await requireAdmin();
+  try {
+    await approvePrivateRoom(roomId);
+  } catch (error) {
+    console.error("[approvePrivateRoomAction]", error);
+  }
+  refresh();
+}
+
+/** Salle privée d'un Leader / Teacher : refuser (elle est supprimée, l'hôte est prévenu). */
+export async function refusePrivateRoomAction(roomId: string): Promise<void> {
+  await requireAdmin();
+  await refusePrivateRoom(roomId);
   refresh();
 }

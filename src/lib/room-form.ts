@@ -57,5 +57,9 @@ export async function readRoomForm(formData: FormData): Promise<NewRoom | string
     level,
     durationMin,
     maxParticipants,
+    // Les membres invités (salle privée seulement), au plus 50.
+    invitees: isPrivate
+      ? [...new Set(formData.getAll("invite").map(String).filter(Boolean))].slice(0, 50)
+      : [],
   };
 }

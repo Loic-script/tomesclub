@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { privateModeFor } from "@/lib/private-rooms";
 import { readRoomForm } from "@/lib/room-form";
 import { createRoom, deleteRoomByHost } from "@/lib/rooms";
 import { requireMember } from "@/lib/session";
@@ -17,9 +18,14 @@ export async function createRoomAction(
   const input = await readRoomForm(formData);
   if (typeof input === "string") return { error: input };
 
+  // Salle privée : verrouillée pour un simple membre ; Leader / Teacher → l'admin doit accepter.
+  if (input.isPrivate && (await privateModeFor(user.id)) === "locked") {
+    return { error: "Only Leaders and Teachers can open a private room." };
+  }
+
   let roomId: string;
   try {
-    const room = await createRoom(user.id, input);
+    const room = await createRoom(user.id, input, input.isPrivate);
     roomId = room.id;
   } catch (error) {
     console.error("[createRoomAction]", error);
