@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { delay, GlassCard, PageHeader } from "@/components/app-ui";
+import { delay, GlassCard } from "@/components/app-ui";
 import { SideMembersList } from "@/components/side-members-list";
 import { listMembers } from "@/lib/members";
 import { requireMember } from "@/lib/session";
+import { MembersBoard } from "./members-board";
 
 export const metadata: Metadata = { title: "Members" };
 
-// Page /members : tous les membres inscrits, avec la recherche par nom.
-// Sur téléphone, on y arrive par l icône "membres" à côté de la cloche.
+// Page /members : tous les membres inscrits.
+// Ordinateur : un tableau en colonnes (niveau d'anglais) avec des cartes 3D, rien autour sauf la barre du bas.
+// Téléphone et tablette : la liste simple aux couleurs du bouton message.
 export default function MembersPage() {
   return (
     <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
@@ -21,23 +23,20 @@ async function MembersHome() {
   const user = await requireMember();
   // Tout le monde (0 = pas de limite) : en ligne d abord, puis par prénom.
   const members = await listMembers(user.id, 0);
-  const onlineCount = members.filter((member) => member.online).length;
 
   return (
     <>
-      {/* Téléphone et tablette : pas de haut, la liste commence tout de suite */}
-      <div className="max-lg:hidden">
-        <PageHeader
-          eyebrow="Community"
-          title="Members"
-          subtitle={`Everyone in the club · ${onlineCount} online`}
-          members={false}
-        />
+      {/* Ordinateur : le tableau (data-members-board → le calendrier et les panneaux se cachent, voir globals.css) */}
+      <div data-members-board className="max-lg:hidden">
+        <MembersBoard members={members} />
       </div>
-      {/* Aux couleurs du bouton message (comme le panneau Members sur ordinateur) */}
-      <GlassCard className="card-accent-phone card-dark-desktop anim-rise flex flex-col" style={delay(120)}>
-        <SideMembersList members={members} showOnline grid />
-      </GlassCard>
+
+      {/* Téléphone et tablette : la liste simple */}
+      <div className="lg:hidden">
+        <GlassCard className="card-accent-phone anim-rise flex flex-col" style={delay(120)}>
+          <SideMembersList members={members} showOnline />
+        </GlassCard>
+      </div>
     </>
   );
 }

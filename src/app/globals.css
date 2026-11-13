@@ -358,3 +358,73 @@ h3,
     box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.75);
   }
 }
+
+/* ---------- Cartes 3D (page Members sur ordinateur) ---------- */
+/* La carte s'incline vers la souris (--rx / --ry posés en JS) ; le contenu "flotte" au-dessus. */
+.card3d {
+  position: relative;
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  transition:
+    transform 0.2s ease-out,
+    box-shadow 0.3s ease;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.04) 60%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 30px -18px rgba(0, 0, 0, 0.85),
+    0 40px 60px -45px rgba(156, 11, 59, 0.9);
+}
+
+.card3d:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 28px 45px -20px rgba(0, 0, 0, 0.9),
+    0 50px 80px -40px rgba(247, 148, 74, 0.55);
+}
+
+.card3d .card3d-lift {
+  transform: translateZ(26px);
+}
+
+.card3d .card3d-lift-sm {
+  transform: translateZ(14px);
+}
+
+/* Le reflet de lumière qui suit la souris */
+.card3d-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), rgba(255, 255, 255, 0.16), transparent 45%);
+}
+
+.card3d:hover .card3d-sheen {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card3d,
+  .card3d .card3d-lift,
+  .card3d .card3d-lift-sm {
+    transform: none;
+  }
+}
+
+/* Page Members sur ordinateur (seulement cette page) : on enlève le calendrier, le panneau Members et les bulles,
+   la barre du bas et le bouton message restent, et la colonne centrale s'élargit pour le tableau. */
+@media (min-width: 1024px) {
+  .on-dark:has([data-members-board]) .app-side {
+    display: none !important;
+  }
+  .on-dark:has([data-members-board]) .app-column {
+    max-width: 86rem;
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}

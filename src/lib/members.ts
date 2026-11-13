@@ -29,6 +29,8 @@ export type MemberCard = {
   city: string | null;
   country: string | null;
   hasPhoto: boolean;
+  /** member | leader | teacher */
+  role: string;
   online: boolean;
   /** Je le suis. */
   following: boolean;
@@ -70,6 +72,7 @@ export async function listMembers(
             country: true,
             photoType: true,
             lastSeenAt: true,
+            role: true,
           },
         },
       },
@@ -92,6 +95,7 @@ export async function listMembers(
             city: row.profile.city,
             country: row.profile.country,
             hasPhoto: Boolean(row.profile.photoType),
+            role: row.profile.role,
             online: Boolean(row.profile.lastSeenAt && row.profile.lastSeenAt >= onlineSince),
             following: iFollow.has(row.id),
             followsMe: theyFollowMe.has(row.id),
