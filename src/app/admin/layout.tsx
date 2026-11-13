@@ -62,7 +62,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       {/* ----- Le contenu ----- */}
       <main className="relative z-10 flex-1 lg:pl-72">
         {/* Le nom en haut, sur téléphone */}
-        <div className="flex items-center gap-2.5 px-4 pt-5 sm:px-6 lg:hidden">
+        <div className="admin-top flex items-center gap-2.5 px-4 pt-5 sm:px-6 lg:hidden">
           <span className="font-display text-base font-extrabold text-white">Tomes Club</span>
           <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent">
             Admin

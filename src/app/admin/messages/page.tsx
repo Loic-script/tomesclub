@@ -12,7 +12,10 @@ export const metadata: Metadata = { title: "Messages · Admin" };
 export default function AdminMessagesPage(props: PageProps<"/admin/messages">) {
   return (
     <>
-      <AdminHeader eyebrow="Messages" />
+      {/* Téléphone : ce haut est caché, la discussion prend tout l'écran (voir .admin-top dans globals.css) */}
+      <div className="admin-top">
+        <AdminHeader eyebrow="Messages" />
+      </div>
       <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
         <Board searchParams={props.searchParams} />
       </Suspense>

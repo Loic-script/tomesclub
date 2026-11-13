@@ -324,3 +324,10 @@ h3,
 *::-webkit-scrollbar-thumb:hover {
   background: var(--color-accent) padding-box;
 }
+
+/* Admin Messages sur téléphone : on cache le haut de la page, la discussion prend tout l'écran. */
+@media (max-width: 1023.98px) {
+  .on-dark:has([data-chat-board]) .admin-top {
+    display: none;
+  }
+}

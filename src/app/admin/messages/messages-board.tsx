@@ -79,8 +79,8 @@ export function MessagesBoard({
   }
 
   return (
-    // Téléphone : la carte touche les bords et descend jusqu'en bas de l'écran (derrière la barre du bas).
-    <div className="neu anim-rise -mx-4 -mb-32 grid h-[calc(100dvh-8.25rem)] min-h-[440px] overflow-hidden rounded-t-[1.75rem] max-lg:!border-x-0 max-lg:!border-b-0 sm:-mx-6 lg:mx-0 lg:-mb-8 lg:h-[calc(100dvh-6.5rem)] lg:grid-cols-[320px_1fr] lg:rounded-3xl">
+    // Téléphone : la discussion prend tout l'écran (le haut de la page est caché, la barre du bas reste par-dessus).
+    <div data-chat-board className="neu anim-rise -mx-4 -mb-32 -mt-6 grid h-dvh min-h-[440px] overflow-hidden max-lg:!border-0 sm:-mx-6 lg:mx-0 lg:-mb-8 lg:mt-0 lg:h-[calc(100dvh-6.5rem)] lg:grid-cols-[320px_1fr] lg:rounded-3xl">
       {/* ----- La liste des membres ----- */}
       <aside className={`min-h-0 flex-col border-white/10 lg:flex lg:border-r ${selected ? "hidden" : "flex"}`}>
         <div className="p-3">
