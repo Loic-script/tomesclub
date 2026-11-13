@@ -10,12 +10,19 @@ import { authClient } from "@/lib/auth-client";
 const MIN_PASSWORD = 8;
 
 /** Les messages de Better Auth, en phrases simples. */
-function friendlyError(code: string | undefined, message: string | undefined): string {
+function friendlyError(
+  code: string | undefined,
+  message: string | undefined,
+): string {
   if (code === "INVALID_EMAIL_OR_PASSWORD") return "Wrong email or password.";
-  if (code === "USER_ALREADY_EXISTS" || code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL") {
+  if (
+    code === "USER_ALREADY_EXISTS" ||
+    code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL"
+  ) {
     return "An account already exists with this email. Sign in instead (or use Google).";
   }
-  if (code === "PASSWORD_TOO_SHORT") return `The password needs at least ${MIN_PASSWORD} characters.`;
+  if (code === "PASSWORD_TOO_SHORT")
+    return `The password needs at least ${MIN_PASSWORD} characters.`;
   if (code === "INVALID_EMAIL") return "This email address is not valid.";
   return message || "Something went wrong. Please try again.";
 }
@@ -35,13 +42,20 @@ export function EmailAuthForm({ mode }: { mode: "signin" | "register" }) {
     event.preventDefault();
     setError(null);
     if (register && password.length < MIN_PASSWORD) {
-      return setError(`The password needs at least ${MIN_PASSWORD} characters.`);
+      return setError(
+        `The password needs at least ${MIN_PASSWORD} characters.`,
+      );
     }
-    if (register && password !== confirm) return setError("The two passwords are not the same.");
+    if (register && password !== confirm)
+      return setError("The two passwords are not the same.");
     setPending(true);
     const result = register
       ? // Le nom est demandé juste après, dans le formulaire d'accueil : en attendant, le début de l'email.
-        await authClient.signUp.email({ name: email.trim().split("@")[0] || "Member", email: email.trim(), password })
+        await authClient.signUp.email({
+          name: email.trim().split("@")[0] || "Member",
+          email: email.trim(),
+          password,
+        })
       : await authClient.signIn.email({ email: email.trim(), password });
     if (result.error) {
       setPending(false);
@@ -73,7 +87,9 @@ export function EmailAuthForm({ mode }: { mode: "signin" | "register" }) {
           <button
             type="button"
             onClick={() => setShowPassword((value) => !value)}
-            aria-label={showPassword ? "Hide the password" : "Show the password"}
+            aria-label={
+              showPassword ? "Hide the password" : "Show the password"
+            }
             className="mr-1 rounded-lg px-2 py-1 text-[11px] font-semibold text-zinc-400 transition hover:bg-zinc-100 hover:text-navy"
           >
             {showPassword ? "Hide" : "Show"}
@@ -87,50 +103,67 @@ export function EmailAuthForm({ mode }: { mode: "signin" | "register" }) {
           autoComplete={register ? "new-password" : "current-password"}
           required
           minLength={register ? MIN_PASSWORD : undefined}
-          placeholder={register ? `At least ${MIN_PASSWORD} characters` : "Your password"}
+          placeholder={
+            register ? `At least ${MIN_PASSWORD} characters` : "Your password"
+          }
           className={input}
         />
       </Field>
 
       {register && (
-        <Field
-          label="Confirm password"
-          icon={<LockIcon />}
-          right={
-            confirm && (
-              <span
-                aria-label={confirm === password ? "The passwords match" : "The passwords are different"}
-                className={`mr-1 text-sm font-bold ${confirm === password ? "text-emerald-500" : "text-red-400"}`}
-              >
-                {confirm === password ? "✓" : "✕"}
-              </span>
-            )
-          }
-        >
-          <input
-            type={showPassword ? "text" : "password"}
-            value={confirm}
-            onChange={(event) => setConfirm(event.target.value)}
-            autoComplete="new-password"
-            required
-            placeholder="Write the password again"
-            className={input}
-          />
-        </Field>
+        <div className="anim-dropdown">
+          <Field
+            label="Confirm password"
+            icon={<LockIcon />}
+            right={
+              confirm && (
+                <span
+                  aria-label={
+                    confirm === password
+                      ? "The passwords match"
+                      : "The passwords are different"
+                  }
+                  className={`mr-1 text-sm font-bold ${confirm === password ? "text-emerald-500" : "text-red-400"}`}
+                >
+                  {confirm === password ? "✓" : "✕"}
+                </span>
+              )
+            }
+          >
+            <input
+              type={showPassword ? "text" : "password"}
+              value={confirm}
+              onChange={(event) => setConfirm(event.target.value)}
+              autoComplete="new-password"
+              required
+              placeholder="Write the password again"
+              className={input}
+            />
+          </Field>
+        </div>
       )}
 
       {error && (
-        <p aria-live="polite" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-red-200">
+        <p
+          aria-live="polite"
+          className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-red-200"
+        >
           {error}
         </p>
       )}
 
       <button
         type="submit"
-        disabled={pending || !email.trim() || !password || (register && !confirm)}
+        disabled={
+          pending || !email.trim() || !password || (register && !confirm)
+        }
         className="w-full rounded-full bg-gradient-to-r from-brand to-[#c2185b] px-5 py-3 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(156,11,59,0.8)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-10px_rgba(156,11,59,0.9)] active:translate-y-0 disabled:translate-y-0 disabled:opacity-60"
       >
-        {pending ? "Please wait..." : register ? "Create my account" : "Sign in"}
+        {pending
+          ? "Please wait..."
+          : register
+            ? "Create my account"
+            : "Sign in"}
       </button>
     </form>
   );
@@ -153,7 +186,9 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-semibold text-zinc-600">{label}</span>
+      <span className="mb-1.5 block text-xs font-semibold text-zinc-600">
+        {label}
+      </span>
       <span className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-4 shadow-sm transition focus-within:border-brand/50 focus-within:ring-4 focus-within:ring-brand/10">
         <span className="shrink-0 text-zinc-400">{icon}</span>
         {children}

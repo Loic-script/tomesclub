@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type Ref } from "react";
 import { AdminLoginForm } from "../admin/login/admin-login-form";
 import { EmailAuthForm } from "./email-auth-form";
 import { GoogleSignInButton } from "./google-button";
@@ -22,6 +22,21 @@ export function AuthFlip() {
   // Arrivé ici parce que la session admin n'était plus valide ?
   const expired = searchParams.get("expired") === "1";
 
+  // La hauteur suit la face visible, en douceur : la carte s'allonge ou se rétrécit
+  // quand on tourne la page ou qu'on passe de "Sign in" à "Create account".
+  const frontRef = useRef<HTMLDivElement>(null);
+  const backRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | null>(null);
+  useEffect(() => {
+    const face = flipped ? backRef.current : frontRef.current;
+    if (!face) return;
+    const measure = () => setHeight(face.offsetHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(face);
+    return () => observer.disconnect();
+  }, [flipped]);
+
   function turnTo(admin: boolean) {
     setFlipped(admin);
     // L'adresse suit, sans recharger la page (pratique pour partager / rafraîchir).
@@ -30,14 +45,17 @@ export function AuthFlip() {
 
   return (
     // La perspective donne l'effet "page qui se soulève vers nous".
-    <div className="w-full max-w-sm [perspective:1600px]">
+    <div
+      className="w-full max-w-sm transition-[height] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] [perspective:1600px] motion-reduce:transition-none"
+      style={height !== null ? { height } : undefined}
+    >
       <div
         className={`relative transition-transform duration-700 ease-in-out [transform-style:preserve-3d] ${
           flipped ? "[transform:rotateY(180deg)]" : ""
         }`}
       >
         {/* ----- Recto : les membres ----- */}
-        <Face hidden={flipped}>
+        <Face hidden={flipped} faceRef={frontRef}>
           <div className="anim-pop relative mx-auto mb-4 w-fit" style={delay(350)}>
             <span aria-hidden className="anim-halo absolute -inset-2 rounded-full bg-accent/40 blur-lg" />
             <Image
@@ -125,7 +143,7 @@ export function AuthFlip() {
         </Face>
 
         {/* ----- Verso : l'admin ----- */}
-        <Face hidden={!flipped} back>
+        <Face hidden={!flipped} back faceRef={backRef}>
           {/* Même en-tête que la face membre : le logo, le titre, une phrase */}
           <div className="relative mx-auto mb-4 w-fit">
             <span aria-hidden className="anim-halo absolute -inset-2 rounded-full bg-accent/40 blur-lg" />
@@ -172,13 +190,16 @@ function Face({
   children,
   back = false,
   hidden,
+  faceRef,
 }: {
   children: ReactNode;
   back?: boolean;
   hidden: boolean;
+  faceRef?: Ref<HTMLDivElement>;
 }) {
   return (
     <div
+      ref={faceRef}
       aria-hidden={hidden}
       className={`text-center [backface-visibility:hidden] ${hidden ? "absolute inset-x-0 top-0" : "relative"} ${
         back ? "[transform:rotateY(180deg)]" : ""
