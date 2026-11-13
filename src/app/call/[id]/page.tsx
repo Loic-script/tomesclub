@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { prisma } from "@/lib/prisma";
+import { countryCodeOf } from "@/lib/countries";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { VideoRoom } from "@/components/video-room";
@@ -33,9 +35,16 @@ async function Room({ callId }: { callId: string }) {
   const call = await getCallForMember(callId, user.id);
   if (!call) notFound();
 
+  // Mon pays : le drapeau à côté de mon nom dans la vidéo
+  const myProfile = await prisma.profile.findUnique({ where: { userId: user.id }, select: { country: true } });
   const [serverUrl, token] = await Promise.all([
     getBrowserLiveKitUrl(),
-    createParticipantToken({ identity: user.id, name: user.name, roomName: call.id }),
+    createParticipantToken({
+      identity: user.id,
+      name: user.name,
+      roomName: call.id,
+      metadata: JSON.stringify({ country: countryCodeOf(myProfile?.country) }),
+    }),
   ]);
 
   return (

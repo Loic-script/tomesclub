@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Flag } from "@/components/flag";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -91,7 +92,12 @@ async function MemberView({ params }: { params: Promise<{ id: string }> }) {
           <h2 className="mt-3 font-display text-2xl font-bold text-white">
             {member.firstName} {member.lastName}
           </h2>
-          {subLine && <p className="text-sm text-white/55">{subLine}</p>}
+          {subLine && (
+            <p className="flex items-center justify-center gap-1.5 text-sm text-white/55">
+              {member.country && <Flag country={member.country} />}
+              {subLine}
+            </p>
+          )}
 
           {/* Il me suit déjà ? On le dit. */}
           {member.followsMe && (

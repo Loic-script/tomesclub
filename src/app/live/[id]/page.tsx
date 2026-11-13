@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { countryCodeOf } from "@/lib/countries";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -29,13 +30,18 @@ export default function LiveEventPage({ params, searchParams }: PageProps<"/live
  * Qui entre. Comme admin seulement depuis l'espace admin (lien "?as=admin"), sinon comme membre.
  * Le nom : "Admin", "Prénom · Teacher", "Prénom · Leader", ou le prénom.
  */
-async function whoIsJoining(asAdmin: boolean): Promise<{ id: string; name: string; coach: boolean }> {
-  if (asAdmin && (await isAdmin())) return { id: "coach", name: "Admin", coach: true };
-  if (!(await getCurrentUser()) && (await isAdmin())) return { id: "coach", name: "Admin", coach: true };
+async function whoIsJoining(
+  asAdmin: boolean,
+): Promise<{ id: string; name: string; coach: boolean; country: string | null }> {
+  if (asAdmin && (await isAdmin())) return { id: "coach", name: "Admin", coach: true, country: null };
+  if (!(await getCurrentUser()) && (await isAdmin())) return { id: "coach", name: "Admin", coach: true, country: null };
   const user = await requireMember();
-  const profile = await prisma.profile.findUnique({ where: { userId: user.id }, select: { role: true } });
+  const profile = await prisma.profile.findUnique({
+    where: { userId: user.id },
+    select: { role: true, country: true },
+  });
   const role = profile?.role === "teacher" ? " · Teacher" : profile?.role === "leader" ? " · Leader" : "";
-  return { id: user.id, name: `${user.firstName}${role}`, coach: false };
+  return { id: user.id, name: `${user.firstName}${role}`, coach: false, country: countryCodeOf(profile?.country) };
 }
 
 async function LiveEvent({ eventId, asAdmin }: { eventId: string; asAdmin: boolean }) {
@@ -74,6 +80,7 @@ async function LiveEvent({ eventId, asAdmin }: { eventId: string; asAdmin: boole
     createParticipantToken({
       identity: person.id,
       name: person.name,
+      metadata: JSON.stringify({ country: person.country }),
       roomName: `${EVENT_ROOM_PREFIX}${event.id}`,
     }),
   ]);

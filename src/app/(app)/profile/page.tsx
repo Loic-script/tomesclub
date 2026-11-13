@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Flag } from "@/components/flag";
 import { Suspense } from "react";
 import { delay, PageHeader } from "@/components/app-ui";
 import { MemberAvatar } from "@/components/member-avatar";
@@ -82,6 +83,12 @@ async function ProfileHome({ searchParams }: { searchParams: PageProps<"/profile
                   size="size-28"
                 />
               </span>
+              {/* Le drapeau du pays, comme un autocollant sur la photo */}
+              {profile.country && (
+                <span className="absolute bottom-1 left-1/2 ml-9 flex rounded-md bg-white p-0.5 shadow-md">
+                  <Flag country={profile.country} className="h-4 w-[22px]" />
+                </span>
+              )}
             </div>
 
             {/* Nom, rôle, niveau */}
@@ -112,6 +119,7 @@ async function ProfileHome({ searchParams }: { searchParams: PageProps<"/profile
               <BadgeRow
                 label="Lives in"
                 value={[profile.city, profile.country].filter(Boolean).join(", ") || null}
+                flag={profile.country}
               />
               <BadgeRow label="Born" value={birthDate} />
               <BadgeRow
@@ -157,10 +165,13 @@ function BadgeRow({
   label,
   value,
   mono = false,
+  flag,
 }: {
   label: string;
   value: string | null | undefined;
   mono?: boolean;
+  /** Le pays : son drapeau devant la valeur */
+  flag?: string | null;
 }) {
   if (!value) return null;
   return (
@@ -168,8 +179,9 @@ function BadgeRow({
       <dt className="w-16 shrink-0 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">
         {label}
       </dt>
-      <dd className={`min-w-0 flex-1 truncate text-zinc-800 ${mono ? "font-mono" : "font-medium"}`}>
-        {value}
+      <dd className={`flex min-w-0 flex-1 items-center gap-1.5 text-zinc-800 ${mono ? "font-mono" : "font-medium"}`}>
+        {flag && <Flag country={flag} />}
+        <span className="truncate">{value}</span>
       </dd>
     </div>
   );

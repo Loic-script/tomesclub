@@ -15,3 +15,9 @@ export const COUNTRIES: Country[] = CODES.map((code) => ({
   code,
   name: names.of(code) ?? code,
 })).sort((a, b) => a.name.localeCompare(b.name));
+
+/** Le code du pays enregistré dans le profil (son nom anglais, ex : "Madagascar" -> "MG"). */
+export function countryCodeOf(name: string | null | undefined): string | null {
+  if (!name) return null;
+  return COUNTRIES.find((country) => country.name === name)?.code ?? null;
+}

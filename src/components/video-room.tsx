@@ -1,7 +1,12 @@
 "use client";
 
 import "@livekit/components-styles";
-import { LiveKitRoom, VideoConference } from "@livekit/components-react";
+import {
+  LiveKitRoom,
+  VideoConference,
+  useRoomContext,
+} from "@livekit/components-react";
+import "flag-icons/css/flag-icons.min.css";
 import { Room, RoomEvent } from "livekit-client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -39,7 +44,11 @@ export function VideoRoom({
   /** Action serveur appelée à la fin du temps (ferme la salle pour tout le monde). */
   onTimeUp?: () => Promise<void>;
   /** Salle de groupe : les fichiers de l activite (l hote les montre, les autres regardent). */
-  stage?: { isHost: boolean; files: ActivityFileView[]; activityName: string | null };
+  stage?: {
+    isHost: boolean;
+    files: ActivityFileView[];
+    activityName: string | null;
+  };
 }) {
   const router = useRouter();
   // Notre propre connexion LiveKit : on peut la couper nous-mêmes à la fin du temps.
@@ -109,7 +118,11 @@ export function VideoRoom({
         captions={{ on: captions.on, onToggle: captions.toggle }}
         files={
           isHost && stageConfig
-            ? { count: stageConfig.files.length, active: showing, onOpen: () => setFilesOpen(true) }
+            ? {
+                count: stageConfig.files.length,
+                active: showing,
+                onOpen: () => setFilesOpen(true),
+              }
             : undefined
         }
       />
@@ -163,7 +176,11 @@ export function VideoRoom({
           Un fichier montré : il prend la grande place, les caméras passent sur le côté (ou en bas). */}
       <div className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
         {showing && (
-          <StageView stage={stage} isHost={isHost} onOpenFiles={() => setFilesOpen(true)} />
+          <StageView
+            stage={stage}
+            isHost={isHost}
+            onOpenFiles={() => setFilesOpen(true)}
+          />
         )}
         <div
           className={
@@ -172,35 +189,36 @@ export function VideoRoom({
               : "flex min-h-0 flex-1 flex-col"
           }
         >
-        <LiveKitRoom
-          room={liveRoom}
-          token={token}
-          serverUrl={serverUrl}
-          connect
-          video
-          audio
-          data-lk-theme="default"
-          className="min-h-0 flex-1"
-          onConnected={() => {
-            wasConnected.current = true;
-          }}
-          onDisconnected={() => {
-            // "Leave", fin du temps, ou salle fermée par le serveur : retour à l app.
-            // Si la connexion n a jamais marché, on reste ici pour voir l erreur.
-            if (wasConnected.current) router.push(leaveTo);
-          }}
-          onError={(err) => {
-            console.error("[VideoRoom]", err);
-            setError("Could not connect to the video server.");
-          }}
-          onMediaDeviceFailure={() =>
-            setError(
-              "Camera or microphone not available. Check your browser permissions.",
-            )
-          }
-        >
-          <VideoConference />
-        </LiveKitRoom>
+          <LiveKitRoom
+            room={liveRoom}
+            token={token}
+            serverUrl={serverUrl}
+            connect
+            video
+            audio
+            data-lk-theme="default"
+            className="min-h-0 flex-1"
+            onConnected={() => {
+              wasConnected.current = true;
+            }}
+            onDisconnected={() => {
+              // "Leave", fin du temps, ou salle fermée par le serveur : retour à l app.
+              // Si la connexion n a jamais marché, on reste ici pour voir l erreur.
+              if (wasConnected.current) router.push(leaveTo);
+            }}
+            onError={(err) => {
+              console.error("[VideoRoom]", err);
+              setError("Could not connect to the video server.");
+            }}
+            onMediaDeviceFailure={() =>
+              setError(
+                "Camera or microphone not available. Check your browser permissions.",
+              )
+            }
+          >
+            <VideoConference />
+            <ParticipantFlags />
+          </LiveKitRoom>
         </div>
         {captions.on && (
           <CaptionsOverlay lines={captions.lines} notice={captions.notice} />
@@ -208,4 +226,64 @@ export function VideoRoom({
       </div>
     </>
   );
+}
+
+/**
+ * Le drapeau du pays de chaque personne, posé devant son nom sur sa vidéo.
+ * Le pays vient des métadonnées du ticket d'entrée ({"country":"MG"}).
+ * (Le composant vidéo de LiveKit affiche le nom tout seul : on ajoute le drapeau à côté.)
+ */
+function ParticipantFlags() {
+  const room = useRoomContext();
+  useEffect(() => {
+    const countryOf = (name: string): string | null => {
+      const people = [
+        room.localParticipant,
+        ...room.remoteParticipants.values(),
+      ];
+      const person = people.find(
+        (participant) => (participant.name || participant.identity) === name,
+      );
+      try {
+        const code = (
+          JSON.parse(person?.metadata || "{}") as { country?: string | null }
+        ).country;
+        return code && /^[A-Z]{2}$/.test(code) ? code.toLowerCase() : null;
+      } catch {
+        return null;
+      }
+    };
+    const paint = () => {
+      for (const label of document.querySelectorAll<HTMLElement>(
+        "[data-lk-participant-name]",
+      )) {
+        const code = countryOf(label.dataset.lkParticipantName ?? "");
+        const existing = label.previousElementSibling as HTMLElement | null;
+        const hasFlag = existing?.dataset.tcFlag !== undefined;
+        if (!code) {
+          if (hasFlag) existing?.remove();
+          continue;
+        }
+        if (hasFlag && existing?.dataset.tcFlag === code) continue;
+        if (hasFlag) existing?.remove();
+        const flag = document.createElement("span");
+        flag.dataset.tcFlag = code;
+        flag.className = `fi fi-${code}`;
+        flag.style.cssText =
+          "width:1.1em;height:0.82em;margin-right:0.35em;border-radius:2px;background-size:cover;flex-shrink:0;vertical-align:-0.1em;";
+        label.before(flag);
+      }
+    };
+    paint();
+    const observer = new MutationObserver(paint);
+    observer.observe(document.body, { childList: true, subtree: true });
+    room.on(RoomEvent.ParticipantConnected, paint);
+    room.on(RoomEvent.ParticipantMetadataChanged, paint);
+    return () => {
+      observer.disconnect();
+      room.off(RoomEvent.ParticipantConnected, paint);
+      room.off(RoomEvent.ParticipantMetadataChanged, paint);
+    };
+  }, [room]);
+  return null;
 }

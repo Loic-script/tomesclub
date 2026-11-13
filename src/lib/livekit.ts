@@ -35,11 +35,14 @@ export async function createParticipantToken(options: {
   identity: string;
   name?: string;
   roomName: string;
+  /** Infos visibles par les autres (ex : {"country":"MG"}) */
+  metadata?: string;
 }): Promise<string> {
   const { apiKey, apiSecret } = getLiveKitConfig();
   const token = new AccessToken(apiKey, apiSecret, {
     identity: options.identity,
     name: options.name,
+    metadata: options.metadata,
     ttl: "2h",
   });
   token.addGrant({

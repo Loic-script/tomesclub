@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { countryCodeOf } from "@/lib/countries";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
@@ -44,14 +45,23 @@ export default function GroupRoomPage({ params, searchParams }: PageProps<"/room
  */
 async function whoIsJoining(
   asAdmin: boolean,
-): Promise<{ id: string; firstName: string; coach: boolean; role: string }> {
-  if (asAdmin && (await isAdmin())) return { id: "coach", firstName: "Admin", coach: true, role: "admin" };
+): Promise<{ id: string; firstName: string; coach: boolean; role: string; country: string | null }> {
+  if (asAdmin && (await isAdmin())) return { id: "coach", firstName: "Admin", coach: true, role: "admin", country: null };
   if (!(await getCurrentUser()) && (await isAdmin())) {
-    return { id: "coach", firstName: "Admin", coach: true, role: "admin" };
+    return { id: "coach", firstName: "Admin", coach: true, role: "admin", country: null };
   }
   const member = await requireMember();
-  const profile = await prisma.profile.findUnique({ where: { userId: member.id }, select: { role: true } });
-  return { id: member.id, firstName: member.firstName, coach: false, role: profile?.role ?? "member" };
+  const profile = await prisma.profile.findUnique({
+    where: { userId: member.id },
+    select: { role: true, country: true },
+  });
+  return {
+    id: member.id,
+    firstName: member.firstName,
+    coach: false,
+    role: profile?.role ?? "member",
+    country: countryCodeOf(profile?.country),
+  };
 }
 
 /** Le nom dans la vidéo : "Admin", "Prénom · Teacher", "Prénom · Leader", "Prénom · Host" (créateur), ou le prénom. */
@@ -146,6 +156,7 @@ async function Room({ roomId, asAdmin }: { roomId: string; asAdmin: boolean }) {
     createParticipantToken({
       identity: user.id,
       name: displayName(user, hosting),
+      metadata: JSON.stringify({ country: user.country }),
       roomName: `${ROOM_PREFIX}${room.id}`,
     }),
   ]);
