@@ -110,7 +110,7 @@ export function AuthFlip() {
           </div>
 
           <p
-            className="anim-rise mt-6 border-t border-zinc-100 pt-4 text-xs text-zinc-400"
+            className="anim-rise mt-5 border-t border-zinc-100 pt-3 text-xs text-zinc-400"
             style={delay(950)}
           >
             Club staff?{" "}

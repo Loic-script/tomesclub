@@ -13,7 +13,7 @@ const delay = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
 export default function LoginPage() {
   return (
     <div
-      className="anim-rise grid w-full max-w-4xl overflow-hidden rounded-[2rem] bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 md:min-h-[540px] md:grid-cols-2"
+      className="anim-rise grid w-full max-w-4xl overflow-hidden rounded-[2rem] bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 md:grid-cols-2"
       style={delay(0)}
     >
       {/* ----- Panneau de gauche : la marque ----- */}
@@ -65,7 +65,7 @@ export default function LoginPage() {
       </section>
 
       {/* ----- Panneau de droite : la connexion ----- */}
-      <section className="relative flex flex-col items-center justify-center overflow-hidden px-8 py-12 md:px-12">
+      <section className="relative flex flex-col items-center justify-center overflow-hidden px-8 py-8 md:px-12 md:py-9">
         {/* Touches de couleur très douces dans le blanc */}
         <div aria-hidden className="absolute -right-20 -top-20 size-56 rounded-full bg-cream/70 blur-2xl" />
         <div aria-hidden className="absolute -bottom-24 -left-16 size-48 rounded-full bg-accent/10 blur-2xl" />
