@@ -59,7 +59,7 @@ export function AuthFlip() {
           <div className="anim-pop relative mx-auto mb-4 w-fit" style={delay(350)}>
             <span aria-hidden className="anim-halo absolute -inset-2 rounded-full bg-accent/40 blur-lg" />
             <Image
-              src="/logo.png"
+              src="/logo-mark.png"
               alt="Tomes Club logo"
               width={64}
               height={64}
@@ -70,7 +70,7 @@ export function AuthFlip() {
 
           <div className="anim-rise" style={delay(450)}>
             <h1 className="font-display text-[1.75rem] font-bold leading-tight text-navy">
-              {mode === "register" ? "Join the club" : "Welcome back"}
+              {mode === "register" ? "Join the club" : "Tomes Club"}
             </h1>
             <p className="mt-1.5 text-sm text-zinc-500">
               {mode === "register"
@@ -148,7 +148,7 @@ export function AuthFlip() {
           <div className="relative mx-auto mb-4 w-fit">
             <span aria-hidden className="anim-halo absolute -inset-2 rounded-full bg-accent/40 blur-lg" />
             <Image
-              src="/logo.png"
+              src="/logo-mark.png"
               alt="Tomes Club logo"
               width={64}
               height={64}
