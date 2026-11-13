@@ -36,6 +36,7 @@ async function loadHome(userId: string) {
       select: { title: true, startsAt: true },
     }),
     prisma.event.count({ where: { kind: "event", status: "published", startsAt: { gte: soon } } }),
+    prisma.profile.count({ where: { completedAt: { not: null } } }),
   ]);
 }
 
@@ -43,7 +44,7 @@ async function HomeDashboard() {
   const user = await requireMember();
   // Ce menu est ouvert : sa pastille disparaît
   await markTabRead(user.id, "home");
-  const [[profile, activeCalls, rooms, nextEvent, upcomingCount], unread] = await Promise.all([
+  const [[profile, activeCalls, rooms, nextEvent, upcomingCount, membersCount], unread] = await Promise.all([
     loadHome(user.id),
     countUnread(user.id),
   ]);
@@ -100,15 +101,6 @@ async function HomeDashboard() {
           </div>
         )}
 
-        {/* Le club en un coup d'œil */}
-        <GlassCard className="anim-rise" style={delay(200)}>
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <Stat value={activeCalls.length} label="Calls now" />
-            <Stat value={rooms === null ? "–" : rooms.length} label="Open rooms" />
-            <Stat value={upcomingCount} label="Classes ahead" />
-          </div>
-        </GlassCard>
-
         {/* Le prochain cours */}
         {nextEvent?.startsAt && (
           <div className="anim-rise" style={delay(280)}>
@@ -141,26 +133,69 @@ async function HomeDashboard() {
           </div>
         )}
 
-        {/* Les grandes tuiles, comme des icônes d'application */}
-        <div className="grid grid-cols-2 gap-4">
-          <Tile href="/calls" title="Calls" hint="Talk to a member" delayMs={360}>
-            <PhoneIcon className="size-7" />
-          </Tile>
-          <Tile href="/rooms" title="Rooms" hint="Group conversations" delayMs={440}>
-            <PeopleIcon className="size-7" />
-          </Tile>
-          <Tile href="/events" title="Events" hint="Classes & news" delayMs={520}>
-            <CalendarIcon className="size-7" />
-          </Tile>
-          <Tile href="/members" title="Members" hint="Everyone in the club" delayMs={600}>
-            <MembersIcon className="size-7" />
-          </Tile>
-          <Tile href="/notifications" title="Notifications" hint="What's new for you" delayMs={680} badge={unread}>
-            <BellIcon className="size-7" />
-          </Tile>
-          <Tile href="/profile" title="Profile" hint="Your info & photo" delayMs={760}>
-            <UserIcon className="size-7" />
-          </Tile>
+        {/* Les tuiles de couleur, en mosaïque (deux hautes, quatre normales) avec le chiffre du moment */}
+        <div className="grid auto-rows-[8.25rem] grid-cols-2 gap-3.5 [grid-auto-flow:dense]">
+          <Tile
+            href="/calls"
+            title="Calls"
+            value={activeCalls.length}
+            unit="now"
+            hint="Talk to a member"
+            tone="from-accent/60 to-brand/55"
+            tall
+            delayMs={200}
+            icon={<PhoneIcon className="size-4" />}
+          />
+          <Tile
+            href="/rooms"
+            title="Rooms"
+            value={rooms === null ? "–" : rooms.length}
+            unit="open"
+            hint="Group talks"
+            tone="from-indigo-400/40 to-navy/70"
+            delayMs={280}
+            icon={<PeopleIcon className="size-4" />}
+          />
+          <Tile
+            href="/events"
+            title="Events"
+            value={upcomingCount}
+            unit="ahead"
+            hint="Classes & news"
+            tone="from-brand/60 to-brand-dark/50"
+            delayMs={360}
+            icon={<CalendarIcon className="size-4" />}
+          />
+          <Tile
+            href="/members"
+            title="Members"
+            value={membersCount}
+            unit="in the club"
+            hint="Everyone"
+            tone="from-cream/35 via-accent/35 to-accent/15"
+            delayMs={440}
+            icon={<MembersIcon className="size-4" />}
+          />
+          <Tile
+            href="/notifications"
+            title="Notifications"
+            value={unread}
+            unit="new"
+            hint="What's new for you"
+            tone="from-rose-400/45 to-brand/55"
+            tall
+            delayMs={520}
+            icon={<BellIcon className="size-4" />}
+          />
+          <Tile
+            href="/profile"
+            title="Profile"
+            value="Me"
+            hint="Your info & photo"
+            tone="from-violet-400/35 to-navy/70"
+            delayMs={600}
+            icon={<UserIcon className="size-4" />}
+          />
         </div>
       </div>
     </>
@@ -169,51 +204,94 @@ async function HomeDashboard() {
 
 /* ---------- Petits morceaux ---------- */
 
-function Stat({ value, label }: { value: number | string; label: string }) {
-  return (
-    <div className="neu-inset rounded-2xl px-2 py-3">
-      <p className="font-display text-2xl font-bold text-accent">{value}</p>
-      <p className="text-xs text-white/60">{label}</p>
-    </div>
-  );
-}
-
+/**
+ * Une tuile de couleur : le nom en haut, un grand chiffre, une petite étoile,
+ * et un motif léger dans le coin. "tall" = deux fois plus haute.
+ */
 function Tile({
   href,
   title,
+  value,
+  unit,
   hint,
+  tone,
+  tall = false,
   delayMs,
-  badge = 0,
-  children,
+  icon,
 }: {
   href: string;
   title: string;
+  value: number | string;
+  unit?: string;
   hint: string;
+  /** Les couleurs du dégradé (classes Tailwind from-/via-/to-). */
+  tone: string;
+  tall?: boolean;
   delayMs: number;
-  /** Une pastille sur l'icône (ex : notifications pas lues). */
-  badge?: number;
-  children: ReactNode;
+  icon: ReactNode;
 }) {
   return (
-    <Link href={href} className="anim-rise block" style={delay(delayMs)}>
-      <GlassCard className="neu-btn flex flex-col items-center gap-3 py-6 text-center">
-        <span className="neu-inset relative flex size-14 items-center justify-center rounded-2xl text-accent">
-          {children}
-          {badge > 0 && (
-            <span
-              aria-label={`${badge} new`}
-              className="absolute -right-2 -top-2 flex min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-bold leading-5 text-navy ring-2 ring-[#2a1238]"
-            >
-              {badge > 9 ? "9+" : badge}
-            </span>
-          )}
+    <Link
+      href={href}
+      style={delay(delayMs)}
+      className={`anim-rise group relative isolate flex flex-col overflow-hidden rounded-[1.75rem] bg-gradient-to-br ${tone} p-4 text-white backdrop-blur-md shadow-[0_18px_35px_-18px_rgba(0,0,0,0.75)] ring-1 ring-white/15 transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_26px_45px_-18px_rgba(0,0,0,0.85)] active:scale-[0.98] ${
+        tall ? "row-span-2" : ""
+      }`}
+    >
+      {/* Lumière douce et motif décoratif */}
+      <span aria-hidden className="absolute -right-10 -top-10 -z-10 size-32 rounded-full bg-white/10 blur-2xl" />
+      <TilePattern />
+
+      <span className="flex items-start justify-between gap-2">
+        <span className="font-display text-[15px] font-bold leading-tight drop-shadow-sm">{title}</span>
+        <SparkleIcon className="size-4 shrink-0 text-white/85 transition-transform duration-500 group-hover:rotate-90" />
+      </span>
+
+      <span className={`flex items-baseline gap-1.5 ${tall ? "mt-auto" : "mt-auto"}`}>
+        <span
+          className={`font-display font-extrabold leading-none tracking-tight drop-shadow ${
+            tall ? "text-6xl" : "text-[2.6rem]"
+          }`}
+        >
+          {value}
         </span>
-        <span>
-          <span className="block font-display text-lg font-bold text-white">{title}</span>
-          <span className="block text-xs text-white/55">{hint}</span>
-        </span>
-      </GlassCard>
+        {unit && <span className="text-xs font-semibold text-white/80">{unit}</span>}
+      </span>
+
+      <span className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-white/85">
+        <span className="flex size-6 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm">{icon}</span>
+        <span className="truncate">{hint}</span>
+      </span>
     </Link>
+  );
+}
+
+/** Le motif léger dans le coin (lignes et points, comme un circuit). */
+function TilePattern() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 80 80"
+      className="absolute -bottom-3 -right-3 -z-10 size-20 text-white/15"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+    >
+      <path d="M10 70h20l10-10h20M20 78V60l8-8h24M40 80V66l6-6h30M60 50v-8l8-8h12" />
+      <circle cx="60" cy="60" r="2.2" fill="currentColor" />
+      <circle cx="52" cy="52" r="2.2" fill="currentColor" />
+      <circle cx="60" cy="42" r="2.2" fill="currentColor" />
+      <circle cx="30" cy="70" r="2.2" fill="currentColor" />
+    </svg>
+  );
+}
+
+function SparkleIcon({ className }: { className?: string }) {
+  return (
+    <svg aria-hidden viewBox="0 0 24 24" className={className} fill="currentColor">
+      <path d="M12 2c.4 3.6 1.6 6 3.3 7.7C17 11.4 19.4 12.6 23 13c-3.6.4-6 1.6-7.7 3.3C13.6 18 12.4 20.4 12 24c-.4-3.6-1.6-6-3.3-7.7C7 14.6 4.6 13.4 1 13c3.6-.4 6-1.6 7.7-3.3C10.4 8 11.6 5.6 12 2Z" />
+    </svg>
   );
 }
 
