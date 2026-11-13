@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { isAdmin } from "@/lib/admin";
@@ -29,30 +28,18 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
       {/* ----- Barre latérale (grand écran) ----- */}
       <aside className="neu card-accent fixed inset-y-4 left-0 z-30 hidden w-64 flex-col rounded-r-[2rem] !border-l-0 p-4 lg:flex">
-        {/* La marque : le logo dans une pastille blanche, le nom, et le badge "Admin" */}
-        <Link
-          href="/admin"
-          className="group mb-6 flex items-center gap-3 rounded-2xl bg-black/15 p-2.5 ring-1 ring-white/15 transition hover:bg-black/20"
-        >
-          <span className="relative flex size-11 shrink-0 items-center justify-center rounded-xl bg-white shadow-lg shadow-black/25 ring-2 ring-white/40 transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105">
-            <Image src="/logo.png" alt="" width={36} height={36} className="size-9 object-contain" />
-          </span>
-          <span className="min-w-0">
-            <span className="block truncate font-display text-[17px] font-extrabold leading-tight tracking-tight text-white">
+        <Link href="/admin" className="mb-8 flex items-center gap-3 px-3 pt-3">
+          <span>
+            <span className="block font-display text-lg font-extrabold leading-tight text-white">
               Tomes Club
             </span>
-            <span className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.18em] text-brand shadow-sm">
-              <span aria-hidden className="size-1.5 rounded-full bg-emerald-500" />
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-white/85">
               Admin
             </span>
           </span>
         </Link>
 
-        {/* Le titre de section, avec un fin trait qui s'étire */}
-        <p className="mb-2 flex items-center gap-2 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-white/70">
-          Manage
-          <span aria-hidden className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
-        </p>
+        <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">Manage</p>
         <Suspense fallback={<div className="h-56" />}>
           <SideLinksWithCount />
         </Suspense>
