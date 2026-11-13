@@ -67,7 +67,7 @@ async function HomeDashboard() {
           <div className="flex items-center gap-2.5">
             {/* Le guide "How it works" (s'ouvre tout seul une fois pour un nouveau membre) */}
             <GuideButton steps={guideSteps} autoOpen={firstVisit} onSeen={markGuideSeenAction} />
-            <Link href="/profile" aria-label="My profile" className="neu-sm neu-btn rounded-full p-1">
+            <Link href="/profile" aria-label="My profile" className="neu-btn rounded-full">
               <MemberAvatar
                 userId={user.id}
                 name={user.firstName}

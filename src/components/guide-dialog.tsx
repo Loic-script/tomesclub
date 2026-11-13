@@ -199,7 +199,7 @@ export function GuideButton({
         onClick={() => setOpen(true)}
         aria-label="How Tomes Club works"
         title="How it works"
-        className="neu-sm neu-btn relative flex size-12 items-center justify-center rounded-full text-accent"
+        className="neu-btn relative flex size-12 items-center justify-center rounded-full text-accent"
       >
         <GuideQuestionIcon className="size-6" />
       </button>
