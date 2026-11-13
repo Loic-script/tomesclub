@@ -119,6 +119,15 @@ const PATHS: Record<GuideIconKey, React.ReactNode> = {
       <rect x="17.5" y="8" width="4.5" height="12" rx="1.2" />
     </>
   ),
+  lock: (
+    <>
+      <rect x="4.5" y="10.5" width="15" height="10.5" rx="2.5" />
+      <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3M12 15v2" />
+    </>
+  ),
+  star: (
+    <path d="M12 3.2l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.6l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8z" />
+  ),
   tips: (
     <>
       <path d="M9 18h6M10 21h4" />

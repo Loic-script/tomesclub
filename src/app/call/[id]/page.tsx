@@ -4,15 +4,12 @@ import { countryCodeOf } from "@/lib/countries";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { VideoRoom } from "@/components/video-room";
-import { getCallForMember } from "@/lib/calls";
+import { CALL_MINUTES, getCallForMember } from "@/lib/calls";
 import { createParticipantToken, getBrowserLiveKitUrl } from "@/lib/livekit";
 import { requireUser } from "@/lib/session";
 import { endCallForTime } from "./actions";
 
 export const metadata: Metadata = { title: "In a call" };
-
-/** Un appel entre membres dure toujours 5 minutes (compté quand les deux sont là). */
-const CALL_MINUTES = 5;
 
 // Page /call/<id> : la salle vidéo d'un appel privé.
 export default function CallRoomPage({ params }: PageProps<"/call/[id]">) {

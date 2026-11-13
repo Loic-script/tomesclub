@@ -16,6 +16,8 @@ export const GUIDE_ICONS = [
   "user",
   "menu",
   "tips",
+  "lock",
+  "star",
 ] as const;
 
 export type GuideIconKey = (typeof GUIDE_ICONS)[number];
@@ -43,22 +45,27 @@ export const DEFAULT_GUIDE: GuideStepData[] = [
   {
     icon: "phone",
     title: "Calls: talk one-to-one",
-    body: "Open Calls and tap Search to meet a random partner who is online. You can also choose a member and call them directly. A green dot means the person is online now.",
+    body: "Open Calls and tap Search to meet a random partner who is online, or choose a member and call them directly. A green dot means the person is online now. A call lasts 5 minutes. To avoid too many calls: after a call, wait 20 minutes before you call the same person again, and call the same person 5 times a day at most. You can call other members at any time.",
   },
   {
     icon: "rooms",
     title: "Rooms: talk in a group",
-    body: "Join an open room, or create your own: choose an activity, a theme and a duration (1 to 60 minutes). A private room is only for the people you invite: it needs a payment by MVola and the admin's approval.",
+    body: "Join an open room, or create your own: choose an activity, a theme and a duration (1 to 60 minutes). The host can show files (PDF, pictures) to everyone. A private room is only for the people you invite: everyone can create one, but it needs a payment by MVola and the admin's approval before it opens.",
   },
   {
     icon: "calendar",
     title: "Events: classes and news",
-    body: "Events lists the next classes. Tap Register to take your place. For a paid event, pay by MVola, then send the reference or a screenshot: the admin confirms your payment. You get a reminder 24 hours before.",
+    body: "Events lists the next classes. Tap Register to take your place. For a paid event, pay by MVola, then send the reference or a screenshot: you can join the live only after the admin confirms your payment. You get a reminder 24 hours before the event.",
   },
   {
     icon: "ring",
     title: "When someone calls you",
     body: "A window rings on your screen when a member calls you, when you are invited to a private room, or when an event starts. Tap Accept to join or Decline to say no. Keep the app open so you don't miss a call.",
+  },
+  {
+    icon: "lock",
+    title: "Stay until the end",
+    body: "This is very important: once a call, a room or a live event has started, you stay until the time is up. The Leave button is hidden during this time and comes back at the end. If you are alone (nobody answered), you can leave. Tip: tap CC at the top to see English subtitles.",
   },
   {
     icon: "users",
@@ -78,7 +85,12 @@ export const DEFAULT_GUIDE: GuideStepData[] = [
   {
     icon: "user",
     title: "Your profile",
-    body: "Keep your profile up to date: photo, country, English level and languages. You can ask to become a Leader or a Teacher. When the admin accepts, you can propose your own events.",
+    body: "Keep your profile up to date: photo, country, English level and languages. In your profile you can also choose which notifications you receive, and ask to become a Leader or a Teacher.",
+  },
+  {
+    icon: "star",
+    title: "Leaders and Teachers",
+    body: "Everyone starts as a Member. To become a Leader or a Teacher, choose it in your profile: the admin must confirm it first. Then, on the Events page, you can propose your own event, free or paid. The admin checks it and publishes it. For a paid event, members pay the admin; you receive 60% of each payment and the admin keeps 40%. You see your earnings in My events.",
   },
   {
     icon: "menu",

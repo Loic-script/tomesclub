@@ -11,6 +11,53 @@ import { prisma } from "@/lib/prisma";
 /** Nombre maximum de personnes qu'on peut inviter dans un appel. */
 export const MAX_INVITED = 20;
 
+/** Un appel entre membres dure toujours 5 minutes (compté quand les deux sont là). */
+export const CALL_MINUTES = 5;
+
+/** Après un appel, on attend 20 minutes avant de rappeler la même personne. */
+export const RECALL_WAIT_MINUTES = 20;
+
+/** Au plus 5 appels vers la même personne par jour (on peut toujours appeler quelqu'un d'autre). */
+export const MAX_CALLS_PER_PERSON_PER_DAY = 5;
+
+/** Minuit aujourd'hui à Madagascar (UTC+3, pas d'heure d'été). */
+function startOfTodayInMadagascar(now: Date): Date {
+  const offset = 3 * 60 * 60 * 1000;
+  const local = new Date(now.getTime() + offset);
+  local.setUTCHours(0, 0, 0, 0);
+  return new Date(local.getTime() - offset);
+}
+
+/**
+ * Peut-on appeler cette personne maintenant ? null = oui ; sinon le message à montrer.
+ * La fin d'un appel = son début + 5 minutes au plus ; on attend ensuite 20 minutes.
+ */
+export async function callLimitMessage(callerId: string, targetId: string): Promise<string | null> {
+  const now = new Date();
+  const dayStart = startOfTodayInMadagascar(now);
+  const waitMs = (CALL_MINUTES + RECALL_WAIT_MINUTES) * 60 * 1000;
+  const since = new Date(Math.min(dayStart.getTime(), now.getTime() - waitMs));
+  const calls = await prisma.call.findMany({
+    where: { createdById: callerId, createdAt: { gte: since }, participants: { some: { userId: targetId } } },
+    orderBy: { createdAt: "desc" },
+    select: { createdAt: true },
+  });
+
+  const today = calls.filter((call) => call.createdAt >= dayStart).length;
+  if (today >= MAX_CALLS_PER_PERSON_PER_DAY) {
+    return `You already called this member ${MAX_CALLS_PER_PERSON_PER_DAY} times today. Try again tomorrow, or call someone else.`;
+  }
+  const last = calls[0];
+  if (last) {
+    const freeAt = last.createdAt.getTime() + waitMs;
+    if (freeAt > now.getTime()) {
+      const minutes = Math.ceil((freeAt - now.getTime()) / 60000);
+      return `Please wait ${minutes} min before calling this member again (${RECALL_WAIT_MINUTES} minutes after each call). You can call someone else now.`;
+    }
+  }
+  return null;
+}
+
 /** La salle LiveKit se ferme 5 minutes après le départ de la dernière personne. */
 const EMPTY_TIMEOUT_SECONDS = 5 * 60;
 

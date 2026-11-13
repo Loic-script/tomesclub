@@ -93,6 +93,31 @@ export function VideoRoom({
   const now = useNow();
   const timeIsUp =
     endsAt !== null && now !== null && now * 1000 >= new Date(endsAt).getTime();
+
+  // Les autres personnes présentes (seul dans la salle → on peut partir).
+  const [othersHere, setOthersHere] = useState(0);
+  useEffect(() => {
+    const count = () => setOthersHere(liveRoom.remoteParticipants.size);
+    liveRoom.on(RoomEvent.ParticipantConnected, count);
+    liveRoom.on(RoomEvent.ParticipantDisconnected, count);
+    liveRoom.on(RoomEvent.Connected, count);
+    return () => {
+      liveRoom.off(RoomEvent.ParticipantConnected, count);
+      liveRoom.off(RoomEvent.ParticipantDisconnected, count);
+      liveRoom.off(RoomEvent.Connected, count);
+    };
+  }, [liveRoom]);
+
+  // Règle du club : on reste jusqu'à la fin du temps (le bouton Leave revient à la fin).
+  const leaveLocked = endsAt !== null && !timeIsUp && othersHere > 0;
+
+  // Fermer l'onglet pendant ce temps : le navigateur demande d'abord.
+  useEffect(() => {
+    if (!leaveLocked) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [leaveLocked]);
   const fired = useRef(false);
   useEffect(() => {
     if (!timeIsUp || fired.current) return;
@@ -152,6 +177,13 @@ export function VideoRoom({
         </p>
       )}
 
+      {leaveLocked && (
+        <p className="flex items-center justify-center gap-1.5 bg-white/[0.04] px-4 py-1.5 text-center text-[11px] font-medium text-white/60">
+          <span aria-hidden>🔒</span>
+          Stay until the end: you can leave when the time is up.
+        </p>
+      )}
+
       {/* Le message de fin, juste avant de couper */}
       {ending && (
         <div
@@ -183,11 +215,11 @@ export function VideoRoom({
           />
         )}
         <div
-          className={
+          className={`${leaveLocked ? "leave-locked " : ""}${
             showing
               ? "flex h-[38%] shrink-0 flex-col border-t border-white/10 lg:h-auto lg:w-[360px] lg:border-l lg:border-t-0"
               : "flex min-h-0 flex-1 flex-col"
-          }
+          }`}
         >
           <LiveKitRoom
             room={liveRoom}

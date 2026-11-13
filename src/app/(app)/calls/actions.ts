@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createCall } from "@/lib/calls";
+import { callLimitMessage, createCall } from "@/lib/calls";
 import { prisma } from "@/lib/prisma";
 import { requireMember } from "@/lib/session";
 
@@ -10,6 +10,10 @@ import { requireMember } from "@/lib/session";
 /** Appeler directement un membre choisi dans la liste. */
 export async function startDirectCall(targetId: string): Promise<{ error: string } | void> {
   const user = await requireMember();
+
+  // Pas d'appels en boucle : 20 minutes entre deux appels vers la même personne, 5 par jour au plus.
+  const limit = await callLimitMessage(user.id, targetId);
+  if (limit) return { error: limit };
 
   let callId: string;
   try {

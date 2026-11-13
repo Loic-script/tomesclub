@@ -444,3 +444,8 @@ h3,
   backdrop-filter: blur(22px) saturate(120%);
   box-shadow: 0 22px 45px -18px rgba(0, 0, 0, 0.6);
 }
+
+/* Appels et rooms : le bouton Leave est caché jusqu'à la fin du temps (règle du club). */
+.leave-locked .lk-disconnect-button {
+  display: none !important;
+}
