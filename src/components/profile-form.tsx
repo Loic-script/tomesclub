@@ -49,8 +49,14 @@ export type ProfileFormInitial = {
 };
 
 const STEPS = [
-  { title: "About you", subtitle: "Tell us who you are. Only your name is required." },
-  { title: "What you do", subtitle: "Check everything that fits you — or skip this step." },
+  {
+    title: "About you",
+    subtitle: "Tell us who you are. Only your name is required.",
+  },
+  {
+    title: "What you do",
+    subtitle: "Check everything that fits you — or skip this step.",
+  },
   { title: "English & interests", subtitle: "So your classes fit your level." },
   { title: "Your photo", subtitle: "Last step! Help the club recognize you." },
 ] as const;
@@ -67,7 +73,10 @@ export function ProfileForm({
 }: {
   mode: "onboarding" | "edit";
   initial: ProfileFormInitial;
-  action: (prevState: ProfileFormState, formData: FormData) => Promise<ProfileFormState>;
+  action: (
+    prevState: ProfileFormState,
+    formData: FormData,
+  ) => Promise<ProfileFormState>;
 }) {
   const [state, formAction, pending] = useActionState(action, initialState);
   const [step, setStep] = useState(0);
@@ -87,8 +96,13 @@ export function ProfileForm({
     () =>
       Object.fromEntries(
         OCCUPATIONS.map((occupation) => {
-          const saved = initial.occupations.find((entry) => entry.kind === occupation.kind);
-          return [occupation.kind, { on: Boolean(saved), detail: saved?.detail ?? "" }];
+          const saved = initial.occupations.find(
+            (entry) => entry.kind === occupation.kind,
+          );
+          return [
+            occupation.kind,
+            { on: Boolean(saved), detail: saved?.detail ?? "" },
+          ];
         }),
       ) as OccupationState,
   );
@@ -103,7 +117,9 @@ export function ProfileForm({
   // --- Étape 4 ---
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(initial.photoUrl);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(
+    initial.photoUrl,
+  );
 
   function validateStep(index: number): string | null {
     if (index === 0 && (!firstName.trim() || !lastName.trim())) {
@@ -192,286 +208,427 @@ export function ProfileForm({
   const isLastStep = step === STEPS.length - 1;
   const error = stepError ?? state.error;
   const finishLabel =
-    mode === "edit" ? "Save changes" : photoFile ? "Finish" : "Finish without photo";
+    mode === "edit"
+      ? "Save changes"
+      : photoFile
+        ? "Finish"
+        : "Finish without photo";
 
   return (
-    <div className="anim-rise w-full max-w-2xl rounded-[2rem] bg-white p-6 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 sm:p-10">
-      {/* ----- En-tête : logo + avancement ----- */}
-      <header className="mb-8">
-        <div className="anim-rise flex items-center gap-4" style={delay(100)}>
-          {/* Le logo posé dans une vignette carrée en relief doux (style icône d'app) */}
-          <span className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-zinc-100 bg-white shadow-[5px_5px_12px_rgba(0,0,0,0.08),-5px_-5px_12px_#ffffff]">
-            <Image src="/logo.png" alt="" width={48} height={48} className="rounded-full" />
-          </span>
-          <div>
-            <p className="font-display text-2xl font-bold leading-tight text-navy">
-              {mode === "edit" ? "Edit profile" : "Tomes Club"}
-            </p>
-            <p className="text-sm text-zinc-500">
-              Step {step + 1} of {STEPS.length}
-            </p>
+    <div className="anim-rise relative w-full max-w-2xl overflow-hidden rounded-[2rem] bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15">
+      {/* Touches de couleur très douces dans le blanc (comme la page de connexion) */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-24 -top-24 size-64 rounded-full bg-cream/80 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-28 -left-20 size-56 rounded-full bg-accent/10 blur-3xl"
+      />
+
+      <div className="relative p-6 sm:p-10">
+        {/* ----- En-tête : logo + titre + étape ----- */}
+        <header className="mb-7">
+          <div className="anim-rise flex items-center gap-4" style={delay(100)}>
+            <span className="relative shrink-0">
+              <span
+                aria-hidden
+                className="anim-halo absolute -inset-1.5 rounded-full bg-accent/35 blur-md"
+              />
+              <Image
+                src="/logo.png"
+                alt=""
+                width={52}
+                height={52}
+                className="relative rounded-full drop-shadow-md"
+              />
+            </span>
+            <div className="min-w-0">
+              <p className="font-display text-2xl font-bold leading-tight text-navy">
+                {mode === "edit" ? "Edit profile" : "Welcome to Tomes Club"}
+              </p>
+              <p className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-brand/[0.07] px-2.5 py-0.5 text-xs font-semibold text-brand">
+                Step {step + 1} of {STEPS.length}
+              </p>
+            </div>
+            {mode === "onboarding" ? (
+              <BackToSignIn />
+            ) : (
+              <Link
+                href="/profile"
+                className="ml-auto self-start text-sm font-medium text-zinc-400 transition hover:text-brand"
+              >
+                ← Profile
+              </Link>
+            )}
           </div>
-          {mode === "onboarding" ? (
-            <BackToSignIn />
-          ) : (
-            <Link
-              href="/profile"
-              className="ml-auto self-start text-sm font-medium text-zinc-400 transition hover:text-brand"
-            >
-              ← Profile
-            </Link>
+
+          {/* Les étapes : des cercles numérotés reliés par une ligne */}
+          <ol className="anim-rise mt-7 flex items-start" style={delay(200)}>
+            {STEPS.map((item, index) => {
+              const done = index < step;
+              const current = index === step;
+              return (
+                <li
+                  key={item.title}
+                  className="relative flex flex-1 flex-col items-center text-center"
+                >
+                  {/* La ligne vers l'étape suivante */}
+                  {index < STEPS.length - 1 && (
+                    <span
+                      aria-hidden
+                      className="absolute left-1/2 top-4 h-0.5 w-full -translate-y-1/2 bg-zinc-200"
+                    >
+                      <span
+                        className={`block h-full rounded-full bg-gradient-to-r from-accent to-brand transition-all duration-500 ${
+                          done ? "w-full" : "w-0"
+                        }`}
+                      />
+                    </span>
+                  )}
+                  <span
+                    aria-current={current ? "step" : undefined}
+                    className={`relative z-10 flex size-8 items-center justify-center rounded-full text-sm font-bold transition-all duration-300 ${
+                      done
+                        ? "bg-accent text-white shadow-md shadow-accent/30"
+                        : current
+                          ? "bg-brand text-white shadow-lg shadow-brand/30 ring-4 ring-brand/15"
+                          : "bg-white text-zinc-400 ring-1 ring-zinc-200"
+                    }`}
+                  >
+                    {done ? "✓" : index + 1}
+                  </span>
+                  <span
+                    className={`mt-2 hidden text-[11px] font-semibold sm:block ${
+                      current
+                        ? "text-brand"
+                        : done
+                          ? "text-zinc-600"
+                          : "text-zinc-400"
+                    }`}
+                  >
+                    {item.title}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        </header>
+
+        <div
+          aria-hidden
+          className="mb-7 h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent"
+        />
+
+        {/* ----- Le contenu de l'étape (re-animé à chaque changement) ----- */}
+        <div key={step} className="anim-rise">
+          <h1 className="font-display text-[1.65rem] font-bold leading-tight text-navy">
+            {STEPS[step].title}
+          </h1>
+          <p className="mb-6 mt-1 text-sm text-zinc-500">
+            {STEPS[step].subtitle}
+          </p>
+
+          {step === 0 && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField
+                label="First name *"
+                value={firstName}
+                onChange={setFirstName}
+                autoComplete="given-name"
+              />
+              <TextField
+                label="Last name *"
+                value={lastName}
+                onChange={setLastName}
+                autoComplete="family-name"
+              />
+              <TextField
+                label="Date of birth"
+                type="date"
+                value={birthDate}
+                onChange={setBirthDate}
+                max={new Date().toISOString().slice(0, 10)}
+              />
+              <TextField
+                label="Phone"
+                type="tel"
+                value={phone}
+                onChange={setPhone}
+                placeholder="+261 34 00 000 00"
+                autoComplete="tel"
+              />
+              <CountrySelect
+                label="Country"
+                value={country}
+                onChange={setCountry}
+              />
+              <TextField
+                label="City (where you live)"
+                value={city}
+                onChange={setCity}
+                placeholder="e.g. Antananarivo"
+                autoComplete="address-level2"
+              />
+
+              {/* Le type d'utilisateur : Leader et Teacher doivent être validés par le coach */}
+              <div className="sm:col-span-2">
+                <p className="mb-1.5 block text-xs font-semibold text-zinc-600">
+                  You are
+                </p>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {USER_TYPES.map((type) => (
+                    <ChoiceCard
+                      key={type.value}
+                      selected={userType === type.value}
+                      onClick={() => setUserType(type.value)}
+                      title={type.label}
+                      hint={type.hint}
+                    />
+                  ))}
+                </div>
+                {userType !== "member" && (
+                  <p className="anim-dropdown mt-2.5 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-800 ring-1 ring-amber-200">
+                    <span aria-hidden>⏳</span>
+                    {initial.userTypePending || userType !== initial.userType
+                      ? "The admin will check your request. You stay a Member until it is accepted."
+                      : "Confirmed by the admin."}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {step === 1 && (
+            <div className="space-y-3">
+              {OCCUPATIONS.map((occupation) => {
+                const value = occupations[occupation.kind];
+                return (
+                  <div
+                    key={occupation.kind}
+                    className={`rounded-2xl border p-4 transition-all duration-300 ${
+                      value.on
+                        ? "border-brand/40 bg-gradient-to-br from-brand/[0.05] to-accent/[0.06] shadow-sm ring-2 ring-brand/10"
+                        : "border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm"
+                    }`}
+                  >
+                    <label className="flex cursor-pointer items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={value.on}
+                        onChange={() =>
+                          setOccupations((current) => ({
+                            ...current,
+                            [occupation.kind]: {
+                              ...current[occupation.kind],
+                              on: !value.on,
+                            },
+                          }))
+                        }
+                        className="peer sr-only"
+                      />
+                      <span
+                        aria-hidden
+                        className={`flex size-5 shrink-0 items-center justify-center rounded-md text-xs font-bold transition peer-focus-visible:ring-4 peer-focus-visible:ring-brand/20 ${
+                          value.on
+                            ? "bg-gradient-to-br from-brand to-[#c2185b] text-white shadow-sm"
+                            : "bg-white ring-1 ring-zinc-300"
+                        }`}
+                      >
+                        {value.on ? "✓" : ""}
+                      </span>
+                      <span className="font-semibold text-zinc-900">
+                        {occupation.label}
+                      </span>
+                    </label>
+
+                    {/* Le détail se déplie quand la case est cochée */}
+                    <div
+                      className={`grid transition-all duration-300 ease-out ${
+                        value.on
+                          ? "mt-3 grid-rows-[1fr] opacity-100"
+                          : "grid-rows-[0fr] opacity-0"
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <TextField
+                          label={`${occupation.detailLabel} *`}
+                          value={value.detail}
+                          onChange={(detail) =>
+                            setOccupations((current) => ({
+                              ...current,
+                              [occupation.kind]: {
+                                ...current[occupation.kind],
+                                detail,
+                              },
+                            }))
+                          }
+                          placeholder={occupation.placeholder}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-7">
+              <ChipPicker
+                label="Languages you speak"
+                options={LANGUAGE_OPTIONS}
+                selected={languages}
+                onToggle={(value) =>
+                  setLanguages((current) => toggleItem(current, value))
+                }
+                draft={languageDraft}
+                onDraft={setLanguageDraft}
+                addPlaceholder="Add another language..."
+              />
+
+              <div>
+                <p className="mb-1.5 block text-xs font-semibold text-zinc-600">
+                  Your English level *
+                </p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {ENGLISH_LEVELS.map((level, index) => (
+                    <ChoiceCard
+                      key={level.value}
+                      selected={englishLevel === level.value}
+                      onClick={() => setEnglishLevel(level.value)}
+                      title={level.label}
+                      hint={level.hint}
+                      meter={index + 1}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <ChipPicker
+                label="Your interests (pick as many as you like)"
+                options={INTEREST_OPTIONS}
+                selected={interests}
+                onToggle={(value) =>
+                  setInterests((current) => toggleItem(current, value))
+                }
+                draft={interestDraft}
+                onDraft={setInterestDraft}
+                addPlaceholder="Add your own..."
+              />
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="flex flex-col items-center gap-5 py-4 text-center">
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept={PHOTO_TYPES.join(",")}
+                className="hidden"
+                onChange={(event) =>
+                  choosePhoto(event.target.files?.[0] ?? null)
+                }
+              />
+
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                className={`anim-pop group relative flex size-44 items-center justify-center rounded-full transition-all duration-300 hover:scale-[1.03] ${
+                  photoPreview
+                    ? "bg-gradient-to-br from-accent to-brand p-1 shadow-[0_20px_40px_-15px_rgba(156,11,59,0.6)]"
+                    : "border-2 border-dashed border-zinc-300 bg-gradient-to-br from-cream/60 to-white hover:border-brand/60"
+                }`}
+                style={delay(150)}
+              >
+                {photoPreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- aperçu local ou photo privée de l'API
+                  <img
+                    src={photoPreview}
+                    alt="Your photo"
+                    className="size-full rounded-full object-cover ring-4 ring-white"
+                  />
+                ) : (
+                  <span className="flex flex-col items-center gap-2 text-zinc-500 transition-colors group-hover:text-brand">
+                    <CameraIcon />
+                    <span className="text-sm font-semibold">
+                      Choose a photo
+                    </span>
+                  </span>
+                )}
+                {/* Le petit bouton rond "appareil photo" */}
+                <span
+                  aria-hidden
+                  className="absolute bottom-2 right-2 flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-brand to-[#c2185b] text-white shadow-lg ring-4 ring-white transition group-hover:scale-110"
+                >
+                  <span className="scale-[0.55]">
+                    <CameraIcon />
+                  </span>
+                </span>
+              </button>
+
+              <p className="text-sm text-zinc-600">
+                {photoPreview ? (
+                  <>
+                    {photoFile
+                      ? "Looking good! You can"
+                      : "Your current photo. You can"}{" "}
+                    <button
+                      type="button"
+                      onClick={() => photoInputRef.current?.click()}
+                      className="font-semibold text-brand hover:underline"
+                    >
+                      change it
+                    </button>{" "}
+                    if you want.
+                  </>
+                ) : (
+                  "JPG, PNG or WebP, 3 MB maximum. You can also finish without a photo."
+                )}
+              </p>
+            </div>
           )}
         </div>
 
-        {/* Barre d'avancement : une part par étape */}
-        <div className="anim-rise mt-5 flex gap-2" style={delay(200)}>
-          {STEPS.map((item, index) => (
-            <div key={item.title} className="flex-1">
-              <div
-                className={`h-1.5 rounded-full transition-all duration-500 ${
-                  index < step ? "bg-accent" : index === step ? "bg-brand" : "bg-zinc-200"
-                }`}
-              />
-              <p
-                className={`mt-1.5 hidden text-[11px] font-medium sm:block ${
-                  index === step ? "text-brand" : "text-zinc-400"
-                }`}
-              >
-                {item.title}
-              </p>
-            </div>
-          ))}
-        </div>
-      </header>
-
-      {/* ----- Le contenu de l'étape (re-animé à chaque changement) ----- */}
-      <div key={step} className="anim-rise">
-        <h1 className="font-display text-2xl font-bold text-navy">{STEPS[step].title}</h1>
-        <p className="mb-6 mt-1 text-sm text-zinc-600">{STEPS[step].subtitle}</p>
-
-        {step === 0 && (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <TextField label="First name *" value={firstName} onChange={setFirstName} autoComplete="given-name" />
-            <TextField label="Last name *" value={lastName} onChange={setLastName} autoComplete="family-name" />
-            <TextField label="Date of birth" type="date" value={birthDate} onChange={setBirthDate} max={new Date().toISOString().slice(0, 10)} />
-            <TextField label="Phone" type="tel" value={phone} onChange={setPhone} placeholder="+261 34 00 000 00" autoComplete="tel" />
-            <CountrySelect label="Country" value={country} onChange={setCountry} />
-            <TextField label="City (where you live)" value={city} onChange={setCity} placeholder="e.g. Antananarivo" autoComplete="address-level2" />
-
-            {/* Le type d'utilisateur : Leader et Teacher doivent être validés par le coach */}
-            <div className="sm:col-span-2">
-              <p className="mb-2 text-sm font-medium text-zinc-700">You are</p>
-              <div className="grid gap-2 sm:grid-cols-3">
-                {USER_TYPES.map((type) => (
-                  <button
-                    key={type.value}
-                    type="button"
-                    onClick={() => setUserType(type.value)}
-                    aria-pressed={userType === type.value}
-                    className={`rounded-2xl border p-3.5 text-left transition-all duration-200 ${
-                      userType === type.value
-                        ? "border-brand bg-brand/5 shadow-sm ring-1 ring-brand"
-                        : "border-zinc-200 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-sm"
-                    }`}
-                  >
-                    <span className="block font-semibold text-zinc-900">{type.label}</span>
-                    <span className="block text-xs text-zinc-500">{type.hint}</span>
-                  </button>
-                ))}
-              </div>
-              {userType !== "member" && (
-                <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
-                  {initial.userTypePending || userType !== initial.userType
-                    ? "The admin will check your request. You stay a Member until it is accepted."
-                    : "Confirmed by the admin."}
-                </p>
-              )}
-            </div>
-          </div>
+        {/* ----- Erreur + navigation ----- */}
+        {error && (
+          <p
+            aria-live="polite"
+            className="mt-5 rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-700 ring-1 ring-red-200"
+          >
+            {error}
+          </p>
         )}
 
-        {step === 1 && (
-          <div className="space-y-3">
-            {OCCUPATIONS.map((occupation) => {
-              const value = occupations[occupation.kind];
-              return (
-                <div
-                  key={occupation.kind}
-                  className={`rounded-2xl border p-4 transition-colors duration-300 ${
-                    value.on ? "border-brand bg-brand/5" : "border-zinc-200 hover:border-zinc-300"
-                  }`}
-                >
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={value.on}
-                      onChange={() =>
-                        setOccupations((current) => ({
-                          ...current,
-                          [occupation.kind]: { ...current[occupation.kind], on: !value.on },
-                        }))
-                      }
-                      className="size-4 accent-brand"
-                    />
-                    <span className="font-semibold text-zinc-900">{occupation.label}</span>
-                  </label>
+        <div className="mt-7 flex items-center justify-between gap-3 border-t border-zinc-100 pt-5">
+          <button
+            type="button"
+            onClick={goBack}
+            disabled={step === 0 || pending}
+            className="rounded-full px-5 py-2.5 text-sm font-semibold text-zinc-600 ring-1 ring-zinc-200 transition hover:bg-zinc-50 hover:text-navy disabled:invisible"
+          >
+            ← Back
+          </button>
 
-                  {/* Le détail se déplie quand la case est cochée */}
-                  <div
-                    className={`grid transition-all duration-300 ease-out ${
-                      value.on ? "mt-3 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                    }`}
-                  >
-                    <div className="overflow-hidden">
-                      <TextField
-                        label={`${occupation.detailLabel} *`}
-                        value={value.detail}
-                        onChange={(detail) =>
-                          setOccupations((current) => ({
-                            ...current,
-                            [occupation.kind]: { ...current[occupation.kind], detail },
-                          }))
-                        }
-                        placeholder={occupation.placeholder}
-                      />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-7">
-            <ChipPicker
-              label="Languages you speak"
-              options={LANGUAGE_OPTIONS}
-              selected={languages}
-              onToggle={(value) => setLanguages((current) => toggleItem(current, value))}
-              draft={languageDraft}
-              onDraft={setLanguageDraft}
-              addPlaceholder="Add another language..."
-            />
-
-            <div>
-              <p className="mb-2 text-sm font-medium text-zinc-700">Your English level *</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {ENGLISH_LEVELS.map((level) => (
-                  <button
-                    key={level.value}
-                    type="button"
-                    onClick={() => setEnglishLevel(level.value)}
-                    className={`rounded-2xl border p-3.5 text-left transition-all duration-200 ${
-                      englishLevel === level.value
-                        ? "border-brand bg-brand/5 shadow-sm ring-1 ring-brand"
-                        : "border-zinc-200 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-sm"
-                    }`}
-                  >
-                    <span className="block font-semibold text-zinc-900">{level.label}</span>
-                    <span className="block text-xs text-zinc-500">{level.hint}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <ChipPicker
-              label="Your interests (pick as many as you like)"
-              options={INTEREST_OPTIONS}
-              selected={interests}
-              onToggle={(value) => setInterests((current) => toggleItem(current, value))}
-              draft={interestDraft}
-              onDraft={setInterestDraft}
-              addPlaceholder="Add your own..."
-            />
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="flex flex-col items-center gap-5 py-4 text-center">
-            <input
-              ref={photoInputRef}
-              type="file"
-              accept={PHOTO_TYPES.join(",")}
-              className="hidden"
-              onChange={(event) => choosePhoto(event.target.files?.[0] ?? null)}
-            />
-
+          {isLastStep ? (
             <button
               type="button"
-              onClick={() => photoInputRef.current?.click()}
-              className={`anim-pop group relative flex size-44 items-center justify-center overflow-hidden rounded-full transition-all duration-300 hover:scale-105 ${
-                photoPreview
-                  ? "shadow-xl ring-4 ring-accent/60"
-                  : "border-2 border-dashed border-zinc-300 bg-cream/40 hover:border-brand"
-              }`}
-              style={delay(150)}
+              onClick={submit}
+              disabled={pending}
+              className="rounded-full bg-gradient-to-r from-brand to-[#c2185b] px-7 py-3 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(156,11,59,0.8)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-10px_rgba(156,11,59,0.9)] active:translate-y-0 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-60"
             >
-              {photoPreview ? (
-                // eslint-disable-next-line @next/next/no-img-element -- aperçu local ou photo privée de l'API
-                <img src={photoPreview} alt="Your photo" className="size-full object-cover" />
-              ) : (
-                <span className="flex flex-col items-center gap-2 text-zinc-500 transition-colors group-hover:text-brand">
-                  <CameraIcon />
-                  <span className="text-sm font-medium">Choose a photo</span>
-                </span>
-              )}
+              {pending ? "Saving..." : finishLabel}
             </button>
-
-            <p className="text-sm text-zinc-600">
-              {photoPreview ? (
-                <>
-                  {photoFile ? "Looking good! You can" : "Your current photo. You can"}{" "}
-                  <button
-                    type="button"
-                    onClick={() => photoInputRef.current?.click()}
-                    className="font-semibold text-brand hover:underline"
-                  >
-                    change it
-                  </button>{" "}
-                  if you want.
-                </>
-              ) : (
-                "JPG, PNG or WebP, 3 MB maximum. You can also finish without a photo."
-              )}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* ----- Erreur + navigation ----- */}
-      <p aria-live="polite" className="mt-4 min-h-5 text-sm text-red-600">
-        {error}
-      </p>
-
-      <div className="mt-2 flex items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={goBack}
-          disabled={step === 0 || pending}
-          className="rounded-full px-5 py-2.5 font-semibold text-zinc-600 transition hover:bg-zinc-100 disabled:invisible"
-        >
-          ← Back
-        </button>
-
-        {isLastStep ? (
-          <button
-            type="button"
-            onClick={submit}
-            disabled={pending}
-            className="rounded-full bg-brand px-7 py-2.5 font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lg active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {pending ? "Saving..." : finishLabel}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={goNext}
-            className="rounded-full bg-brand px-7 py-2.5 font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-lg active:translate-y-0 active:scale-[0.98]"
-          >
-            Continue →
-          </button>
-        )}
+          ) : (
+            <button
+              type="button"
+              onClick={goNext}
+              className="rounded-full bg-gradient-to-r from-brand to-[#c2185b] px-7 py-3 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(156,11,59,0.8)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-10px_rgba(156,11,59,0.9)] active:translate-y-0"
+            >
+              Continue →
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -504,7 +661,71 @@ function BackToSignIn() {
 }
 
 function toggleItem(list: string[], value: string): string[] {
-  return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
+  return list.includes(value)
+    ? list.filter((item) => item !== value)
+    : [...list, value];
+}
+
+/** Une carte de choix : titre, petite phrase, rond de sélection (et barres de niveau). */
+function ChoiceCard({
+  selected,
+  onClick,
+  title,
+  hint,
+  meter,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  title: string;
+  hint: string;
+  /** Niveau d'anglais : 1 à 4 petites barres */
+  meter?: number;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={`group relative flex items-start gap-3 rounded-2xl border p-3.5 text-left transition-all duration-200 ${
+        selected
+          ? "border-brand/50 bg-gradient-to-br from-brand/[0.06] to-accent/[0.07] shadow-[0_10px_24px_-14px_rgba(156,11,59,0.6)] ring-2 ring-brand/15"
+          : "border-zinc-200 bg-white shadow-sm hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md"
+      }`}
+    >
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-2">
+          <span
+            className={`font-semibold ${selected ? "text-brand" : "text-zinc-900"}`}
+          >
+            {title}
+          </span>
+          {meter !== undefined && (
+            <span aria-hidden className="flex items-end gap-0.5">
+              {[1, 2, 3, 4].map((bar) => (
+                <span
+                  key={bar}
+                  className={`w-1 rounded-full ${bar <= meter ? (selected ? "bg-brand" : "bg-accent") : "bg-zinc-200"}`}
+                  style={{ height: 4 + bar * 2.5 }}
+                />
+              ))}
+            </span>
+          )}
+        </span>
+        <span className="mt-0.5 block text-xs text-zinc-500">{hint}</span>
+      </span>
+      {/* Le rond de sélection */}
+      <span
+        aria-hidden
+        className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full transition ${
+          selected
+            ? "bg-gradient-to-br from-brand to-[#c2185b] text-white shadow-sm"
+            : "ring-1 ring-zinc-300 group-hover:ring-zinc-400"
+        }`}
+      >
+        {selected && <span className="text-[11px] font-bold">✓</span>}
+      </span>
+    </button>
+  );
 }
 
 function TextField({
@@ -524,13 +745,15 @@ function TextField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-zinc-700">{label}</span>
+      <span className="mb-1.5 block text-xs font-semibold text-zinc-600">
+        {label}
+      </span>
       <input
         {...inputProps}
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-zinc-900 shadow-[inset_2px_2px_6px_rgba(0,0,0,0.06),inset_-2px_-2px_6px_#ffffff] outline-none transition placeholder:text-zinc-400 focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
+        className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 hover:border-zinc-300 focus:border-brand/50 focus:ring-4 focus:ring-brand/10 autofill:shadow-[inset_0_0_0_1000px_#fff]"
       />
     </label>
   );
@@ -565,7 +788,9 @@ function ChipPicker({
 
   return (
     <div>
-      <p className="mb-2 text-sm font-medium text-zinc-700">{label}</p>
+      <p className="mb-1.5 block text-xs font-semibold text-zinc-600">
+        {label}
+      </p>
       <div className="flex flex-wrap gap-2">
         {[...options, ...custom].map((option) => {
           const isOn = selected.includes(option);
@@ -574,18 +799,24 @@ function ChipPicker({
               key={option}
               type="button"
               onClick={() => onToggle(option)}
-              className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
+              aria-pressed={isOn}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
                 isOn
-                  ? "border-brand bg-brand text-white shadow-sm"
-                  : "border-zinc-300 text-zinc-700 hover:-translate-y-0.5 hover:border-brand hover:text-brand"
+                  ? "border-transparent bg-gradient-to-r from-brand to-[#c2185b] text-white shadow-[0_6px_16px_-8px_rgba(156,11,59,0.8)]"
+                  : "border-zinc-200 bg-white text-zinc-700 shadow-sm hover:-translate-y-0.5 hover:border-brand/40 hover:text-brand"
               }`}
             >
+              {isOn && (
+                <span aria-hidden className="text-xs">
+                  ✓
+                </span>
+              )}
               {option}
             </button>
           );
         })}
       </div>
-      <div className="mt-2 flex gap-2">
+      <div className="mt-2.5 flex gap-2">
         <input
           value={draft}
           onChange={(event) => onDraft(event.target.value)}
@@ -596,14 +827,15 @@ function ChipPicker({
             }
           }}
           placeholder={addPlaceholder}
-          className="w-full max-w-60 rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-1.5 text-sm text-zinc-900 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.06),inset_-2px_-2px_5px_#ffffff] outline-none transition placeholder:text-zinc-400 focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
+          className="w-full max-w-64 rounded-full border border-dashed border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 hover:border-zinc-400 focus:border-solid focus:border-brand/50 focus:ring-4 focus:ring-brand/10"
         />
         <button
           type="button"
           onClick={addDraft}
-          className="rounded-xl border border-zinc-200 px-3 text-sm font-semibold text-zinc-600 transition hover:border-brand hover:text-brand"
+          disabled={!draft.trim()}
+          className="rounded-full bg-navy px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-brand disabled:bg-zinc-200 disabled:text-zinc-400"
         >
-          Add
+          + Add
         </button>
       </div>
     </div>

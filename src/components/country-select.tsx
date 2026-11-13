@@ -32,7 +32,9 @@ export function CountrySelect({
   // le texte tapé arrivent en premier.
   const search = query.trim().toLowerCase();
   const matches: Country[] = search
-    ? COUNTRIES.filter((country) => country.name.toLowerCase().includes(search)).sort(
+    ? COUNTRIES.filter((country) =>
+        country.name.toLowerCase().includes(search),
+      ).sort(
         (a, b) =>
           Number(b.name.toLowerCase().startsWith(search)) -
           Number(a.name.toLowerCase().startsWith(search)),
@@ -60,12 +62,19 @@ export function CountrySelect({
 
   // Garder l'élément survolé au clavier toujours visible.
   useEffect(() => {
-    listRef.current?.children[activeIndex]?.scrollIntoView({ block: "nearest" });
+    listRef.current?.children[activeIndex]?.scrollIntoView({
+      block: "nearest",
+    });
   }, [activeIndex, query]);
 
   function openList() {
     setQuery("");
-    setActiveIndex(Math.max(0, COUNTRIES.findIndex((country) => country.name === value)));
+    setActiveIndex(
+      Math.max(
+        0,
+        COUNTRIES.findIndex((country) => country.name === value),
+      ),
+    );
     // Pas assez de place en dessous (barre du bas, bas de l'écran) ? On ouvre vers le haut.
     const box = rootRef.current?.getBoundingClientRect();
     if (box) {
@@ -104,7 +113,9 @@ export function CountrySelect({
 
   return (
     <div ref={rootRef} className="relative block">
-      <span className="mb-1 block text-sm font-medium text-zinc-700">{label}</span>
+      <span className="mb-1.5 block text-xs font-semibold text-zinc-600">
+        {label}
+      </span>
 
       {/* Le champ fermé */}
       <button
@@ -118,14 +129,18 @@ export function CountrySelect({
         }}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className={`flex w-full items-center gap-2 rounded-2xl border bg-zinc-50 px-3 py-2.5 text-left shadow-[inset_2px_2px_6px_rgba(0,0,0,0.06),inset_-2px_-2px_6px_#ffffff] outline-none transition ${
-          open ? "border-brand/40 ring-2 ring-brand/20" : "border-zinc-200 hover:border-zinc-300"
+        className={`flex w-full items-center gap-2 rounded-2xl border bg-white px-3.5 py-3 text-left text-sm shadow-sm outline-none transition hover:border-zinc-300 ${
+          open
+            ? "border-brand/40 ring-2 ring-brand/20"
+            : "border-zinc-200 hover:border-zinc-300"
         }`}
       >
         {selected ? (
           <>
             <CodeChip code={selected.code} />
-            <span className="min-w-0 flex-1 truncate text-zinc-900">{selected.name}</span>
+            <span className="min-w-0 flex-1 truncate text-zinc-900">
+              {selected.name}
+            </span>
           </>
         ) : (
           <span className="min-w-0 flex-1 truncate text-zinc-400">
@@ -190,7 +205,9 @@ export function CountrySelect({
 
           {/* Les pays */}
           {matches.length === 0 ? (
-            <p className="px-4 py-6 text-center text-sm text-zinc-400">No country found.</p>
+            <p className="px-4 py-6 text-center text-sm text-zinc-400">
+              No country found.
+            </p>
           ) : (
             <ul
               ref={listRef}
@@ -215,7 +232,9 @@ export function CountrySelect({
                     } ${isSelected ? "font-semibold text-brand" : "text-zinc-700"}`}
                   >
                     <CodeChip code={country.code} active={isSelected} />
-                    <span className="min-w-0 flex-1 truncate">{country.name}</span>
+                    <span className="min-w-0 flex-1 truncate">
+                      {country.name}
+                    </span>
                     {isSelected && <CheckIcon />}
                   </li>
                 );
@@ -234,7 +253,13 @@ export function CountrySelect({
 
 /** Le drapeau du pays (images du paquet flag-icons : pareilles sur tous les appareils,
  *  contrairement aux emojis que Windows n'affiche pas). */
-function CodeChip({ code, active = false }: { code: string; active?: boolean }) {
+function CodeChip({
+  code,
+  active = false,
+}: {
+  code: string;
+  active?: boolean;
+}) {
   return (
     <span
       aria-hidden
