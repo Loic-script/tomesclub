@@ -1,6 +1,12 @@
 "use server";
 
+import { redirect } from "next/navigation";
+import { refresh } from "next/cache";
+import type { CreateEventState } from "@/app/admin/events/actions";
+import { endEventLive, startEventLive } from "@/lib/event-live";
+import { readEventForm } from "@/lib/event-form";
 import { setEventRegistration } from "@/lib/event-responses";
+import { canProposeEvents, isEventHost, proposeEvent } from "@/lib/member-events";
 import { isOwnProof } from "@/lib/payment-proofs";
 import { prisma } from "@/lib/prisma";
 import { requireMember } from "@/lib/session";
@@ -35,4 +41,32 @@ export async function registerToEvent(
   }
   await setEventRegistration(user.id, eventId, true, { ref: ref || null, proofId });
   return null;
+}
+
+/** "Propose an event" (Leader / Teacher) : gratuit, l'admin doit l'accepter. */
+export async function proposeEventAction(_state: CreateEventState, formData: FormData): Promise<CreateEventState> {
+  const user = await requireMember();
+  if (!(await canProposeEvents(user.id))) return { error: "Only Leaders and Teachers can propose an event." };
+  formData.set("kind", "event");
+  const input = await readEventForm(formData);
+  if (typeof input === "string") return { error: input };
+  const eventId = await proposeEvent(user.id, `${user.firstName}`, input);
+  refresh();
+  return { error: null, eventId };
+}
+
+/** L'organisateur lance le direct de son événement (publié). */
+export async function startMyEventAction(eventId: string): Promise<void> {
+  const user = await requireMember();
+  if (!(await isEventHost(eventId, user.id))) return;
+  await startEventLive(eventId);
+  redirect(`/live/${eventId}`);
+}
+
+/** L'organisateur termine le direct (tout le monde sort). */
+export async function endMyEventAction(eventId: string): Promise<void> {
+  const user = await requireMember();
+  if (!(await isEventHost(eventId, user.id))) return;
+  await endEventLive(eventId);
+  refresh();
 }

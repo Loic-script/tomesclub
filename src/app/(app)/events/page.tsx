@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { MyEvents } from "./my-events";
+import { canProposeEvents, formatMoney, listMyEvents } from "@/lib/member-events";
+import { listActivities } from "@/lib/activities";
+import { NewEventButton } from "@/app/admin/events/create-event-form";
 import { privateRoomPayment } from "@/lib/private-room-payment";
 import type { Metadata } from "next";
 import { connection } from "next/server";
@@ -11,6 +15,7 @@ import { formatEventPrice } from "@/lib/event-price";
 import { getEventRegistrations, type EventPerson } from "@/lib/event-responses";
 import { requireMember } from "@/lib/session";
 import { RegisterButton } from "./event-response-buttons";
+import { proposeEventAction } from "./actions";
 import { ScrollToEvent } from "./scroll-to-event";
 
 export const metadata: Metadata = { title: "Events" };
@@ -30,6 +35,34 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
   const wanted = (await searchParams).event;
   const focusId = typeof wanted === "string" ? wanted : null;
   const [upcoming, announcements] = await loadEvents();
+  // Leader / Teacher : proposer un événement, et voir les siens (avec les gains)
+  const canPropose = await canProposeEvents(user.id);
+  const [activityList, myRows] = canPropose
+    ? await Promise.all([listActivities(), listMyEvents(user.id)])
+    : [[], []];
+  const activityChoices = activityList.map((activity) => ({
+    key: activity.key,
+    name: activity.name,
+    topics: activity.categories.flatMap((category) => category.topics),
+  }));
+  const myEvents = myRows.map((event) => ({
+    id: event.id,
+    title: event.title,
+    status: event.status,
+    whenLabel: event.startsAt ? formatChip(event.startsAt) : null,
+    priceLabel: formatEventPrice(event),
+    registered: event.registered,
+    paidCount: event.paidCount,
+    live: eventIsLive(event),
+    ended: Boolean(event.liveEndedAt),
+    revenue: event.revenue
+      ? {
+          collected: formatMoney(event.revenue.collected, event.revenue.currency),
+          host: formatMoney(event.revenue.hostShare, event.revenue.currency),
+          admin: formatMoney(event.revenue.adminShare, event.revenue.currency),
+        }
+      : null,
+  }));
   // Le numéro MVola de l'admin (événements payants)
   const account = privateRoomPayment();
   const registrationsById = await getEventRegistrations(
@@ -39,7 +72,20 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
 
   return (
     <>
-      <PageHeader eyebrow="Club agenda" title="Events" subtitle="Classes and news from the club." />
+      <PageHeader
+        eyebrow="Club agenda"
+        title="Events"
+        subtitle="Classes and news from the club."
+        right={canPropose ? <NewEventButton activities={activityChoices} member={{ action: proposeEventAction }} /> : undefined}
+      />
+
+      {/* Les événements que j'organise (Leader / Teacher) */}
+      {canPropose && myEvents.length > 0 && (
+        <section className="anim-rise mb-6 space-y-3" style={delay(120)}>
+          <h2 className="px-1 font-display text-lg font-bold text-white">My events</h2>
+          <MyEvents events={myEvents} />
+        </section>
+      )}
       {focusId && <ScrollToEvent id={focusId} />}
 
       <div className="space-y-6">
@@ -269,6 +315,7 @@ async function loadEvents() {
       // ... et tant que son direct est en cours.
       where: {
         kind: "event",
+        status: "published",
         OR: [
           { startsAt: { gte: new Date(Date.now() - 2 * 60 * 60 * 1000) } },
           { liveStartedAt: { not: null }, liveEndedAt: null },

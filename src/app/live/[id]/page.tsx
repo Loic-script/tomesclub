@@ -87,6 +87,10 @@ async function LiveEvent({
   const event = await getLiveEvent(eventId);
   if (!event) notFound();
 
+  // L'hôte : l'admin, ou le Leader / Teacher qui organise l'événement
+
+  const hosting = person.coach || (event.createdById !== null && event.createdById === person.id);
+
   if (!eventIsLive(event)) {
     return (
       <div className="m-auto max-w-sm px-6 text-center">
@@ -99,7 +103,7 @@ async function LiveEvent({
         <p className="mt-2 text-sm text-white/60">
           {event.liveEndedAt
             ? "Thanks for coming! See you at the next class."
-            : "The admin has not started this event yet. You will get a notification."}
+            : "The host has not started this event yet. You will get a notification."}
         </p>
         <Link
           href={leaveTo}
@@ -143,7 +147,7 @@ async function LiveEvent({
 
   // L'activité, ses fichiers et ceux de l'événement (montrés par l'admin, comme dans une room)
   const activity = await getActivity(event.activity);
-  const files = person.coach
+  const files = hosting
     ? [
         ...(await listFilesForActivity(eventFilesKey(event.id))),
         ...(await listFilesForActivity(event.activity)),
@@ -172,7 +176,7 @@ async function LiveEvent({
       serverUrl={serverUrl}
       leaveTo={leaveTo}
       stage={{
-        isHost: person.coach,
+        isHost: hosting,
         files,
         activityName: activity?.name ?? event.activity ?? event.title,
       }}

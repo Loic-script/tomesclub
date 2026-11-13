@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 async function loadCalendarEvents(): Promise<CalendarEvent[]> {
   await connection();
   const events = await prisma.event.findMany({
-    where: { kind: "event", startsAt: { gte: new Date(Date.now() - 2 * 60 * 60 * 1000) } },
+    where: { kind: "event", status: "published", startsAt: { gte: new Date(Date.now() - 2 * 60 * 60 * 1000) } },
     orderBy: { startsAt: "asc" },
     take: 60,
     select: { id: true, title: true, startsAt: true },

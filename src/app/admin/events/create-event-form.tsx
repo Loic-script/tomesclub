@@ -60,8 +60,11 @@ function uploadEventFile(
 /** Le bouton "New event" : ouvre le formulaire dans une fenêtre. */
 export function NewEventButton({
   activities,
+  member,
 }: {
   activities: EventActivityChoice[];
+  /** Un Leader / Teacher qui propose un événement (sa propre action, pas d'annonce ni de fichiers) */
+  member?: { action: (state: CreateEventState, formData: FormData) => Promise<CreateEventState> };
 }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
@@ -82,7 +85,7 @@ export function NewEventButton({
         <span aria-hidden className="text-lg leading-none">
           +
         </span>
-        New event
+        {member ? "Propose an event" : "New event"}
       </button>
       {open &&
         createPortal(
@@ -100,6 +103,7 @@ export function NewEventButton({
             >
               <CreateEventForm
                 activities={activities}
+                member={member}
                 onDone={() => setOpen(false)}
               />
             </div>
@@ -113,14 +117,16 @@ export function NewEventButton({
 // Le formulaire admin "publier un événement ou une annonce" (dans la fenêtre "New event").
 export function CreateEventForm({
   activities,
+  member,
   onDone,
 }: {
   activities: EventActivityChoice[];
+  member?: { action: (state: CreateEventState, formData: FormData) => Promise<CreateEventState> };
   onDone: () => void;
 }) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(
-    createEvent,
+    member?.action ?? createEvent,
     initialState,
   );
   const [kind, setKind] = useState<"event" | "announcement">("event");
@@ -188,10 +194,12 @@ export function CreateEventForm({
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
           <h2 className="font-display text-lg font-bold text-white">
-            Publish something
+            {member ? "Propose an event" : "Publish something"}
           </h2>
           <p className="mt-1 text-xs text-white/50">
-            All members get a notification.
+            {member
+              ? "Free to send. The admin checks it, then it is published for all members."
+              : "All members get a notification."}
           </p>
         </div>
         <button
@@ -204,11 +212,12 @@ export function CreateEventForm({
         </button>
       </div>
 
-      {/* Type : événement daté ou simple annonce */}
+      {/* Type : événement daté ou simple annonce (un membre propose seulement un événement) */}
+      {member && <input type="hidden" name="kind" value="event" />}
       <div
         role="radiogroup"
         aria-label="Type"
-        className="grid grid-cols-2 gap-2"
+        className={`grid grid-cols-2 gap-2 ${member ? "hidden" : ""}`}
       >
         {KINDS.map((option) => {
           const active = kind === option.value;
@@ -325,8 +334,8 @@ export function CreateEventForm({
         </span>
       </label>
 
-      {/* Les fichiers à montrer pendant le direct */}
-      {kind === "event" && (
+      {/* Les fichiers à montrer pendant le direct (admin) */}
+      {kind === "event" && !member && (
         <div>
           <span className={label}>Files for the live (optional)</span>
           <input
@@ -415,9 +424,11 @@ export function CreateEventForm({
           ? "Sending the files..."
           : pending
             ? "Publishing..."
-            : kind === "event"
-              ? "Publish the event"
-              : "Publish the announcement"}
+            : member
+              ? "Send the request"
+              : kind === "event"
+                ? "Publish the event"
+                : "Publish the announcement"}
       </button>
     </form>
   );

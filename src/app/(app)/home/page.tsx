@@ -30,11 +30,11 @@ async function loadHome(userId: string) {
     listActiveCalls(userId),
     listOpenRooms(userId),
     prisma.event.findFirst({
-      where: { kind: "event", startsAt: { gte: soon } },
+      where: { kind: "event", status: "published", startsAt: { gte: soon } },
       orderBy: { startsAt: "asc" },
       select: { title: true, startsAt: true },
     }),
-    prisma.event.count({ where: { kind: "event", startsAt: { gte: soon } } }),
+    prisma.event.count({ where: { kind: "event", status: "published", startsAt: { gte: soon } } }),
   ]);
 }
 

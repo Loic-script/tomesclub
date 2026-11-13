@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import { userTypeLabel } from "@/lib/onboarding-options";
+import { formatEventPrice } from "@/lib/event-price";
+import { formatMoney, revenueOf } from "@/lib/member-events";
+import { EventRequests } from "./event-requests";
 import { getEventRegistrations } from "@/lib/event-responses";
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/admin";
@@ -28,6 +32,7 @@ export default function AdminEventsPage() {
 /** Les événements (sans les octets de l'image) + les réponses, et "passé ou pas". */
 async function loadEvents() {
   const rows = await prisma.event.findMany({
+    where: { status: "published" },
     orderBy: [{ createdAt: "desc" }],
     take: 50,
     select: {
@@ -44,6 +49,12 @@ async function loadEvents() {
       topic: true,
       durationMin: true,
       maxParticipants: true,
+      createdBy: {
+        select: {
+          name: true,
+          profile: { select: { firstName: true, lastName: true } },
+        },
+      },
       isPaid: true,
       price: true,
       currency: true,
@@ -75,6 +86,29 @@ async function AdminEvents() {
     loadEvents(),
     listActivities(),
   ]);
+  // Les demandes des Leaders / Teachers
+  const requests = await prisma.event.findMany({
+    where: { status: "pending" },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      startsAt: true,
+      isPaid: true,
+      price: true,
+      currency: true,
+      activity: true,
+      durationMin: true,
+      maxParticipants: true,
+      createdBy: {
+        select: {
+          name: true,
+          profile: { select: { firstName: true, lastName: true, role: true } },
+        },
+      },
+    },
+  });
   const filesByKey = await listFilesByActivity(
     events.map((event) => eventFilesKey(event.id)),
   );
@@ -113,6 +147,49 @@ async function AdminEvents() {
         right={<NewEventButton activities={activityChoices} />}
       />
 
+      {/* ----- Les événements proposés par les Leaders / Teachers ----- */}
+      {requests.length > 0 && (
+        <Panel
+          className="mb-5 ring-1 ring-amber-300/30"
+          style={delay(80)}
+          title="Event requests"
+          icon={<CalendarIcon className="size-[18px]" />}
+          action={
+            <span className="rounded-full bg-amber-400/15 px-2.5 py-1 text-[11px] font-bold text-amber-300">
+              {requests.length} waiting
+            </span>
+          }
+        >
+          <EventRequests
+            requests={requests.map((request) => ({
+              id: request.id,
+              title: request.title,
+              hostName: request.createdBy?.profile
+                ? `${request.createdBy.profile.firstName} ${request.createdBy.profile.lastName}`
+                : (request.createdBy?.name ?? "A member"),
+              hostRole: userTypeLabel(request.createdBy?.profile?.role),
+              whenLabel: request.startsAt
+                ? full.format(request.startsAt)
+                : null,
+              priceLabel: formatEventPrice(request),
+              details: [
+                request.activity
+                  ? (activityByKey.get(request.activity)?.name ??
+                    request.activity)
+                  : null,
+                request.durationMin ? `${request.durationMin} min` : null,
+                request.maxParticipants
+                  ? `${request.maxParticipants} places`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · "),
+              description: request.description,
+            }))}
+          />
+        </Panel>
+      )}
+
       <div>
         {/* ----- Ce qui est publié (on publie avec le bouton "New event") ----- */}
         <Panel
@@ -141,9 +218,40 @@ async function AdminEvents() {
                   activities={activityChoices}
                   storageReady={storageReady}
                   event={{
+                    hostName: event.createdBy
+                      ? event.createdBy.profile
+                        ? `${event.createdBy.profile.firstName} ${event.createdBy.profile.lastName}`
+                        : event.createdBy.name
+                      : null,
+                    revenue: (() => {
+                      const revenue = event.createdBy
+                        ? revenueOf(
+                            event,
+                            event.registered.filter((person) => person.paid)
+                              .length,
+                          )
+                        : null;
+                      return revenue
+                        ? {
+                            collected: formatMoney(
+                              revenue.collected,
+                              revenue.currency,
+                            ),
+                            admin: formatMoney(
+                              revenue.adminShare,
+                              revenue.currency,
+                            ),
+                            host: formatMoney(
+                              revenue.hostShare,
+                              revenue.currency,
+                            ),
+                          }
+                        : null;
+                    })(),
                     activity: event.activity,
                     activityName: event.activity
-                      ? (activityByKey.get(event.activity)?.name ?? event.activity)
+                      ? (activityByKey.get(event.activity)?.name ??
+                        event.activity)
                       : null,
                     activityIcon: event.activity
                       ? (activityByKey.get(event.activity)?.icon ?? null)

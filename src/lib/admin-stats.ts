@@ -91,7 +91,7 @@ export async function loadDashboard(): Promise<DashboardData> {
       },
     }),
     prisma.event.findMany({
-      where: { kind: "event", startsAt: { gte: new Date(now - 2 * 60 * 60 * 1000) } },
+      where: { kind: "event", status: "published", startsAt: { gte: new Date(now - 2 * 60 * 60 * 1000) } },
       orderBy: { startsAt: "asc" },
       take: 4,
       select: {
@@ -165,7 +165,7 @@ export async function loadDashboard(): Promise<DashboardData> {
   }));
 
   const upcomingEvents = await prisma.event.count({
-    where: { kind: "event", startsAt: { gte: new Date(now) } },
+    where: { kind: "event", status: "published", startsAt: { gte: new Date(now) } },
   });
 
   return {

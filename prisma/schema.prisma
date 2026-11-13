@@ -39,6 +39,7 @@ model User {
   roomInvites  RoomInvite[]
   paymentProofs PaymentProof[]
   rings         Ring[]
+  eventsCreated Event[] @relation("EventsCreated")
   eventResponses EventResponse[]
   matchQueue   MatchQueue?
 
@@ -238,6 +239,11 @@ model Event {
   liveStartedAt DateTime?
   liveEndedAt   DateTime?
   /// Payant ou gratuit. Si payant : le tarif (nombre entier) et la monnaie (Ar, €, $).
+  /// Qui organise : null = l admin ; sinon un Leader / Teacher (son événement doit être validé par l admin)
+  createdById String?
+  createdBy   User?    @relation("EventsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  /// published (visible) | pending (attend l admin) | refused
+  status      String   @default("published")
   /// Le direct vidéo : l activité (clé du catalogue), le thème, la durée (min, max 120) et la limite de personnes (max 60)
   activity        String?
   topic           String?

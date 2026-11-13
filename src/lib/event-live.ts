@@ -33,6 +33,7 @@ export function getLiveEvent(eventId: string) {
       topic: true,
       durationMin: true,
       maxParticipants: true,
+      createdById: true,
     },
   });
 }

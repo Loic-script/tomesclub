@@ -54,6 +54,10 @@ export type AdminEventView = {
   }[];
   past: boolean;
   live: boolean;
+  /** Organisé par un Leader / Teacher (null = l'admin) */
+  hostName: string | null;
+  /** Événement payant d'un Leader / Teacher : 40 % admin, 60 % organisateur (paiements confirmés) */
+  revenue: { collected: string; admin: string; host: string } | null;
   /** Le direct vidéo */
   activity: string | null;
   activityName: string | null;
@@ -137,6 +141,11 @@ export function AdminEventItem({
               >
                 {formatEventPrice(event)}
               </span>
+              {event.hostName && (
+                <span className="rounded-full bg-[#6d72ff]/20 px-2 py-0.5 font-semibold text-[#c4c6ff]">
+                  by {event.hostName}
+                </span>
+              )}
               {/* Le direct : activité, durée, places */}
               {event.activityName && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 font-semibold text-white/75">
@@ -295,6 +304,36 @@ export function AdminEventItem({
           </span>
         </span>
       </div>
+
+      {/* Les gains d'un événement payant d'un Leader / Teacher : 40 % admin, 60 % organisateur */}
+      {event.revenue && (
+        <div className="grid grid-cols-3 gap-2 border-t border-white/10 px-3 py-3 text-center">
+          <div className="rounded-xl bg-white/5 px-2 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-white/45">
+              Collected
+            </p>
+            <p className="mt-0.5 text-sm font-bold tabular-nums text-white">
+              {event.revenue.collected}
+            </p>
+          </div>
+          <div className="rounded-xl bg-emerald-500/15 px-2 py-2 ring-1 ring-emerald-400/30">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-200/70">
+              You (40%)
+            </p>
+            <p className="mt-0.5 text-sm font-bold tabular-nums text-emerald-200">
+              {event.revenue.admin}
+            </p>
+          </div>
+          <div className="rounded-xl bg-white/5 px-2 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-white/45">
+              Host (60%)
+            </p>
+            <p className="mt-0.5 text-sm font-bold tabular-nums text-white">
+              {event.revenue.host}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* La liste des inscrits */}
       {showPeople && event.registered.length > 0 && (

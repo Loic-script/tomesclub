@@ -35,7 +35,9 @@ export async function getEventRegistrations(
   /** true = l'admin : ajoute la référence et la capture de paiement de chacun */
   withPayment = false,
 ): Promise<Map<string, EventRegistrations>> {
-  const result = new Map<string, EventRegistrations>(eventIds.map((id) => [id, { people: [], mine: false, minePaid: false }]));
+  const result = new Map<string, EventRegistrations>(
+    eventIds.map((id) => [id, { people: [], mine: false, minePaid: false }]),
+  );
   if (eventIds.length === 0) return result;
 
   const rows = await prisma.eventResponse.findMany({
@@ -50,7 +52,9 @@ export async function getEventRegistrations(
         select: {
           id: true,
           name: true,
-          profile: { select: { firstName: true, lastName: true, photoType: true } },
+          profile: {
+            select: { firstName: true, lastName: true, photoType: true },
+          },
         },
       },
     },
@@ -62,10 +66,14 @@ export async function getEventRegistrations(
     const profile = row.user.profile;
     entry.people.push({
       id: row.user.id,
-      name: profile ? `${profile.firstName} ${profile.lastName}`.trim() : row.user.name,
+      name: profile
+        ? `${profile.firstName} ${profile.lastName}`.trim()
+        : row.user.name,
       hasPhoto: Boolean(profile?.photoType),
       paid: Boolean(row.paidAt),
-      ...(withPayment ? { paymentRef: row.paymentRef, paymentProofId: row.paymentProofId } : {}),
+      ...(withPayment
+        ? { paymentRef: row.paymentRef, paymentProofId: row.paymentProofId }
+        : {}),
     });
     if (row.user.id === viewerId) {
       entry.mine = true;
@@ -86,13 +94,15 @@ export async function setEventRegistration(
   payment?: { ref: string | null; proofId: string | null },
 ): Promise<boolean> {
   const event = await prisma.event.findFirst({
-    where: { id: eventId, kind: "event" },
-    select: { id: true, title: true },
+    where: { id: eventId, kind: "event", status: "published" },
+    select: { id: true, title: true, createdById: true },
   });
   if (!event) return false;
 
   if (!on) {
-    await prisma.eventResponse.deleteMany({ where: { eventId, userId, status: REGISTERED } });
+    await prisma.eventResponse.deleteMany({
+      where: { eventId, userId, status: REGISTERED },
+    });
     return true;
   }
 
@@ -114,9 +124,14 @@ export async function setEventRegistration(
   // Une nouvelle inscription : l'admin le sait.
   const member = await prisma.user.findUnique({
     where: { id: userId },
-    select: { name: true, profile: { select: { firstName: true, lastName: true } } },
+    select: {
+      name: true,
+      profile: { select: { firstName: true, lastName: true } },
+    },
   });
-  const name = member?.profile ? `${member.profile.firstName} ${member.profile.lastName}` : member?.name;
+  const name = member?.profile
+    ? `${member.profile.firstName} ${member.profile.lastName}`
+    : member?.name;
   await notifyAdmin({
     kind: "event",
     title: `${name ?? "A member"} registered`,
@@ -125,6 +140,14 @@ export async function setEventRegistration(
       : event.title,
     link: "/admin/events",
   });
+  if (event.createdById) {
+    await notifyMembers([event.createdById], {
+      kind: "event",
+      title: `${name ?? "A member"} registered to your event`,
+      body: event.title,
+      link: "/events",
+    });
+  }
   return true;
 }
 
@@ -132,14 +155,23 @@ export async function setEventRegistration(
  * L'admin confirme (paid = true) ou annule le paiement d'un inscrit.
  * Le membre reçoit une notification quand son paiement est confirmé.
  */
-export async function setRegistrationPaid(eventId: string, userId: string, paid: boolean): Promise<void> {
+export async function setRegistrationPaid(
+  eventId: string,
+  userId: string,
+  paid: boolean,
+): Promise<void> {
   const event = await prisma.event.findUnique({
     where: { id: eventId },
     select: { title: true, isPaid: true, price: true, currency: true },
   });
   if (!event?.isPaid) return;
   const result = await prisma.eventResponse.updateMany({
-    where: { eventId, userId, status: REGISTERED, paidAt: paid ? null : { not: null } },
+    where: {
+      eventId,
+      userId,
+      status: REGISTERED,
+      paidAt: paid ? null : { not: null },
+    },
     data: { paidAt: paid ? new Date() : null },
   });
   if (paid && result.count > 0) {
