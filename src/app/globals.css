@@ -428,3 +428,17 @@ h3,
     padding-right: 2.5rem;
   }
 }
+
+/* Version douce du dégradé (barre latérale de l'admin) : moins vif, mêlé au fond sombre. */
+.on-dark .neu.card-accent.card-accent-soft {
+  background: linear-gradient(
+    165deg,
+    rgba(247, 148, 74, 0.42),
+    rgba(156, 11, 59, 0.36) 55%,
+    rgba(58, 12, 44, 0.5)
+  );
+  border-color: rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(22px) saturate(120%);
+  backdrop-filter: blur(22px) saturate(120%);
+  box-shadow: 0 22px 45px -18px rgba(0, 0, 0, 0.6);
+}
