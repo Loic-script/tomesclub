@@ -236,7 +236,7 @@ export function ProfileForm({
   return (
     <div
       className={`anim-rise relative w-full max-w-2xl overflow-hidden rounded-[2rem] bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 ${
-        inModal ? "flex max-h-[92dvh] flex-col" : ""
+        inModal ? "flex max-h-[92dvh] flex-col" : "max-sm:min-h-dvh max-sm:rounded-none max-sm:ring-0"
       }`}
     >
       {/* En fenêtre : le bandeau diagonal de la carte de membre, le titre et le bouton fermer */}
