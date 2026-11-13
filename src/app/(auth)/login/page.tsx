@@ -32,19 +32,6 @@ export default function LoginPage() {
           className="anim-gradient absolute inset-0 bg-[linear-gradient(135deg,rgba(122,8,46,0.92),rgba(156,11,59,0.78)_45%,rgba(179,19,75,0.72)_72%,rgba(122,8,46,0.9))]"
         />
 
-        {/* Bord ondulé entre les deux panneaux (sur grand écran) */}
-        <svg
-          aria-hidden
-          viewBox="0 0 100 800"
-          preserveAspectRatio="none"
-          className="absolute inset-y-0 right-0 hidden h-full w-14 text-white md:block"
-        >
-          <path
-            fill="currentColor"
-            d="M100 0 H62 C30 70 92 150 58 230 C28 300 88 380 56 460 C26 540 90 620 54 700 C38 748 52 776 66 800 H100 Z"
-          />
-        </svg>
-
         {/* Les bulles : ce qu'on vient faire au club — parler anglais */}
         <SpeechBubble style={delay(900)} className="left-6 top-10 -rotate-2">
           Hello!
