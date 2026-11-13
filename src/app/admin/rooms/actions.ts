@@ -34,7 +34,7 @@ export async function adminCreateRoomAction(
     console.error("[adminCreateRoomAction]", error);
     return { error: "Could not create the room. Is the video server running?" };
   }
-  redirect(`/room/${roomId}`);
+  redirect(`/room/${roomId}?as=admin`);
 }
 
 /** Fermer une salle pour tout le monde (et la supprimer). */

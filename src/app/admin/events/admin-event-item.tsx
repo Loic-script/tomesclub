@@ -126,7 +126,7 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
             (event.live ? (
               <>
                 <Link
-                  href={`/live/${event.id}`}
+                  href={`/live/${event.id}?as=admin`}
                   className="neu-btn rounded-full bg-red-500 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-red-900/40"
                 >
                   Join live

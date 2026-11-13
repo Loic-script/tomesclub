@@ -147,7 +147,7 @@ async function AdminRooms() {
                       <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
                         <CloseRoomButton roomId={room.id} />
                         <Link
-                          href={`/room/${room.id}`}
+                          href={`/room/${room.id}?as=admin`}
                           className="neu-btn rounded-full bg-gradient-to-r from-accent to-brand px-4 py-2 text-xs font-bold text-white shadow-lg shadow-brand/30"
                         >
                           Join

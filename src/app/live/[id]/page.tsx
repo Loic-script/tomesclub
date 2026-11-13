@@ -6,33 +6,40 @@ import { VideoRoom } from "@/components/video-room";
 import { isAdmin } from "@/lib/admin";
 import { EVENT_ROOM_PREFIX, eventIsLive, getLiveEvent } from "@/lib/event-live";
 import { createParticipantToken, getBrowserLiveKitUrl } from "@/lib/livekit";
-import { requireMember } from "@/lib/session";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser, requireMember } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Live event" };
 
 // Page /live/<id> : le direct vidéo d'un événement.
 // Le coach (session admin) et les membres arrivent dans la même salle.
-export default function LiveEventPage({ params }: PageProps<"/live/[id]">) {
+export default function LiveEventPage({ params, searchParams }: PageProps<"/live/[id]">) {
   return (
     <main className="flex h-dvh flex-col bg-zinc-950">
       <Suspense fallback={<p className="m-auto text-zinc-400">Connecting...</p>}>
-        {params.then(({ id }) => (
-          <LiveEvent eventId={id} />
+        {Promise.all([params, searchParams]).then(([{ id }, query]) => (
+          <LiveEvent eventId={id} asAdmin={query.as === "admin"} />
         ))}
       </Suspense>
     </main>
   );
 }
 
-/** Qui entre : le coach (session admin), sinon un membre connecté. */
-async function whoIsJoining(): Promise<{ id: string; name: string; coach: boolean }> {
-  if (await isAdmin()) return { id: "coach", name: "Admin", coach: true };
+/**
+ * Qui entre. Comme admin seulement depuis l'espace admin (lien "?as=admin"), sinon comme membre.
+ * Le nom : "Admin", "Prénom · Teacher", "Prénom · Leader", ou le prénom.
+ */
+async function whoIsJoining(asAdmin: boolean): Promise<{ id: string; name: string; coach: boolean }> {
+  if (asAdmin && (await isAdmin())) return { id: "coach", name: "Admin", coach: true };
+  if (!(await getCurrentUser()) && (await isAdmin())) return { id: "coach", name: "Admin", coach: true };
   const user = await requireMember();
-  return { id: user.id, name: user.firstName, coach: false };
+  const profile = await prisma.profile.findUnique({ where: { userId: user.id }, select: { role: true } });
+  const role = profile?.role === "teacher" ? " · Teacher" : profile?.role === "leader" ? " · Leader" : "";
+  return { id: user.id, name: `${user.firstName}${role}`, coach: false };
 }
 
-async function LiveEvent({ eventId }: { eventId: string }) {
-  const person = await whoIsJoining();
+async function LiveEvent({ eventId, asAdmin }: { eventId: string; asAdmin: boolean }) {
+  const person = await whoIsJoining(asAdmin);
   const leaveTo = person.coach ? "/admin/events" : "/events";
 
   const event = await getLiveEvent(eventId);

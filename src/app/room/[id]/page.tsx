@@ -19,33 +19,51 @@ import {
   roomEndsAt,
   roomIsOver,
 } from "@/lib/rooms";
-import { requireMember } from "@/lib/session";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser, requireMember } from "@/lib/session";
 import { endRoomIfOver } from "./actions";
 
 export const metadata: Metadata = { title: "Room" };
 
 // Page /room/<id> : la salle de groupe en vidéo (plein écran, sans barre du bas).
-export default function GroupRoomPage({ params }: PageProps<"/room/[id]">) {
+export default function GroupRoomPage({ params, searchParams }: PageProps<"/room/[id]">) {
   return (
     <main className="flex h-dvh flex-col bg-zinc-950">
       <Suspense fallback={<p className="m-auto text-zinc-400">Connecting...</p>}>
-        {params.then(({ id }) => (
-          <Room roomId={id} />
+        {Promise.all([params, searchParams]).then(([{ id }, query]) => (
+          <Room roomId={id} asAdmin={query.as === "admin"} />
         ))}
       </Suspense>
     </main>
   );
 }
 
-/** Qui entre : le coach (session admin), sinon un membre connecté. */
-async function whoIsJoining(): Promise<{ id: string; firstName: string; coach: boolean }> {
-  if (await isAdmin()) return { id: "coach", firstName: "Admin", coach: true };
+/**
+ * Qui entre. Un même navigateur peut avoir une session membre ET une session admin :
+ * on entre comme admin seulement depuis l'espace admin (lien "?as=admin"), sinon comme membre.
+ */
+async function whoIsJoining(
+  asAdmin: boolean,
+): Promise<{ id: string; firstName: string; coach: boolean; role: string }> {
+  if (asAdmin && (await isAdmin())) return { id: "coach", firstName: "Admin", coach: true, role: "admin" };
+  if (!(await getCurrentUser()) && (await isAdmin())) {
+    return { id: "coach", firstName: "Admin", coach: true, role: "admin" };
+  }
   const member = await requireMember();
-  return { id: member.id, firstName: member.firstName, coach: false };
+  const profile = await prisma.profile.findUnique({ where: { userId: member.id }, select: { role: true } });
+  return { id: member.id, firstName: member.firstName, coach: false, role: profile?.role ?? "member" };
 }
 
-async function Room({ roomId }: { roomId: string }) {
-  const user = await whoIsJoining();
+/** Le nom dans la vidéo : "Admin", "Prénom · Teacher", "Prénom · Leader", "Prénom · Host" (créateur), ou le prénom. */
+function displayName(user: { firstName: string; coach: boolean; role: string }, hosting: boolean): string {
+  if (user.coach) return "Admin";
+  if (user.role === "teacher") return `${user.firstName} · Teacher`;
+  if (user.role === "leader") return `${user.firstName} · Leader`;
+  return hosting ? `${user.firstName} · Host` : user.firstName;
+}
+
+async function Room({ roomId, asAdmin }: { roomId: string; asAdmin: boolean }) {
+  const user = await whoIsJoining(asAdmin);
   const back = user.coach ? "/admin/rooms" : "/rooms";
 
   const room = await getRoom(roomId);
@@ -127,7 +145,7 @@ async function Room({ roomId }: { roomId: string }) {
     getBrowserLiveKitUrl(),
     createParticipantToken({
       identity: user.id,
-      name: user.firstName,
+      name: displayName(user, hosting),
       roomName: `${ROOM_PREFIX}${room.id}`,
     }),
   ]);

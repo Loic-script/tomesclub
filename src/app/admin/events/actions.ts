@@ -162,7 +162,7 @@ export async function startEventAction(eventId: string): Promise<void> {
   await requireAdmin();
   const ok = await startEventLive(eventId);
   if (!ok) redirect("/admin/events");
-  redirect(`/live/${eventId}`);
+  redirect(`/live/${eventId}?as=admin`);
 }
 
 /** "End" : termine le direct pour tout le monde. */
