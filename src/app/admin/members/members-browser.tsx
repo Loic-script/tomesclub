@@ -145,7 +145,7 @@ export function MembersBrowser({ members }: { members: AdminMemberRow[] }) {
                       {member.online && (
                         <span
                           aria-label="Online"
-                          className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-emerald-400 ring-[3px] ring-[#2a1238]"
+                          className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-400 ring-2 ring-[#2a1238]"
                         />
                       )}
                     </span>

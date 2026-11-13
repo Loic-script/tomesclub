@@ -129,7 +129,7 @@ async function MemberProfile({ userId }: { userId: string }) {
             {member.online && (
               <span
                 aria-label="Online"
-                className="absolute bottom-1 right-1 size-5 rounded-full bg-emerald-400 ring-4 ring-[#2a1238]"
+                className="absolute bottom-1.5 right-1.5 size-3.5 rounded-full bg-emerald-400 ring-[3px] ring-[#2a1238]"
               />
             )}
           </span>
