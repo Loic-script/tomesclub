@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { countryCodeOf } from "@/lib/countries";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { VideoRoom } from "@/components/video-room";
@@ -77,7 +77,14 @@ async function Room({ roomId, asAdmin }: { roomId: string; asAdmin: boolean }) {
   const back = user.coach ? "/admin/rooms" : "/rooms";
 
   const room = await getRoom(roomId);
-  if (!room) notFound();
+  // La salle n'existe plus (fermée, supprimée) : retour à la liste des rooms.
+  if (!room) redirect(back);
+
+  // Salle privée refusée par l'admin : elle se ferme pour de bon, l'hôte revient sur Rooms avec un message.
+  if (room.refusedAt) {
+    await prisma.room.deleteMany({ where: { id: room.id } });
+    redirect(user.coach ? back : "/rooms?refused=1");
+  }
 
   const hosting = user.coach || (room.createdById !== null && room.createdById === user.id);
 

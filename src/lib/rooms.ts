@@ -309,6 +309,7 @@ export function getRoom(id: string) {
       createdById: true,
       isPrivate: true,
       pendingApproval: true,
+      refusedAt: true,
     },
   });
 }

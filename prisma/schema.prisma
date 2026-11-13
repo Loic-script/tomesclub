@@ -195,6 +195,8 @@ model Room {
   createdBy   User?    @relation("RoomsCreated", fields: [createdById], references: [id], onDelete: Cascade)
   /// Salle privée d un Leader / Teacher : en attente de l accord de l admin (pas encore dans LiveKit)
   pendingApproval Boolean @default(false)
+  /// Salle privée refusée par l admin : la page d attente renvoie l hôte vers Rooms (puis la salle est supprimée)
+  refusedAt DateTime?
   /// Salle privée payante : comment l hôte a payé l admin (mvola | orange), la référence et le montant (Ar)
   paymentMethod String?
   paymentRef    String?

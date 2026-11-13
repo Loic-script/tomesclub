@@ -16,18 +16,19 @@ import { DeleteRoomButton } from "./delete-room-button";
 export const metadata: Metadata = { title: "Rooms" };
 
 // Page /rooms : les salles de groupe ouvertes, et en créer une.
-export default function RoomsPage() {
+export default function RoomsPage({ searchParams }: PageProps<"/rooms">) {
   return (
     <Suspense
       fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}
     >
-      <RoomsHome />
+      <RoomsHome searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function RoomsHome() {
+async function RoomsHome({ searchParams }: { searchParams: PageProps<"/rooms">["searchParams"] }) {
   const user = await requireMember();
+  const refused = (await searchParams).refused === "1";
   const [rooms, activities, privateMode, members] = await Promise.all([
     listOpenRooms(user.id),
     listActivities(),
@@ -45,6 +46,19 @@ async function RoomsHome() {
       />
 
       <div className="space-y-5">
+        {/* La salle privée a été refusée par l'admin */}
+        {refused && (
+          <div className="anim-rise flex items-start gap-3 rounded-2xl bg-amber-400/10 p-4 text-sm text-amber-100 ring-1 ring-amber-300/30">
+            <span aria-hidden className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-amber-400 text-xs font-bold text-navy">!</span>
+            <div>
+              <p className="font-semibold text-amber-50">Your private room was not approved</p>
+              <p className="mt-0.5 text-amber-100/80">
+                The admin refused it, so it is closed. You can open a public room, or write to the admin.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="anim-rise" style={delay(150)}>
           <CreateRoomForm
             activities={activities}

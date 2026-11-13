@@ -87,20 +87,20 @@ export async function approvePrivateRoom(roomId: string): Promise<boolean> {
   return true;
 }
 
-/** L'admin refuse : la salle est supprimée, l'hôte est prévenu. */
+/** L'admin refuse : la salle est marquée refusée (la page d'attente renvoie l'hôte vers Rooms), l'hôte est prévenu. */
 export async function refusePrivateRoom(roomId: string): Promise<void> {
   const room = await prisma.room.findFirst({
     where: { id: roomId, pendingApproval: true },
     select: { id: true, name: true, createdById: true },
   });
   if (!room) return;
-  await prisma.room.delete({ where: { id: room.id } });
+  await prisma.room.update({ where: { id: room.id }, data: { pendingApproval: false, refusedAt: new Date() } });
   if (room.createdById) {
     await notifyMembers([room.createdById], {
       kind: "room",
       title: "Your private room was not approved",
       body: `${room.name} · You can open a public room instead.`,
-      link: "/rooms",
+      link: "/rooms?refused=1",
     });
   }
 }
