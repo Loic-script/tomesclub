@@ -32,7 +32,9 @@ async function OnboardingGate() {
   if (profile?.completedAt) redirect("/calls");
 
   // On pré-remplit le prénom et le nom à partir du nom Google.
-  const [firstGuess = "", ...rest] = user.name.trim().split(/\s+/);
+  // Compte créé avec un email : son nom est juste le début de l'adresse, on ne le propose pas.
+  const fromEmail = user.name === user.email.split("@")[0];
+  const [firstGuess = "", ...rest] = fromEmail ? [] : user.name.trim().split(/\s+/);
   return (
     <ProfileForm
       mode="onboarding"
