@@ -191,7 +191,7 @@ async function AdminRooms() {
             </span>
           </>
         }
-        icon={<span aria-hidden className="text-base">🎯</span>}
+        icon={<ActivityIcon icon="🎯" className="size-[18px]" />}
       >
         <ActivityManager
           activities={activities}
