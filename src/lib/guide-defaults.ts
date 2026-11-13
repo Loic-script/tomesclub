@@ -3,6 +3,7 @@
 // Pas de "server-only" : l'éditeur admin s'en sert aussi (bouton "Reset to default").
 
 export const GUIDE_ICONS = [
+  "handshake",
   "sparkle",
   "home",
   "phone",
@@ -30,7 +31,7 @@ export const GUIDE_LIMITS = {
 
 export const DEFAULT_GUIDE: GuideStepData[] = [
   {
-    icon: "sparkle",
+    icon: "handshake",
     title: "Welcome to Tomes Club!",
     body: "Tomes Club is a place to practice speaking English with real people, by video. This short guide shows you how everything works. It takes one minute.",
   },
