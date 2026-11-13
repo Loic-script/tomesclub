@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { markTabRead } from "@/lib/notifications";
+import { countUnread, markTabRead } from "@/lib/notifications";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense, type ReactNode } from "react";
@@ -43,7 +43,10 @@ async function HomeDashboard() {
   const user = await requireMember();
   // Ce menu est ouvert : sa pastille disparaît
   await markTabRead(user.id, "home");
-  const [profile, activeCalls, rooms, nextEvent, upcomingCount] = await loadHome(user.id);
+  const [[profile, activeCalls, rooms, nextEvent, upcomingCount], unread] = await Promise.all([
+    loadHome(user.id),
+    countUnread(user.id),
+  ]);
 
   return (
     <>
@@ -55,6 +58,9 @@ async function HomeDashboard() {
           </>
         }
         subtitle="Ready to practice your English today?"
+        // La photo de profil en haut à droite ; les membres sont dans les tuiles plus bas.
+        members={false}
+        rightTop
         right={
           <Link href="/profile" aria-label="My profile" className="neu-sm neu-btn rounded-full p-1">
             <MemberAvatar
@@ -146,7 +152,13 @@ async function HomeDashboard() {
           <Tile href="/events" title="Events" hint="Classes & news" delayMs={520}>
             <CalendarIcon className="size-7" />
           </Tile>
-          <Tile href="/profile" title="Profile" hint="Your info & photo" delayMs={600}>
+          <Tile href="/members" title="Members" hint="Everyone in the club" delayMs={600}>
+            <MembersIcon className="size-7" />
+          </Tile>
+          <Tile href="/notifications" title="Notifications" hint="What's new for you" delayMs={680} badge={unread}>
+            <BellIcon className="size-7" />
+          </Tile>
+          <Tile href="/profile" title="Profile" hint="Your info & photo" delayMs={760}>
             <UserIcon className="size-7" />
           </Tile>
         </div>
@@ -171,19 +183,30 @@ function Tile({
   title,
   hint,
   delayMs,
+  badge = 0,
   children,
 }: {
   href: string;
   title: string;
   hint: string;
   delayMs: number;
+  /** Une pastille sur l'icône (ex : notifications pas lues). */
+  badge?: number;
   children: ReactNode;
 }) {
   return (
     <Link href={href} className="anim-rise block" style={delay(delayMs)}>
       <GlassCard className="neu-btn flex flex-col items-center gap-3 py-6 text-center">
-        <span className="neu-inset flex size-14 items-center justify-center rounded-2xl text-accent">
+        <span className="neu-inset relative flex size-14 items-center justify-center rounded-2xl text-accent">
           {children}
+          {badge > 0 && (
+            <span
+              aria-label={`${badge} new`}
+              className="absolute -right-2 -top-2 flex min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-bold leading-5 text-navy ring-2 ring-[#2a1238]"
+            >
+              {badge > 9 ? "9+" : badge}
+            </span>
+          )}
         </span>
         <span>
           <span className="block font-display text-lg font-bold text-white">{title}</span>
@@ -229,6 +252,28 @@ function CalendarIcon({ className }: { className?: string }) {
     <svg {...iconProps} className={className}>
       <rect x="3" y="5" width="18" height="16" rx="2.5" />
       <path d="M8 3v4M16 3v4M3 10h18" />
+    </svg>
+  );
+}
+
+function MembersIcon({ className }: { className?: string }) {
+  return (
+    <svg {...iconProps} className={className}>
+      <circle cx="12" cy="7.5" r="3" />
+      <path d="M6.5 19a5.5 5.5 0 0 1 11 0" />
+      <circle cx="5" cy="10" r="2.1" />
+      <path d="M1.8 17.5a3.6 3.6 0 0 1 4-3" />
+      <circle cx="19" cy="10" r="2.1" />
+      <path d="M22.2 17.5a3.6 3.6 0 0 0-4-3" />
+    </svg>
+  );
+}
+
+function BellIcon({ className }: { className?: string }) {
+  return (
+    <svg {...iconProps} className={className}>
+      <path d="M6 9.5a6 6 0 0 1 12 0c0 4.5 1.8 6.5 1.8 6.5H4.2S6 14 6 9.5Z" />
+      <path d="M10 19.5a2 2 0 0 0 4 0" />
     </svg>
   );
 }

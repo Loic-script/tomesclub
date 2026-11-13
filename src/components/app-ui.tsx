@@ -60,6 +60,7 @@ export function PageHeader({
   subtitle,
   right,
   members = true,
+  rightTop = false,
 }: {
   title: ReactNode;
   /** Le petit mot orange au-dessus du titre (ex : "Speaking practice"). */
@@ -70,11 +71,13 @@ export function PageHeader({
   bell?: boolean;
   /** L'icône "membres" (téléphone et tablette ; cachée sur la page Members elle-même). */
   members?: boolean;
+  /** Les boutons de droite collés en haut (ex : la photo de profil de l accueil). */
+  rightTop?: boolean;
 }) {
   return (
     // Téléphone : si les boutons ne tiennent pas à côté du titre, ils passent dessous (le titre n'est jamais coupé).
     <header className="anim-rise mb-6 flex flex-wrap items-center gap-3" style={delay(50)}>
-      <div className="min-w-[min(100%,14rem)] flex-1">
+      <div className="min-w-[min(100%,12rem)] flex-1">
         {eyebrow && (
           <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
             <span aria-hidden className="h-px w-5 rounded-full bg-accent/70" />
@@ -91,7 +94,7 @@ export function PageHeader({
         )}
       </div>
       {(members || right) && (
-        <div className="flex shrink-0 items-center gap-3">
+        <div className={`flex shrink-0 items-center gap-3 ${rightTop ? "self-start" : ""}`}>
           {members && <MembersLink />}
           {right}
         </div>
