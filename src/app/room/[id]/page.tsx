@@ -6,6 +6,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { VideoRoom } from "@/components/video-room";
 import { createParticipantToken, getBrowserLiveKitUrl } from "@/lib/livekit";
+import { canModerate, isBanned } from "@/lib/moderation";
 import { getActivity } from "@/lib/activities";
 import { listFilesForActivity } from "@/lib/activity-files";
 import { AdminLiveRefresh } from "@/app/admin/admin-nav";
@@ -115,6 +116,22 @@ async function Room({ roomId, asAdmin }: { roomId: string; asAdmin: boolean }) {
     );
   }
 
+  // Banni par l'hôte : on ne peut plus revenir.
+  if (!hosting && (await isBanned("room", room.id, user.id))) {
+    return (
+      <div className="m-auto max-w-sm px-6 text-center">
+        <h1 className="font-display text-2xl font-bold text-white">You can&apos;t join this room</h1>
+        <p className="mt-2 text-sm text-white/60">The host removed you from this room.</p>
+        <Link
+          href={back}
+          className="mt-6 inline-block rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white"
+        >
+          Back to rooms
+        </Link>
+      </div>
+    );
+  }
+
   // Salle privée : seulement l'hôte, l'admin et les membres invités.
   if (room.isPrivate && !hosting && !(await isInvited(room.id, user.id))) {
     return (
@@ -198,6 +215,9 @@ async function Room({ roomId, asAdmin }: { roomId: string; asAdmin: boolean }) {
     }
   }
 
+  // L'hôte Leader / Teacher (ou l'admin) peut retirer ou bannir des participants.
+  const moderate = await canModerate("room", room.id, user);
+
   const endsAtMs = roomEndsAt(room);
   const endsAt = endsAtMs !== null ? new Date(endsAtMs).toISOString() : null;
 
@@ -208,6 +228,7 @@ async function Room({ roomId, asAdmin }: { roomId: string; asAdmin: boolean }) {
       leaveTo={back}
       stage={{ isHost, files, activityName: activity?.name ?? null }}
       onTimeUp={endRoomIfOver.bind(null, room.id)}
+      moderation={moderate ? { kind: "room", id: room.id, hostId: room.createdById } : undefined}
       room={{
         activityIcon: activity?.icon ?? null,
         activityName: activity?.name ?? (room.topic ? room.name : null),

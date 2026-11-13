@@ -65,7 +65,7 @@ export const DEFAULT_GUIDE: GuideStepData[] = [
   {
     icon: "lock",
     title: "Stay until the end",
-    body: "This is very important: once a call, a room or a live event has started, you stay until the time is up. The Leave button is hidden during this time and comes back at the end. If you are alone (nobody answered), you can leave. Tip: tap CC at the top to see English subtitles.",
+    body: "This is very important: as soon as the countdown starts (in a call, a room or a live event), you can't leave: you stay until the time is up. The Leave button is hidden and comes back at the end. Before the countdown starts (for example, while you wait for the other person in a call), you can still leave. Tip: tap CC at the top to see English subtitles.",
   },
   {
     icon: "users",
@@ -90,7 +90,7 @@ export const DEFAULT_GUIDE: GuideStepData[] = [
   {
     icon: "star",
     title: "Leaders and Teachers",
-    body: "Everyone starts as a Member. To become a Leader or a Teacher, choose it in your profile: the admin must confirm it first. Then, on the Events page, you can propose your own event, free or paid. The admin checks it and publishes it. For a paid event, members pay the admin; you receive 60% of each payment and the admin keeps 40%. You see your earnings in My events.",
+    body: "Everyone starts as a Member. To become a Leader or a Teacher, choose it in your profile: the admin must confirm it first. Then, on the Events page, you can propose your own event, free or paid. The admin checks it and publishes it. For a paid event, members pay the admin; you receive 60% of each payment and the admin keeps 40%. You see your earnings in My events. As a host, a Leader or Teacher can also remove a member from their room or event (tap People), or ban them so they can't come back.",
   },
   {
     icon: "menu",

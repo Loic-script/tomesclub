@@ -16,6 +16,7 @@ import {
   getBrowserLiveKitUrl,
 } from "@/lib/livekit";
 import { REGISTERED } from "@/lib/event-responses";
+import { canModerate, isBanned } from "@/lib/moderation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, requireMember } from "@/lib/session";
 
@@ -91,6 +92,22 @@ async function LiveEvent({
   // L'hôte : l'admin, ou le Leader / Teacher qui organise l'événement
 
   const hosting = person.coach || (event.createdById !== null && event.createdById === person.id);
+
+  // Banni par l'hôte : on ne peut plus revenir.
+  if (!hosting && (await isBanned("event", event.id, person.id))) {
+    return (
+      <div className="m-auto max-w-sm px-6 text-center">
+        <h1 className="font-display text-2xl font-bold text-white">You can&apos;t join this live</h1>
+        <p className="mt-2 text-sm text-white/60">The host removed you from this event.</p>
+        <Link
+          href={leaveTo}
+          className="mt-6 inline-block rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white"
+        >
+          Back to events
+        </Link>
+      </div>
+    );
+  }
 
   // Événement payant : seulement les inscrits dont l'admin a confirmé le paiement.
   if (event.isPaid && !hosting) {
@@ -189,6 +206,9 @@ async function LiveEvent({
         ).toISOString()
       : null;
 
+  // L'hôte Leader / Teacher (ou l'admin) peut retirer ou bannir des participants.
+  const moderate = await canModerate("event", event.id, person);
+
   const [serverUrl, token] = await Promise.all([
     getBrowserLiveKitUrl(),
     createParticipantToken({
@@ -210,6 +230,7 @@ async function LiveEvent({
         activityName: activity?.name ?? event.activity ?? event.title,
       }}
       onTimeUp={endsAt ? endLiveIfOver.bind(null, event.id) : undefined}
+      moderation={moderate ? { kind: "event", id: event.id, hostId: event.createdById } : undefined}
       room={{
         activityIcon: activity?.icon ?? "🔴",
         activityName: activity

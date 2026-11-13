@@ -463,3 +463,17 @@ model Ring {
   @@index([userId, createdAt])
   @@map("ring")
 }
+
+/// Les personnes bannies d'un room ou d'un événement par l'hôte : elles ne peuvent plus y revenir.
+model RoomBan {
+  id        String   @id @default(cuid())
+  /// "room" | "event"
+  kind      String
+  /// l'id du room ou de l'événement
+  targetId  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@unique([kind, targetId, userId])
+  @@map("room_ban")
+}

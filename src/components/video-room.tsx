@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CallHeader, type RoomInfo } from "@/components/call-header";
+import { ModerationPanel, type ModerationConfig } from "@/components/moderation-panel";
 import { CaptionsOverlay, useLiveCaptions } from "@/components/live-captions";
 import { useNow } from "@/components/room-timer";
 import { FilesDrawer, StageView, useStage } from "@/components/stage";
@@ -32,6 +33,7 @@ export function VideoRoom({
   callMinutes,
   onTimeUp,
   stage: stageConfig,
+  moderation,
 }: {
   token: string;
   serverUrl: string;
@@ -41,6 +43,8 @@ export function VideoRoom({
   room?: RoomInfo;
   /** Pour un appel entre membres : sa durée, comptée quand les deux sont là. */
   callMinutes?: number;
+  /** L'hôte Leader / Teacher ou l'admin : peut retirer ou bannir des participants. */
+  moderation?: ModerationConfig;
   /** Action serveur appelée à la fin du temps (ferme la salle pour tout le monde). */
   onTimeUp?: () => Promise<void>;
   /** Salle de groupe : les fichiers de l activite (l hote les montre, les autres regardent). */
@@ -94,10 +98,16 @@ export function VideoRoom({
   const timeIsUp =
     endsAt !== null && now !== null && now * 1000 >= new Date(endsAt).getTime();
 
-  // Les autres personnes présentes (seul dans la salle → on peut partir).
-  const [othersHere, setOthersHere] = useState(0);
+  // Les autres personnes présentes (pour le bouton People de l'hôte).
+  const [others, setOthers] = useState<{ identity: string; name: string }[]>([]);
   useEffect(() => {
-    const count = () => setOthersHere(liveRoom.remoteParticipants.size);
+    const count = () =>
+      setOthers(
+        [...liveRoom.remoteParticipants.values()].map((participant) => ({
+          identity: participant.identity,
+          name: participant.name || participant.identity,
+        })),
+      );
     liveRoom.on(RoomEvent.ParticipantConnected, count);
     liveRoom.on(RoomEvent.ParticipantDisconnected, count);
     liveRoom.on(RoomEvent.Connected, count);
@@ -108,8 +118,9 @@ export function VideoRoom({
     };
   }, [liveRoom]);
 
-  // Règle du club : on reste jusqu'à la fin du temps (le bouton Leave revient à la fin).
-  const leaveLocked = endsAt !== null && !timeIsUp && othersHere > 0;
+  // Règle du club : dès que le compte à rebours a démarré, on reste jusqu'à la fin
+  // (le bouton Leave revient à la fin). Avant le compte à rebours, on peut partir.
+  const leaveLocked = endsAt !== null && !timeIsUp;
 
   // Fermer l'onglet pendant ce temps : le navigateur demande d'abord.
   useEffect(() => {
@@ -177,11 +188,20 @@ export function VideoRoom({
         </p>
       )}
 
-      {leaveLocked && (
-        <p className="flex items-center justify-center gap-1.5 bg-white/[0.04] px-4 py-1.5 text-center text-[11px] font-medium text-white/60">
-          <span aria-hidden>🔒</span>
-          Stay until the end: you can leave when the time is up.
-        </p>
+      {(leaveLocked || moderation) && (
+        <div className="flex items-center justify-center gap-3 bg-white/[0.04] px-4 py-1.5">
+          {leaveLocked && (
+            <p className="flex items-center gap-1.5 text-center text-[11px] font-medium text-white/60">
+              <span aria-hidden>🔒</span>
+              Stay until the end: you can leave when the time is up.
+            </p>
+          )}
+          {moderation && (
+            <span className="ml-auto">
+              <ModerationPanel config={moderation} people={others} />
+            </span>
+          )}
+        </div>
       )}
 
       {/* Le message de fin, juste avant de couper */}
