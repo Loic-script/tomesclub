@@ -87,7 +87,7 @@ export function NewEventButton({
       {open &&
         createPortal(
           <div
-            className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/65 p-3 backdrop-blur-sm sm:items-center sm:p-6"
+            className="on-dark fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/65 p-3 backdrop-blur-sm sm:items-center sm:p-6"
             onClick={(event) => {
               if (event.target === event.currentTarget) setOpen(false);
             }}
