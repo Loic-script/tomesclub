@@ -174,12 +174,16 @@ async function LiveEvent({
       stage={{
         isHost: person.coach,
         files,
-        activityName: activity?.name ?? event.title,
+        activityName: activity?.name ?? event.activity ?? event.title,
       }}
       onTimeUp={endsAt ? endLiveIfOver.bind(null, event.id) : undefined}
       room={{
         activityIcon: activity?.icon ?? "🔴",
-        activityName: activity ? `${activity.name} · Live event` : "Live event",
+        activityName: activity
+          ? `${activity.name} · Live event`
+          : event.activity
+            ? `${event.activity} · Live event`
+            : "Live event",
         theme: event.topic ?? event.title,
         description: event.description,
         format: null,

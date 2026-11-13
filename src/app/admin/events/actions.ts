@@ -11,7 +11,7 @@ import {
   EVENT_MIN_PEOPLE,
   eventFilesKey,
 } from "@/lib/event-price";
-import { getActivity } from "@/lib/activities";
+import { listActivities } from "@/lib/activities";
 import { deleteFilesOfActivity } from "@/lib/activity-files";
 import { setRegistrationPaid } from "@/lib/event-responses";
 import { notifyAllMembers } from "@/lib/notifications";
@@ -98,9 +98,13 @@ async function readEventForm(formData: FormData): Promise<EventInput | string> {
   let maxParticipants: number | null = null;
   if (kind === "event") {
     const activityKey = String(formData.get("activity") ?? "").trim();
-    activity = activityKey
-      ? ((await getActivity(activityKey))?.key ?? null)
-      : null;
+    // Une activité du catalogue (par sa clé ou son nom), sinon celle écrite par l'admin.
+    if (activityKey) {
+      const match = (await listActivities()).find(
+        (entry) => entry.key === activityKey || entry.name.toLowerCase() === activityKey.toLowerCase(),
+      );
+      activity = match ? match.key : activityKey.slice(0, 60);
+    }
     topic =
       String(formData.get("topic") ?? "")
         .trim()

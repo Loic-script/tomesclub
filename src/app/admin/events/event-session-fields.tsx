@@ -25,29 +25,52 @@ export function EventSessionFields({
   fieldClass: string;
   labelClass: string;
 }) {
-  const [activity, setActivity] = useState(defaultActivity ?? "");
+  // On affiche le nom (une activité du catalogue, ou celle écrite par l'admin).
+  const [activity, setActivity] = useState(
+    activities.find((entry) => entry.key === defaultActivity)?.name ?? defaultActivity ?? "",
+  );
   const listId = useId();
-  const topics = activities.find((entry) => entry.key === activity)?.topics ?? [];
+  const activityListId = useId();
+  const chosen = activities.find((entry) => entry.name.toLowerCase() === activity.trim().toLowerCase());
+  const topics = chosen?.topics ?? [];
 
   return (
     <div className="anim-dropdown grid gap-4 sm:grid-cols-2">
       <label className="block">
         <span className={labelClass}>Activity</span>
-        <select
-          name="activity"
-          value={activity}
-          onChange={(event) => setActivity(event.target.value)}
-          className={fieldClass}
-        >
-          <option value="" className="bg-[#22102f]">
-            No activity
-          </option>
-          {activities.map((entry) => (
-            <option key={entry.key} value={entry.key} className="bg-[#22102f]">
-              {entry.name}
-            </option>
-          ))}
-        </select>
+        {/* Une activité de la liste, ou sa propre activité (on l'écrit) */}
+        <span className="relative block">
+          <input
+            name="activity"
+            value={activity}
+            onChange={(event) => setActivity(event.target.value)}
+            list={activityListId}
+            maxLength={60}
+            placeholder="Choose or write an activity"
+            autoComplete="off"
+            className={`${fieldClass} pr-11`}
+          />
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+            className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-white/50"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+          <datalist id={activityListId}>
+            {activities.map((entry) => (
+              <option key={entry.key} value={entry.name} />
+            ))}
+          </datalist>
+        </span>
+        <span className="mt-1 block text-[11px] text-white/40">
+          {activity.trim() && !chosen ? "Your own activity" : "From the list, or write your own"}
+        </span>
       </label>
 
       <label className="block">

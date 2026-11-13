@@ -143,7 +143,7 @@ async function AdminEvents() {
                   event={{
                     activity: event.activity,
                     activityName: event.activity
-                      ? (activityByKey.get(event.activity)?.name ?? null)
+                      ? (activityByKey.get(event.activity)?.name ?? event.activity)
                       : null,
                     activityIcon: event.activity
                       ? (activityByKey.get(event.activity)?.icon ?? null)
