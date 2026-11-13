@@ -57,7 +57,7 @@ export function GuideDialog({
 
   return createPortal(
     <div
-      className="on-dark fixed inset-0 z-[70] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-3"
+      className="on-dark fixed inset-0 z-[70] flex items-end justify-center bg-black/60 p-3 backdrop-blur-sm sm:items-center"
       onClick={(event) => {
         if (event.target === event.currentTarget) close();
       }}
@@ -66,7 +66,7 @@ export function GuideDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="guide-title"
-        className="neu nav-glass anim-pop relative w-full overflow-hidden rounded-t-[2rem] p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:!border-x-0 max-sm:!border-b-0 sm:max-w-md sm:rounded-[2rem] sm:p-7"
+        className="neu nav-glass anim-pop relative w-full max-w-md overflow-hidden rounded-[2rem] p-6 sm:p-7"
       >
         {/* Lueur douce derrière l'icône */}
         <span
