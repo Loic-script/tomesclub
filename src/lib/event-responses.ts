@@ -9,6 +9,9 @@ import { prisma } from "@/lib/prisma";
 
 export const REGISTERED = "registered";
 
+/** La part de l'organisateur (Leader / Teacher) : 60 %, comme HOST_SHARE dans member-events. */
+const HOST_PAYMENT_SHARE = 0.6;
+
 export type EventPerson = {
   id: string;
   name: string;
@@ -162,7 +165,13 @@ export async function setRegistrationPaid(
 ): Promise<void> {
   const event = await prisma.event.findUnique({
     where: { id: eventId },
-    select: { title: true, isPaid: true, price: true, currency: true },
+    select: {
+      title: true,
+      isPaid: true,
+      price: true,
+      currency: true,
+      createdById: true,
+    },
   });
   if (!event?.isPaid) return;
   const result = await prisma.eventResponse.updateMany({
@@ -175,11 +184,33 @@ export async function setRegistrationPaid(
     data: { paidAt: paid ? new Date() : null },
   });
   if (paid && result.count > 0) {
-    await notifyMembers([userId], {
-      kind: "event",
-      title: "Payment confirmed ✓",
-      body: `${event.title} · ${formatEventPrice(event)}`,
-      link: `/events?event=${eventId}`,
-    });
+    await notifyMembers(
+      [userId],
+      {
+        kind: "event",
+        title: "Payment confirmed ✓ · You're in",
+        body: `${event.title} · ${formatEventPrice(event)}`,
+        link: `/events?event=${eventId}`,
+      },
+      { always: true },
+    );
+    // Événement proposé par un Leader / Teacher : il voit sa part (60 %) de ce paiement.
+    if (event.createdById && event.createdById !== userId && event.price) {
+      const payer = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true, profile: { select: { firstName: true } } },
+      });
+      const share = Math.round(event.price * HOST_PAYMENT_SHARE);
+      await notifyMembers(
+        [event.createdById],
+        {
+          kind: "event",
+          title: `Payment confirmed: ${payer?.profile?.firstName ?? payer?.name ?? "A member"}`,
+          body: `${event.title} · Your share: ${new Intl.NumberFormat("fr-FR").format(share)} ${event.currency}`,
+          link: "/events",
+        },
+        { always: true },
+      );
+    }
   }
 }

@@ -35,12 +35,20 @@ export type OpenRoom = {
 };
 
 /** La fin prévue d'une salle (en ms), ou null si elle n'a pas de durée. */
-export function roomEndsAt(room: { createdAt: Date; durationMin: number | null }): number | null {
-  return room.durationMin ? room.createdAt.getTime() + room.durationMin * 60 * 1000 : null;
+export function roomEndsAt(room: {
+  createdAt: Date;
+  durationMin: number | null;
+}): number | null {
+  return room.durationMin
+    ? room.createdAt.getTime() + room.durationMin * 60 * 1000
+    : null;
 }
 
 /** Le temps de la salle est-il fini ? (à appeler après connection()) */
-export function roomIsOver(room: { createdAt: Date; durationMin: number | null }): boolean {
+export function roomIsOver(room: {
+  createdAt: Date;
+  durationMin: number | null;
+}): boolean {
   const end = roomEndsAt(room);
   return end !== null && Date.now() >= end;
 }
@@ -60,7 +68,10 @@ export async function closeRoom(id: string): Promise<void> {
 }
 
 /** L'hôte supprime sa salle. Renvoie false si ce n'est pas sa salle. */
-export async function deleteRoomByHost(userId: string, roomId: string): Promise<boolean> {
+export async function deleteRoomByHost(
+  userId: string,
+  roomId: string,
+): Promise<boolean> {
   const room = await prisma.room.findFirst({
     where: { id: roomId, createdById: userId },
     select: { id: true },
@@ -73,7 +84,9 @@ export async function deleteRoomByHost(userId: string, roomId: string): Promise<
 /** Les personnes dans la salle LiveKit (leurs identifiants). Null = serveur injoignable. */
 export async function listRoomPeople(id: string): Promise<string[] | null> {
   try {
-    const people = await createRoomServiceClient().listParticipants(`${ROOM_PREFIX}${id}`);
+    const people = await createRoomServiceClient().listParticipants(
+      `${ROOM_PREFIX}${id}`,
+    );
     return people.map((person) => person.identity);
   } catch (error) {
     console.warn("[listRoomPeople]", error);
@@ -103,7 +116,10 @@ export type NewRoom = {
 };
 
 /** Ouvre la salle dans LiveKit (la vidéo). */
-export async function openLiveKitRoom(id: string, maxParticipants: number): Promise<void> {
+export async function openLiveKitRoom(
+  id: string,
+  maxParticipants: number,
+): Promise<void> {
   await createRoomServiceClient().createRoom({
     name: `${ROOM_PREFIX}${id}`,
     emptyTimeout: EMPTY_TIMEOUT_SECONDS,
@@ -168,8 +184,12 @@ export async function createRoom(
 
   // Le nom de l'hôte : un membre, ou "Coach" (salle ouverte par l'admin).
   const host = creatorId
-    ? ((await prisma.user.findUnique({ where: { id: creatorId }, select: { name: true } }))?.name ??
-      "A member")
+    ? ((
+        await prisma.user.findUnique({
+          where: { id: creatorId },
+          select: { name: true },
+        })
+      )?.name ?? "A member")
     : "Admin";
   const activity = await getActivity(input.activity);
 
@@ -181,16 +201,40 @@ export async function createRoom(
         title: activity
           ? `New room: ${name.slice(0, 60)} · ${activity.name}`
           : `New room: ${name.slice(0, 60)}`,
-        body: topic ? `${host} · ${topic}` : `${host} opened a room. Come and practice!`,
+        body: topic
+          ? `${host} · ${topic}`
+          : `${host} opened a room. Come and practice!`,
         link: `/room/${room.id}`,
       },
       creatorId ?? undefined,
     );
   }
 
+  // Salle privée en attente (paiement à confirmer) : les invités savent déjà qu'ils sont invités.
+  // La sonnerie et le lien vers l'appel viennent quand l'admin confirme (voir approvePrivateRoom).
+  if (isPrivate && waiting) {
+    const invites = await prisma.roomInvite.findMany({
+      where: { roomId: room.id },
+      select: { userId: true },
+    });
+    await notifyMembers(
+      invites.map((invite) => invite.userId),
+      {
+        kind: "room",
+        title: `${host} invites you to a private room`,
+        body: `${name.slice(0, 60)} · It opens when the admin confirms the payment.`,
+        link: "/rooms",
+      },
+      { always: true },
+    );
+  }
+
   // Salle privée ouverte tout de suite (par l'admin) : les invités sont prévenus.
   if (isPrivate && !waiting) {
-    const invites = await prisma.roomInvite.findMany({ where: { roomId: room.id }, select: { userId: true } });
+    const invites = await prisma.roomInvite.findMany({
+      where: { roomId: room.id },
+      select: { userId: true },
+    });
     await notifyMembers(
       invites.map((invite) => invite.userId),
       {
@@ -199,10 +243,16 @@ export async function createRoom(
         body: name.slice(0, 60),
         link: `/room/${room.id}`,
       },
+      { always: true },
     );
     await ringMembers(
       invites.map((invite) => invite.userId),
-      { kind: "room", title: name.slice(0, 60), body: `${host} invites you to a private room`, link: `/room/${room.id}` },
+      {
+        kind: "room",
+        title: name.slice(0, 60),
+        body: `${host} invites you to a private room`,
+        link: `/room/${room.id}`,
+      },
     );
   }
 
@@ -229,7 +279,9 @@ export async function createRoom(
  * viewerId null = l'admin : il voit toutes les salles.
  * Null = serveur vidéo injoignable.
  */
-export async function listOpenRooms(viewerId: string | null): Promise<OpenRoom[] | null> {
+export async function listOpenRooms(
+  viewerId: string | null,
+): Promise<OpenRoom[] | null> {
   let liveRooms;
   try {
     liveRooms = await createRoomServiceClient().listRooms();
@@ -247,7 +299,13 @@ export async function listOpenRooms(viewerId: string | null): Promise<OpenRoom[]
       pendingApproval: false,
       // Les salles privées : seulement pour leur hôte et leurs invités (l'admin voit tout).
       ...(viewerId
-        ? { OR: [{ isPrivate: false }, { createdById: viewerId }, { invites: { some: { userId: viewerId } } }] }
+        ? {
+            OR: [
+              { isPrivate: false },
+              { createdById: viewerId },
+              { invites: { some: { userId: viewerId } } },
+            ],
+          }
         : {}),
     },
     orderBy: { createdAt: "desc" },
@@ -263,7 +321,9 @@ export async function listOpenRooms(viewerId: string | null): Promise<OpenRoom[]
       maxParticipants: true,
       createdAt: true,
       createdById: true,
-      createdBy: { select: { name: true, profile: { select: { firstName: true } } } },
+      createdBy: {
+        select: { name: true, profile: { select: { firstName: true } } },
+      },
     },
   });
 
@@ -276,14 +336,19 @@ export async function listOpenRooms(viewerId: string | null): Promise<OpenRoom[]
   const stillOpen = rows.filter((row) => !finished.includes(row));
 
   const participantsById = new Map(
-    open.map((room) => [room.name.slice(ROOM_PREFIX.length), Number(room.numParticipants)]),
+    open.map((room) => [
+      room.name.slice(ROOM_PREFIX.length),
+      Number(room.numParticipants),
+    ]),
   );
 
   return stillOpen.map((row) => ({
     id: row.id,
     name: row.name,
     topic: row.topic,
-    hostName: row.createdBy ? (row.createdBy.profile?.firstName ?? row.createdBy.name) : "Admin",
+    hostName: row.createdBy
+      ? (row.createdBy.profile?.firstName ?? row.createdBy.name)
+      : "Admin",
     participants: participantsById.get(row.id) ?? 0,
     isPrivate: row.isPrivate,
     isMine: viewerId !== null && row.createdById === viewerId,

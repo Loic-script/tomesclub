@@ -16,16 +16,24 @@ export type PrivateRoomMode = "locked" | "approval" | "direct";
 /** Tout membre au profil terminé → "approval" (paiement + accord de l admin). */
 export async function privateModeFor(userId: string): Promise<PrivateRoomMode> {
   // Tous les membres (Member, Leader, Teacher) : paiement MVola, puis accord de l admin.
-  const member = await prisma.profile.findUnique({ where: { userId }, select: { completedAt: true } });
+  const member = await prisma.profile.findUnique({
+    where: { userId },
+    select: { completedAt: true },
+  });
   return member?.completedAt ? "approval" : "locked";
 }
 
 export type InvitableMember = { id: string; name: string; hasPhoto: boolean };
 
 /** Les membres qu'on peut inviter (fiche terminée), sauf moi. */
-export async function listInvitableMembers(exceptUserId: string | null): Promise<InvitableMember[]> {
+export async function listInvitableMembers(
+  exceptUserId: string | null,
+): Promise<InvitableMember[]> {
   const rows = await prisma.profile.findMany({
-    where: { completedAt: { not: null }, ...(exceptUserId ? { userId: { not: exceptUserId } } : {}) },
+    where: {
+      completedAt: { not: null },
+      ...(exceptUserId ? { userId: { not: exceptUserId } } : {}),
+    },
     orderBy: { firstName: "asc" },
     select: { userId: true, firstName: true, lastName: true, photoType: true },
   });
@@ -37,8 +45,15 @@ export async function listInvitableMembers(exceptUserId: string | null): Promise
 }
 
 /** Prévient les membres invités dans une salle privée. */
-export async function notifyInvitees(roomId: string, hostName: string, roomName: string): Promise<void> {
-  const invites = await prisma.roomInvite.findMany({ where: { roomId }, select: { userId: true } });
+export async function notifyInvitees(
+  roomId: string,
+  hostName: string,
+  roomName: string,
+): Promise<void> {
+  const invites = await prisma.roomInvite.findMany({
+    where: { roomId },
+    select: { userId: true },
+  });
   await notifyMembers(
     invites.map((invite) => invite.userId),
     {
@@ -47,10 +62,16 @@ export async function notifyInvitees(roomId: string, hostName: string, roomName:
       body: roomName,
       link: `/room/${roomId}`,
     },
+    { always: true },
   );
   await ringMembers(
     invites.map((invite) => invite.userId),
-    { kind: "room", title: roomName, body: `${hostName} invites you to a private room`, link: `/room/${roomId}` },
+    {
+      kind: "room",
+      title: roomName,
+      body: `${hostName} invites you to a private room`,
+      link: `/room/${roomId}`,
+    },
   );
 }
 
@@ -71,22 +92,39 @@ async function hostNameOf(createdById: string | null): Promise<string> {
 export async function approvePrivateRoom(roomId: string): Promise<boolean> {
   const room = await prisma.room.findFirst({
     where: { id: roomId, pendingApproval: true },
-    select: { id: true, name: true, createdById: true, maxParticipants: true },
+    select: {
+      id: true,
+      name: true,
+      createdById: true,
+      maxParticipants: true,
+      paymentAmount: true,
+    },
   });
   if (!room) return false;
 
   await openLiveKitRoom(room.id, room.maxParticipants ?? 20);
   // Le compte à rebours part de l'accord (et pas de la demande).
-  await prisma.room.update({ where: { id: room.id }, data: { pendingApproval: false, createdAt: new Date() } });
+  await prisma.room.update({
+    where: { id: room.id },
+    data: { pendingApproval: false, createdAt: new Date() },
+  });
 
   const host = await hostNameOf(room.createdById);
   if (room.createdById) {
-    await notifyMembers([room.createdById], {
-      kind: "room",
-      title: "Your private room is approved ✓",
-      body: `${room.name} · You can start now.`,
-      link: `/room/${room.id}`,
-    });
+    // L'accord de l'admin = son paiement est confirmé.
+    const paid = room.paymentAmount
+      ? ` · ${new Intl.NumberFormat("fr-FR").format(room.paymentAmount)} Ar`
+      : "";
+    await notifyMembers(
+      [room.createdById],
+      {
+        kind: "room",
+        title: "Payment confirmed ✓ · Private room approved",
+        body: `${room.name}${paid} · You can start now.`,
+        link: `/room/${room.id}`,
+      },
+      { always: true },
+    );
   }
   await notifyInvitees(room.id, host, room.name);
   return true;
@@ -99,14 +137,21 @@ export async function refusePrivateRoom(roomId: string): Promise<void> {
     select: { id: true, name: true, createdById: true },
   });
   if (!room) return;
-  await prisma.room.update({ where: { id: room.id }, data: { pendingApproval: false, refusedAt: new Date() } });
+  await prisma.room.update({
+    where: { id: room.id },
+    data: { pendingApproval: false, refusedAt: new Date() },
+  });
   if (room.createdById) {
-    await notifyMembers([room.createdById], {
-      kind: "room",
-      title: "Your private room was not approved",
-      body: `${room.name} · You can open a public room instead.`,
-      link: "/rooms?refused=1",
-    });
+    await notifyMembers(
+      [room.createdById],
+      {
+        kind: "room",
+        title: "Your private room was not approved",
+        body: `${room.name} · You can open a public room instead.`,
+        link: "/rooms?refused=1",
+      },
+      { always: true },
+    );
   }
 }
 
@@ -144,9 +189,21 @@ export async function listPendingRooms(): Promise<PendingRoom[]> {
       paymentRef: true,
       paymentAmount: true,
       paymentProofId: true,
-      createdBy: { select: { name: true, profile: { select: { firstName: true, lastName: true, role: true } } } },
+      createdBy: {
+        select: {
+          name: true,
+          profile: { select: { firstName: true, lastName: true, role: true } },
+        },
+      },
       invites: {
-        select: { user: { select: { name: true, profile: { select: { firstName: true, lastName: true } } } } },
+        select: {
+          user: {
+            select: {
+              name: true,
+              profile: { select: { firstName: true, lastName: true } },
+            },
+          },
+        },
       },
     },
   });
@@ -162,7 +219,9 @@ export async function listPendingRooms(): Promise<PendingRoom[]> {
       : (row.createdBy?.name ?? "Admin"),
     hostRole: row.createdBy?.profile?.role ?? "member",
     invitees: row.invites.map((invite) =>
-      invite.user.profile ? `${invite.user.profile.firstName} ${invite.user.profile.lastName}` : invite.user.name,
+      invite.user.profile
+        ? `${invite.user.profile.firstName} ${invite.user.profile.lastName}`
+        : invite.user.name,
     ),
     createdAt: row.createdAt,
     paymentMethod: row.paymentMethod,
@@ -173,7 +232,10 @@ export async function listPendingRooms(): Promise<PendingRoom[]> {
 }
 
 /** Ce membre a-t-il été invité dans cette salle ? */
-export async function isInvited(roomId: string, userId: string): Promise<boolean> {
+export async function isInvited(
+  roomId: string,
+  userId: string,
+): Promise<boolean> {
   const invite = await prisma.roomInvite.findUnique({
     where: { roomId_userId: { roomId, userId } },
     select: { roomId: true },

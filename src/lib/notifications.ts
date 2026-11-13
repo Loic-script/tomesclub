@@ -4,14 +4,12 @@ import { prisma } from "@/lib/prisma";
 // Tout ce qui concerne les notifications des membres.
 
 /** Les sortes de notifications. */
-export type NotificationKind = "call" | "follow" | "room" | "event" | "announcement";
+export type NotificationKind =
+  "call" | "follow" | "room" | "event" | "announcement";
 
 /** Les quatre réglages que le membre peut allumer ou éteindre. */
 export type NotificationSetting =
-  | "notifyCalls"
-  | "notifyFollows"
-  | "notifyRooms"
-  | "notifyEvents";
+  "notifyCalls" | "notifyFollows" | "notifyRooms" | "notifyEvents";
 
 export type NotificationSettings = Record<NotificationSetting, boolean>;
 
@@ -42,21 +40,35 @@ function preferenceField(kind: NotificationKind): NotificationSetting {
  */
 export async function notifyMembers(
   userIds: string[],
-  notification: { kind: NotificationKind; title: string; body?: string; link?: string },
+  notification: {
+    kind: NotificationKind;
+    title: string;
+    body?: string;
+    link?: string;
+  },
+  options: { always?: boolean } = {},
 ): Promise<void> {
   const unique = [...new Set(userIds)];
   if (unique.length === 0) return;
 
-  // On ne garde que ceux qui veulent bien recevoir ça.
-  const allowed = await prisma.profile.findMany({
-    where: { userId: { in: unique }, [preferenceField(notification.kind)]: true },
-    select: { userId: true },
-  });
+  // On ne garde que ceux qui veulent bien recevoir ça
+  // (sauf "always" : une invitation ou un paiement, c'est personnel et important).
+  const allowed = options.always
+    ? unique
+    : (
+        await prisma.profile.findMany({
+          where: {
+            userId: { in: unique },
+            [preferenceField(notification.kind)]: true,
+          },
+          select: { userId: true },
+        })
+      ).map((profile) => profile.userId);
   if (allowed.length === 0) return;
 
   await prisma.notification.createMany({
-    data: allowed.map((profile) => ({
-      userId: profile.userId,
+    data: allowed.map((userId) => ({
+      userId,
       kind: notification.kind,
       title: notification.title,
       body: notification.body ?? null,
@@ -70,7 +82,12 @@ export async function notifyMembers(
  * `exceptUserId` : la personne qui vient de faire l'action (on ne se prévient pas soi-même).
  */
 export async function notifyAllMembers(
-  notification: { kind: NotificationKind; title: string; body?: string; link?: string },
+  notification: {
+    kind: NotificationKind;
+    title: string;
+    body?: string;
+    link?: string;
+  },
   exceptUserId?: string,
 ): Promise<void> {
   const members = await prisma.profile.findMany({
@@ -92,7 +109,9 @@ export async function countUnread(userId: string): Promise<number> {
 }
 
 /** Mes notifications, les plus récentes d'abord. */
-export async function listMyNotifications(userId: string): Promise<MemberNotification[]> {
+export async function listMyNotifications(
+  userId: string,
+): Promise<MemberNotification[]> {
   const rows = await prisma.notification.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
@@ -125,10 +144,17 @@ export async function clearMyNotifications(userId: string): Promise<void> {
 }
 
 /** Mes réglages de notifications. */
-export async function getNotificationSettings(userId: string): Promise<NotificationSettings> {
+export async function getNotificationSettings(
+  userId: string,
+): Promise<NotificationSettings> {
   const profile = await prisma.profile.findUnique({
     where: { userId },
-    select: { notifyCalls: true, notifyFollows: true, notifyRooms: true, notifyEvents: true },
+    select: {
+      notifyCalls: true,
+      notifyFollows: true,
+      notifyRooms: true,
+      notifyEvents: true,
+    },
   });
   return {
     notifyCalls: profile?.notifyCalls ?? true,
@@ -139,7 +165,9 @@ export async function getNotificationSettings(userId: string): Promise<Notificat
 }
 
 /** Est-ce un nom de réglage valide ? (le formulaire ne vaut pas confiance) */
-export function isNotificationSetting(value: string): value is NotificationSetting {
+export function isNotificationSetting(
+  value: string,
+): value is NotificationSetting {
   return (
     value === "notifyCalls" ||
     value === "notifyFollows" ||
@@ -166,14 +194,17 @@ export const MEMBER_TAB_KINDS = {
 } as const;
 
 /** Les notifications pas lues de chaque menu (pour les pastilles de la barre du bas). */
-export async function countUnreadByTab(userId: string): Promise<Record<keyof typeof MEMBER_TAB_KINDS, number>> {
+export async function countUnreadByTab(
+  userId: string,
+): Promise<Record<keyof typeof MEMBER_TAB_KINDS, number>> {
   const rows = await prisma.notification.groupBy({
     by: ["kind"],
     where: { userId, readAt: null },
     _count: { _all: true },
   });
   const byKind = new Map(rows.map((row) => [row.kind, row._count._all]));
-  const sum = (kinds: readonly string[]) => kinds.reduce((total, kind) => total + (byKind.get(kind) ?? 0), 0);
+  const sum = (kinds: readonly string[]) =>
+    kinds.reduce((total, kind) => total + (byKind.get(kind) ?? 0), 0);
   return {
     home: sum(MEMBER_TAB_KINDS.home),
     calls: sum(MEMBER_TAB_KINDS.calls),
@@ -183,7 +214,10 @@ export async function countUnreadByTab(userId: string): Promise<Record<keyof typ
 }
 
 /** Le membre ouvre un menu : ses notifications de ce menu sont lues (la pastille disparaît). */
-export async function markTabRead(userId: string, tab: keyof typeof MEMBER_TAB_KINDS): Promise<void> {
+export async function markTabRead(
+  userId: string,
+  tab: keyof typeof MEMBER_TAB_KINDS,
+): Promise<void> {
   await prisma.notification.updateMany({
     where: { userId, readAt: null, kind: { in: [...MEMBER_TAB_KINDS[tab]] } },
     data: { readAt: new Date() },
