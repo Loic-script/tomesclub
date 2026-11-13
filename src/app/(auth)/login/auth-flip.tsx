@@ -128,7 +128,7 @@ export function AuthFlip() {
           </div>
 
           <p
-            className="anim-rise mt-5 border-t border-zinc-100 pt-3 text-xs text-zinc-400"
+            className="anim-rise mt-3 border-t border-zinc-100 pt-2.5 text-xs text-zinc-400"
             style={delay(950)}
           >
             Club staff?{" "}
@@ -169,7 +169,7 @@ export function AuthFlip() {
             <AdminLoginForm />
           </div>
 
-          <p className="mt-5 border-t border-zinc-100 pt-3 text-xs text-zinc-400">
+          <p className="mt-3 border-t border-zinc-100 pt-2.5 text-xs text-zinc-400">
             Not the admin?{" "}
             <button
               type="button"
