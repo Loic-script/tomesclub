@@ -19,7 +19,7 @@ export type PendingRoomView = {
   invitees: string[];
   askedLabel: string;
   /** Le paiement annoncé par l'hôte : à vérifier sur le téléphone de l'admin. */
-  payment: { method: string; ref: string; amount: string } | null;
+  payment: { ref: string | null; proofId: string | null; amount: string } | null;
 };
 
 export function PendingPrivateRooms({ rooms }: { rooms: PendingRoomView[] }) {
@@ -62,9 +62,24 @@ function PendingRow({ room }: { room: PendingRoomView }) {
           </p>
           {room.payment ? (
             <p className="mt-2 inline-flex flex-wrap items-center gap-1.5 rounded-xl bg-emerald-500/10 px-2.5 py-1.5 text-xs text-emerald-100 ring-1 ring-emerald-400/30">
-              💳 Paid {room.payment.amount} by <strong>{room.payment.method}</strong> · ref{" "}
-              <code className="rounded bg-black/30 px-1.5 py-0.5 font-mono text-[11px] text-white">{room.payment.ref}</code>
-              <span className="text-emerald-200/70">— check it on your phone before accepting</span>
+              💳 Paid {room.payment.amount} by <strong>MVola</strong>
+              {room.payment.ref && (
+                <>
+                  {" "}· ref{" "}
+                  <code className="rounded bg-black/30 px-1.5 py-0.5 font-mono text-[11px] text-white">{room.payment.ref}</code>
+                </>
+              )}
+              {room.payment.proofId && (
+                <a
+                  href={`/api/payment-proofs/${room.payment.proofId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full bg-white/10 px-2 py-0.5 font-semibold text-white hover:bg-white/20"
+                >
+                  📷 View screenshot
+                </a>
+              )}
+              <span className="text-emerald-200/70">— check it before accepting</span>
             </p>
           ) : (
             <p className="mt-2 text-xs text-amber-300">No payment information.</p>

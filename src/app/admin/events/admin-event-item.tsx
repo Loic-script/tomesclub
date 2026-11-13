@@ -24,7 +24,14 @@ export type AdminEventView = {
   price: number | null;
   currency: string | null;
   /** Les membres inscrits (du premier au dernier). */
-  registered: { id: string; name: string; hasPhoto: boolean; paid: boolean }[];
+  registered: {
+    id: string;
+    name: string;
+    hasPhoto: boolean;
+    paid: boolean;
+    paymentRef?: string | null;
+    paymentProofId?: string | null;
+  }[];
   past: boolean;
   live: boolean;
 };
@@ -198,8 +205,27 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
               >
                 <span className="w-5 text-right text-[11px] tabular-nums text-white/35">{index + 1}</span>
                 <MemberAvatar userId={person.id} name={person.name} hasPhoto={person.hasPhoto} size="size-7" />
-                <span className="truncate">{person.name}</span>
+                <span className="min-w-0">
+                  <span className="block truncate">{person.name}</span>
+                  {/* Ce que le membre a donné pour prouver le paiement */}
+                  {event.isPaid && (person.paymentRef || person.paymentProofId) && (
+                    <span className="block truncate text-[11px] text-white/45">
+                      MVola{person.paymentRef ? ` · ref ${person.paymentRef}` : ""}
+                    </span>
+                  )}
+                </span>
               </Link>
+              {event.isPaid && person.paymentProofId && (
+                <a
+                  href={`/api/payment-proofs/${person.paymentProofId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="See the payment screenshot"
+                  className="shrink-0 rounded-full bg-white/10 px-2 py-1 text-[11px] font-semibold text-white/80 hover:bg-white/20 hover:text-white"
+                >
+                  📷
+                </a>
+              )}
               {event.isPaid && <PaidToggle eventId={event.id} userId={person.id} paid={person.paid} />}
             </li>
           ))}

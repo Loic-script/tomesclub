@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useState, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import { useActionState, useState, type ReactNode } from "react";
 import { ActivityIcon } from "@/components/activity-icon";
+import { PaymentDialog, type PaymentDraft } from "@/components/payment-dialog";
 import { MemberAvatar } from "@/components/member-avatar";
 import {
   DEFAULT_DURATION,
@@ -25,9 +25,8 @@ const VISIBILITIES = [
 /** Qui peut ouvrir une salle privée : personne (membre), après accord (Leader / Teacher), tout de suite (admin). */
 export type PrivateMode = "locked" | "approval" | "direct";
 export type InviteChoice = { id: string; name: string; hasPhoto: boolean };
-/** Le prix d'une salle privée et les numéros de l'admin (MVola, Orange Money). */
-export type PaymentInfo = { price: number; mvola: string | null; orange: string | null; receiver: string | null };
-type PaidWith = { method: "mvola" | "orange"; ref: string };
+/** Le prix d'une salle privée et le numéro MVola de l'admin. */
+export type PaymentInfo = { price: number; mvola: string | null; receiver: string | null };
 
 const formatAr = (amount: number) => `${new Intl.NumberFormat("fr-FR").format(amount)} Ar`;
 
@@ -198,7 +197,7 @@ function RoomOptions({
   // Le paiement de la salle privée (Leader / Teacher) : la fenêtre, puis ce qui a été payé.
   const needsPayment = privateMode === "approval" && payment !== null;
   const [paying, setPaying] = useState(false);
-  const [paid, setPaid] = useState<PaidWith | null>(null);
+  const [paid, setPaid] = useState<PaymentDraft | null>(null);
   // Thème proposé → description écrite pour l'hôte (et mise à jour avec les options).
   // Thème écrit par l'hôte → il écrit sa propre description.
   const [autoDescription, setAutoDescription] = useState(false);
@@ -555,11 +554,17 @@ function RoomOptions({
       {/* ----- Salle privée : le paiement annoncé ----- */}
       {visibility === "private" && needsPayment && paid && (
         <div className="flex flex-wrap items-center gap-2 rounded-xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100 ring-1 ring-emerald-400/30">
-          <input type="hidden" name="paymentMethod" value={paid.method} />
+          <input type="hidden" name="paymentMethod" value="mvola" />
           <input type="hidden" name="paymentRef" value={paid.ref} />
+          <input type="hidden" name="paymentProofId" value={paid.proofId ?? ""} />
           <span>
-            💳 {formatAr(payment!.price)} paid by <strong>{paid.method === "orange" ? "Orange Money" : "MVola"}</strong> · ref{" "}
-            <code className="font-mono">{paid.ref}</code>
+            💳 {formatAr(payment!.price)} paid by <strong>MVola</strong>
+            {paid.ref && (
+              <>
+                {" "}· ref <code className="font-mono">{paid.ref}</code>
+              </>
+            )}
+            {paid.proofId && " · screenshot ✓"}
           </span>
           <button type="button" onClick={() => setPaying(true)} className="ml-auto font-semibold text-white/70 hover:text-white">
             Change
@@ -568,7 +573,11 @@ function RoomOptions({
       )}
       {paying && payment && (
         <PaymentDialog
-          payment={payment}
+          eyebrow="Private room"
+          amountLabel={formatAr(payment.price)}
+          intro={`A private room costs ${formatAr(payment.price)}. Send it to the admin by MVola. The admin checks it and opens your room.`}
+          mvola={payment.mvola}
+          receiver={payment.receiver}
           initial={paid}
           onCancel={() => setPaying(false)}
           onPaid={(value) => {
@@ -673,158 +682,6 @@ function RoomOptions({
             : "Confirm and open the room"}
       </button>
     </form>
-  );
-}
-
-/* ---------- La fenêtre de paiement (salle privée) ---------- */
-
-function PaymentDialog({
-  payment,
-  initial,
-  onCancel,
-  onPaid,
-}: {
-  payment: PaymentInfo;
-  initial: PaidWith | null;
-  onCancel: () => void;
-  onPaid: (value: PaidWith) => void;
-}) {
-  const [method, setMethod] = useState<"mvola" | "orange">(initial?.method ?? "mvola");
-  const [ref, setRef] = useState(initial?.ref ?? "");
-  const [copied, setCopied] = useState(false);
-  const number = method === "mvola" ? payment.mvola : payment.orange;
-
-  // Échap ferme la fenêtre.
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onCancel();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onCancel]);
-
-  async function copyNumber() {
-    if (!number) return;
-    try {
-      await navigator.clipboard.writeText(number.replace(/\s+/g, ""));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      // Le navigateur refuse : la personne recopie le numéro à la main.
-    }
-  }
-
-  const methods = [
-    { value: "mvola" as const, label: "MVola", tone: "from-[#ffd400] to-[#f5b800] text-[#1b1b1b]", number: payment.mvola },
-    { value: "orange" as const, label: "Orange Money", tone: "from-[#ff7900] to-[#e35f00] text-white", number: payment.orange },
-  ];
-
-  // Sur la page entière (et pas dans la carte en verre, qui décalerait la fenêtre).
-  return createPortal(
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Pay for your private room"
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onCancel();
-      }}
-    >
-      <div className="anim-rise max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-[2rem] border border-white/15 bg-[#2a1238] p-5 shadow-2xl shadow-black/60 sm:rounded-[2rem] sm:p-6">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">Private room</p>
-        <h2 className="mt-1 font-display text-2xl font-extrabold text-white">Pay {formatAr(payment.price)}</h2>
-        <p className="mt-1 text-sm text-white/60">
-          A private room costs {formatAr(payment.price)}. Send it to the admin, then write the reference of the
-          transaction. The admin checks it and opens your room.
-        </p>
-
-        {/* MVola ou Orange Money */}
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          {methods.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setMethod(option.value)}
-              aria-pressed={method === option.value}
-              className={`rounded-2xl p-3 text-left transition ${
-                method === option.value
-                  ? `bg-gradient-to-br ${option.tone} shadow-lg ring-2 ring-white/60`
-                  : "bg-white/[0.06] text-white/70 ring-1 ring-white/10 hover:bg-white/10"
-              }`}
-            >
-              <span className="block text-sm font-extrabold">{option.label}</span>
-              <span className="block text-[11px] opacity-80">{option.number ?? "Not set yet"}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Les étapes */}
-        <ol className="mt-4 space-y-3 text-sm text-white/80">
-          <li className="flex gap-3">
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-navy">1</span>
-            <span className="min-w-0 flex-1">
-              Send <strong className="text-white">{formatAr(payment.price)}</strong> by{" "}
-              {method === "mvola" ? "MVola" : "Orange Money"} to:
-              {number ? (
-                <span className="mt-1.5 flex items-center gap-2">
-                  <code className="rounded-lg bg-black/30 px-2.5 py-1.5 font-mono text-base font-bold tracking-wide text-white">
-                    {number}
-                  </code>
-                  <button
-                    type="button"
-                    onClick={copyNumber}
-                    className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/15"
-                  >
-                    {copied ? "Copied ✓" : "Copy"}
-                  </button>
-                </span>
-              ) : (
-                <span className="mt-1 block text-xs text-amber-300">
-                  The admin has not set this number yet. Choose the other method, or ask the admin.
-                </span>
-              )}
-              {payment.receiver && <span className="mt-1 block text-xs text-white/50">Name: {payment.receiver}</span>}
-            </span>
-          </li>
-          <li className="flex gap-3">
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-navy">2</span>
-            <span>Find the reference in the confirmation SMS.</span>
-          </li>
-          <li className="flex gap-3">
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-navy">3</span>
-            <label className="min-w-0 flex-1">
-              Write the reference here:
-              <input
-                value={ref}
-                onChange={(event) => setRef(event.target.value)}
-                maxLength={60}
-                placeholder="e.g. 1234567890"
-                className="mt-1.5 w-full rounded-xl bg-black/30 px-3 py-2.5 font-mono text-sm text-white outline-none ring-1 ring-white/15 placeholder:text-white/30 focus:ring-2 focus:ring-accent/60"
-              />
-            </label>
-          </li>
-        </ol>
-
-        <div className="mt-5 flex gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 rounded-full px-4 py-3 text-sm font-semibold text-white/70 ring-1 ring-white/15 hover:bg-white/10 hover:text-white"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            disabled={ref.trim().length < 4 || !number}
-            onClick={() => onPaid({ method, ref: ref.trim() })}
-            className="flex-1 rounded-full bg-gradient-to-r from-accent to-brand px-4 py-3 text-sm font-bold text-white shadow-lg shadow-brand/30 disabled:opacity-50"
-          >
-            I have paid
-          </button>
-        </div>
-      </div>
-    </div>,
-    document.body,
   );
 }
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { privateRoomPayment } from "@/lib/private-room-payment";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -29,6 +30,8 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
   const wanted = (await searchParams).event;
   const focusId = typeof wanted === "string" ? wanted : null;
   const [upcoming, announcements] = await loadEvents();
+  // Le numéro MVola de l'admin (événements payants)
+  const account = privateRoomPayment();
   const registrationsById = await getEventRegistrations(
     upcoming.map((event) => event.id),
     user.id,
@@ -130,7 +133,12 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                           locked={registrations?.minePaid ?? false}
                           payment={
                             event.isPaid
-                              ? { label: formatEventPrice(event), paid: registrations?.minePaid ?? false }
+                              ? {
+                                  label: formatEventPrice(event),
+                                  paid: registrations?.minePaid ?? false,
+                                  mvola: account.mvola,
+                                  receiver: account.receiver,
+                                }
                               : null
                           }
                         />

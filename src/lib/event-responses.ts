@@ -15,6 +15,9 @@ export type EventPerson = {
   hasPhoto: boolean;
   /** Événement payant : l'admin a confirmé le paiement. */
   paid: boolean;
+  /** Pour l'admin seulement : la référence MVola et/ou la capture donnée par le membre. */
+  paymentRef?: string | null;
+  paymentProofId?: string | null;
 };
 
 export type EventRegistrations = {
@@ -29,6 +32,8 @@ export type EventRegistrations = {
 export async function getEventRegistrations(
   eventIds: string[],
   viewerId: string | null,
+  /** true = l'admin : ajoute la référence et la capture de paiement de chacun */
+  withPayment = false,
 ): Promise<Map<string, EventRegistrations>> {
   const result = new Map<string, EventRegistrations>(eventIds.map((id) => [id, { people: [], mine: false, minePaid: false }]));
   if (eventIds.length === 0) return result;
@@ -39,6 +44,8 @@ export async function getEventRegistrations(
     select: {
       eventId: true,
       paidAt: true,
+      paymentRef: true,
+      paymentProofId: true,
       user: {
         select: {
           id: true,
@@ -58,6 +65,7 @@ export async function getEventRegistrations(
       name: profile ? `${profile.firstName} ${profile.lastName}`.trim() : row.user.name,
       hasPhoto: Boolean(profile?.photoType),
       paid: Boolean(row.paidAt),
+      ...(withPayment ? { paymentRef: row.paymentRef, paymentProofId: row.paymentProofId } : {}),
     });
     if (row.user.id === viewerId) {
       entry.mine = true;
@@ -71,7 +79,12 @@ export async function getEventRegistrations(
  * Inscrit (on = true) ou désinscrit un membre.
  * Renvoie false si l'événement n'existe pas (ou est une annonce).
  */
-export async function setEventRegistration(userId: string, eventId: string, on: boolean): Promise<boolean> {
+export async function setEventRegistration(
+  userId: string,
+  eventId: string,
+  on: boolean,
+  payment?: { ref: string | null; proofId: string | null },
+): Promise<boolean> {
   const event = await prisma.event.findFirst({
     where: { id: eventId, kind: "event" },
     select: { id: true, title: true },
@@ -88,7 +101,15 @@ export async function setEventRegistration(userId: string, eventId: string, on: 
     select: { status: true },
   });
   if (existing) return true;
-  await prisma.eventResponse.create({ data: { eventId, userId, status: REGISTERED } });
+  await prisma.eventResponse.create({
+    data: {
+      eventId,
+      userId,
+      status: REGISTERED,
+      paymentRef: payment?.ref ?? null,
+      paymentProofId: payment?.proofId ?? null,
+    },
+  });
 
   // Une nouvelle inscription : l'admin le sait.
   const member = await prisma.user.findUnique({
@@ -99,7 +120,9 @@ export async function setEventRegistration(userId: string, eventId: string, on: 
   await notifyAdmin({
     kind: "event",
     title: `${name ?? "A member"} registered`,
-    body: event.title,
+    body: payment
+      ? `${event.title} · paid by MVola${payment.ref ? ` (ref ${payment.ref})` : ""}${payment.proofId ? " · screenshot" : ""}`
+      : event.title,
     link: "/admin/events",
   });
   return true;

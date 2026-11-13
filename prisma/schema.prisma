@@ -37,6 +37,7 @@ model User {
   // Salles de groupe créées + file d'attente "appel au hasard"
   roomsCreated Room[]      @relation("RoomsCreated")
   roomInvites  RoomInvite[]
+  paymentProofs PaymentProof[]
   eventResponses EventResponse[]
   matchQueue   MatchQueue?
 
@@ -198,6 +199,8 @@ model Room {
   paymentMethod String?
   paymentRef    String?
   paymentAmount Int?
+  /// Ou une capture d écran du paiement (table payment_proof)
+  paymentProofId String?
   /// Les membres invités par l hôte (salle privée)
   invites     RoomInvite[]
   createdAt   DateTime @default(now())
@@ -251,6 +254,9 @@ model EventResponse {
   status    String // registered
   /// Événement payant : la date où l admin a confirmé le paiement (null = pas encore payé)
   paidAt    DateTime?
+  /// Événement payant : la référence MVola donnée par le membre, et/ou sa capture d écran
+  paymentRef     String?
+  paymentProofId String?
   createdAt DateTime @default(now())
 
   @@id([eventId, userId, status])
@@ -386,4 +392,19 @@ model CoachMessage {
   @@index([userId, createdAt])
   @@index([fromCoach, readAt])
   @@map("coach_message")
+}
+
+/// Une capture d écran de paiement MVola envoyée par un membre (salle privée, événement payant).
+/// L image est sur le disque : <dossier des fichiers>/payment-proofs/<id>.<ext>
+model PaymentProof {
+  id        String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  mime      String
+  size      Int
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("payment_proof")
 }

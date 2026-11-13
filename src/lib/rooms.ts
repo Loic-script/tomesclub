@@ -96,6 +96,8 @@ export type NewRoom = {
   /** Salle privée payante : mvola | orange, la référence de la transaction, le montant (Ar). */
   paymentMethod: string | null;
   paymentRef: string | null;
+  /** Ou une capture d'écran du paiement (payment_proof) */
+  paymentProofId: string | null;
   paymentAmount: number | null;
 };
 
@@ -137,6 +139,7 @@ export async function createRoom(
       paymentMethod: input.paymentMethod,
       paymentRef: input.paymentRef,
       paymentAmount: input.paymentAmount,
+      paymentProofId: input.paymentProofId,
     },
     select: { id: true },
   });

@@ -43,6 +43,7 @@ async function loadEvents() {
   const registrations = await getEventRegistrations(
     rows.map((row) => row.id),
     null,
+    true,
   );
   const now = Date.now();
   return rows.map((event) => ({

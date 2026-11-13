@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { isOwnProof } from "@/lib/payment-proofs";
 import { privateRoomPayment } from "@/lib/private-room-payment";
 import { privateModeFor } from "@/lib/private-rooms";
 import { readRoomForm } from "@/lib/room-form";
@@ -24,8 +25,11 @@ export async function createRoomAction(
     return { error: "Only Leaders and Teachers can open a private room." };
   }
   if (input.isPrivate) {
-    if (!input.paymentMethod || !input.paymentRef || input.paymentRef.length < 4) {
-      return { error: "Please pay with MVola or Orange Money and write the transaction reference." };
+    // Une capture qui n'est pas la sienne ne compte pas.
+    if (input.paymentProofId && !(await isOwnProof(input.paymentProofId, user.id))) input.paymentProofId = null;
+    const hasRef = Boolean(input.paymentRef && input.paymentRef.length >= 4);
+    if (!hasRef && !input.paymentProofId) {
+      return { error: "Please pay with MVola, then give the reference or a screenshot of the payment." };
     }
     input.paymentAmount = privateRoomPayment().price;
   }

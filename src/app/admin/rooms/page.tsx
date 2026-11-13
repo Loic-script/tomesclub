@@ -76,10 +76,10 @@ async function AdminRooms() {
                 invitees: room.invitees,
                 askedLabel: timeAgo(room.createdAt),
                 payment:
-                  room.paymentMethod && room.paymentRef
+                  room.paymentRef || room.paymentProofId
                     ? {
-                        method: room.paymentMethod === "orange" ? "Orange Money" : "MVola",
                         ref: room.paymentRef,
+                        proofId: room.paymentProofId,
                         amount: `${new Intl.NumberFormat("fr-FR").format(room.paymentAmount ?? 0)} Ar`,
                       }
                     : null,
