@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import "flag-icons/css/flag-icons.min.css";
 import { COUNTRIES, type Country } from "@/lib/countries";
 
 // Champ "pays" : une liste déroulante avec recherche, drapeaux et clavier.
@@ -231,18 +232,17 @@ export function CountrySelect({
   );
 }
 
-/** La pastille du code pays (MG, FR...). Elle remplace le drapeau :
- *  tous les appareils l'affichent pareil, contrairement aux emojis. */
+/** Le drapeau du pays (images du paquet flag-icons : pareilles sur tous les appareils,
+ *  contrairement aux emojis que Windows n'affiche pas). */
 function CodeChip({ code, active = false }: { code: string; active?: boolean }) {
   return (
     <span
       aria-hidden
-      className={`flex w-7 shrink-0 justify-center rounded-md px-1 py-0.5 font-mono text-[10px] font-bold tracking-wide ${
-        active ? "bg-brand text-white" : "bg-cream text-brand"
+      title={code}
+      className={`fi fi-${code.toLowerCase()} !h-[18px] !w-6 shrink-0 !leading-none rounded-[4px] !bg-cover !bg-center shadow-sm ring-1 ${
+        active ? "ring-2 ring-brand" : "ring-black/10"
       }`}
-    >
-      {code}
-    </span>
+    />
   );
 }
 
