@@ -32,7 +32,7 @@ export function AuthFlip() {
     // La perspective donne l'effet "page qui se soulève vers nous".
     <div className="w-full max-w-sm [perspective:1600px]">
       <div
-        className={`grid transition-transform duration-700 ease-in-out [transform-style:preserve-3d] ${
+        className={`relative transition-transform duration-700 ease-in-out [transform-style:preserve-3d] ${
           flipped ? "[transform:rotateY(180deg)]" : ""
         }`}
       >
@@ -180,7 +180,7 @@ function Face({
   return (
     <div
       aria-hidden={hidden}
-      className={`text-center [backface-visibility:hidden] [grid-area:1/1] ${
+      className={`text-center [backface-visibility:hidden] ${hidden ? "absolute inset-x-0 top-0" : "relative"} ${
         back ? "[transform:rotateY(180deg)]" : ""
       } ${hidden ? "pointer-events-none" : ""}`}
     >
