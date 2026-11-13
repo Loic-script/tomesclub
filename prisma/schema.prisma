@@ -38,6 +38,7 @@ model User {
   roomsCreated Room[]      @relation("RoomsCreated")
   roomInvites  RoomInvite[]
   paymentProofs PaymentProof[]
+  rings         Ring[]
   eventResponses EventResponse[]
   matchQueue   MatchQueue?
 
@@ -414,4 +415,27 @@ model PaymentProof {
 
   @@index([userId])
   @@map("payment_proof")
+}
+
+/// Un "appel entrant" à montrer en grand (comme un téléphone qui sonne) :
+/// un membre m appelle, une salle privée où je suis invité s ouvre, ou le direct d un événement où je suis inscrit commence.
+model Ring {
+  id         String    @id @default(cuid())
+  /// Qui reçoit l appel
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// call | room | event
+  kind       String
+  title      String
+  body       String?
+  /// Où aller si on décroche
+  link       String
+  /// Qui appelle (pour sa photo), null pour une salle ou un événement
+  fromUserId String?
+  /// Décroché ou raccroché (null = sonne encore)
+  answeredAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@map("ring")
 }

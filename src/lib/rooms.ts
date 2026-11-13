@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { notifyAdmin } from "@/lib/admin-notifications";
 import { createRoomServiceClient } from "@/lib/livekit";
 import { notifyAllMembers, notifyMembers } from "@/lib/notifications";
+import { ringMembers } from "@/lib/rings";
 import { prisma } from "@/lib/prisma";
 import { getActivity } from "@/lib/activities";
 
@@ -198,6 +199,10 @@ export async function createRoom(
         body: name.slice(0, 60),
         link: `/room/${room.id}`,
       },
+    );
+    await ringMembers(
+      invites.map((invite) => invite.userId),
+      { kind: "room", title: name.slice(0, 60), body: `${host} invites you to a private room`, link: `/room/${room.id}` },
     );
   }
 

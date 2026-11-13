@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { createRoomServiceClient } from "@/lib/livekit";
 import { notifyAdmin } from "@/lib/admin-notifications";
 import { notifyMembers } from "@/lib/notifications";
+import { ringMembers } from "@/lib/rings";
 import { prisma } from "@/lib/prisma";
 
 // Tout ce qui concerne les appels vidéo dans la base de données + LiveKit.
@@ -124,6 +125,17 @@ export async function createCall(
       title: `${creator?.name ?? "A member"} invited you to a video call`,
       body: "Tap to join the room.",
       link: `/call/${call.id}`,
+    },
+  );
+  // ... et ça sonne chez eux (fenêtre "appel entrant")
+  await ringMembers(
+    invited.map((user) => user.id),
+    {
+      kind: "call",
+      title: creator?.name ?? "A member",
+      body: "is calling you",
+      link: `/call/${call.id}`,
+      fromUserId: creatorId,
     },
   );
 

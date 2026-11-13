@@ -2,6 +2,7 @@ import "server-only";
 import { createRoomServiceClient } from "@/lib/livekit";
 import { notifyAllMembers } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { ringMembers } from "@/lib/rings";
 
 // Le direct video d un evenement : l admin le lance, les membres le rejoignent.
 
@@ -61,6 +62,15 @@ export async function startEventLive(eventId: string): Promise<boolean> {
     body: "The admin has started. Tap to join!",
     link: `/live/${event.id}`,
   });
+  // Les membres inscrits : la fenêtre "appel entrant" sonne chez eux.
+  const registered = await prisma.eventResponse.findMany({
+    where: { eventId: event.id, status: "registered" },
+    select: { userId: true },
+  });
+  await ringMembers(
+    registered.map((row) => row.userId),
+    { kind: "event", title: event.title, body: "The live is starting. Join now!", link: `/live/${event.id}` },
+  );
   return true;
 }
 

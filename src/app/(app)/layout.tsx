@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { CoachChat } from "@/components/coach-chat";
+import { IncomingCall } from "@/components/incoming-call";
 import { PresencePing } from "@/components/presence-ping";
 import { SideCalendar } from "@/components/side-calendar";
 import { SideCalendarWithEvents } from "@/components/side-calendar-events";
@@ -68,6 +69,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Le bouton rond en bas à droite : discuter avec le coach. */}
       <CoachChat />
+
+      {/* Un appel entrant (membre, salle privée, direct d'un événement) : la fenêtre qui sonne */}
+      <IncomingCall />
 
       {/* Dit au serveur que je suis en ligne (rien ne s'affiche). */}
       <PresencePing />

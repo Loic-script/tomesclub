@@ -1,5 +1,6 @@
 import "server-only";
 import { notifyMembers } from "@/lib/notifications";
+import { ringMembers } from "@/lib/rings";
 import { prisma } from "@/lib/prisma";
 import { openLiveKitRoom } from "@/lib/rooms";
 
@@ -46,6 +47,10 @@ export async function notifyInvitees(roomId: string, hostName: string, roomName:
       body: roomName,
       link: `/room/${roomId}`,
     },
+  );
+  await ringMembers(
+    invites.map((invite) => invite.userId),
+    { kind: "room", title: roomName, body: `${hostName} invites you to a private room`, link: `/room/${roomId}` },
   );
 }
 
