@@ -31,7 +31,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="neu fixed inset-x-2 bottom-4 z-20 mx-auto max-w-md rounded-full p-1.5 sm:inset-x-4 sm:p-2"
+      className="neu nav-glass fixed inset-x-2 bottom-4 z-20 mx-auto max-w-md rounded-full p-1.5 sm:inset-x-4 sm:p-2"
     >
       <ul className="flex items-center justify-between gap-0 sm:gap-1">
         {TABS.map((tab) => {

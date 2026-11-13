@@ -17,7 +17,7 @@ export function GlassCard({
   style?: CSSProperties;
 }) {
   return (
-    <section style={style} className={`neu rounded-3xl p-5 ${className}`}>
+    <section style={style} className={`neu rounded-3xl px-4 py-5 sm:p-5 ${className}`}>
       {children}
     </section>
   );
@@ -72,8 +72,9 @@ export function PageHeader({
   members?: boolean;
 }) {
   return (
-    <header className="anim-rise mb-6 flex items-center gap-3" style={delay(50)}>
-      <div className="min-w-0 flex-1">
+    // Téléphone : si les boutons ne tiennent pas à côté du titre, ils passent dessous (le titre n'est jamais coupé).
+    <header className="anim-rise mb-6 flex flex-wrap items-center gap-3" style={delay(50)}>
+      <div className="min-w-[min(100%,14rem)] flex-1">
         {eyebrow && (
           <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
             <span aria-hidden className="h-px w-5 rounded-full bg-accent/70" />
@@ -89,8 +90,12 @@ export function PageHeader({
           </p>
         )}
       </div>
-      {members && <MembersLink />}
-      {right}
+      {(members || right) && (
+        <div className="flex shrink-0 items-center gap-3">
+          {members && <MembersLink />}
+          {right}
+        </div>
+      )}
     </header>
   );
 }

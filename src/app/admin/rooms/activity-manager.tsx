@@ -56,7 +56,7 @@ export function ActivityManager({
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-2">
-        <div role="group" aria-label="Filter activities" className="flex gap-2">
+        <div role="group" aria-label="Filter activities" className="flex flex-wrap gap-2">
           {FILTERS.map((option) => {
             const count = activities.filter((activity) =>
               option.key === "all" ? true : option.key === "custom" ? activity.custom : !activity.custom,
@@ -68,7 +68,7 @@ export function ActivityManager({
                 type="button"
                 aria-pressed={active}
                 onClick={() => setFilter(option.key)}
-                className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition ${
+                className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-semibold transition ${
                   active
                     ? "bg-white text-navy shadow-lg"
                     : "neu-sm text-white/65 hover:text-white"
@@ -105,9 +105,9 @@ export function ActivityManager({
           No activity of your own yet. Click “Add an activity” to create one.
         </p>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {shown.map((activity) => (
-            <li key={activity.key}>
+            <li key={activity.key} className="min-w-0">
               <ActivityCard
                 activity={activity}
                 fileCount={files[activity.key]?.length ?? 0}
@@ -157,7 +157,7 @@ function ActivityCard({
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="truncate font-display text-[15px] font-bold text-white">{activity.name}</h3>
+            <h3 className="min-w-0 font-display text-[15px] font-bold leading-tight text-white">{activity.name}</h3>
           </div>
           <span
             className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
@@ -204,7 +204,7 @@ function ActivityCard({
         </div>
       )}
 
-      <div className="mt-auto flex items-center gap-2 pt-4">
+      <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
@@ -339,7 +339,7 @@ function ActivityForm({ activity, onDone }: { activity?: ManagedActivity; onDone
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="space-y-4">
           <div>
             <span className={label}>Icon</span>

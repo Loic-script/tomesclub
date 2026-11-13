@@ -88,7 +88,7 @@ export function Panel({
   style?: CSSProperties;
 }) {
   return (
-    <section style={style} className={`neu anim-rise min-w-0 rounded-3xl p-4 sm:p-6 ${className}`}>
+    <section style={style} className={`neu anim-rise min-w-0 rounded-3xl px-3 py-4 sm:p-6 ${className}`}>
       {(title || action) && (
         <header className="mb-4 flex items-center gap-3">
           {icon && (
@@ -96,7 +96,7 @@ export function Panel({
               {icon}
             </span>
           )}
-          <h2 className="min-w-0 flex-1 truncate font-display text-lg font-bold text-white">{title}</h2>
+          <h2 className="min-w-0 flex-1 font-display text-lg font-bold leading-tight text-white">{title}</h2>
           {action}
         </header>
       )}

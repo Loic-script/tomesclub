@@ -176,7 +176,7 @@ async function MemberProfile({ userId }: { userId: string }) {
           <p className="text-white/55">This member has not filled in the form yet.</p>
         </Panel>
       ) : (
-        <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
           <Panel style={delay(140)} title="Personal details" icon={<UsersIcon className="size-[18px]" />}>
             <dl className="space-y-4">
               <Field label="Date of birth" value={date(profile.birthDate)} />

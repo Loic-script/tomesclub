@@ -117,7 +117,7 @@ async function AdminHome() {
       </div>
 
       {/* ----- En direct : salles, événements, activité ----- */}
-      <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         <LiveRooms data={data} />
         <UpcomingEvents data={data} />
         <RecentActivity data={data} />
@@ -134,7 +134,7 @@ async function AdminHome() {
         {data.newest.length === 0 ? (
           <EmptyState icon={<UsersIcon />} title="No members yet" />
         ) : (
-          <ul className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
             {data.newest.map((member) => (
               <li key={member.id}>
                 <Link

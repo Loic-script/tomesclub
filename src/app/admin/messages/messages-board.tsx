@@ -79,7 +79,8 @@ export function MessagesBoard({
   }
 
   return (
-    <div className="neu anim-rise grid h-[calc(100dvh-14rem)] min-h-[440px] overflow-hidden rounded-3xl lg:-mb-8 lg:h-[calc(100dvh-6.5rem)] lg:grid-cols-[320px_1fr]">
+    // Téléphone : la carte touche les bords et descend jusqu'en bas de l'écran (derrière la barre du bas).
+    <div className="neu anim-rise -mx-4 -mb-32 grid h-[calc(100dvh-8.25rem)] min-h-[440px] overflow-hidden rounded-t-[1.75rem] max-lg:!border-x-0 max-lg:!border-b-0 sm:-mx-6 lg:mx-0 lg:-mb-8 lg:h-[calc(100dvh-6.5rem)] lg:grid-cols-[320px_1fr] lg:rounded-3xl">
       {/* ----- La liste des membres ----- */}
       <aside className={`min-h-0 flex-col border-white/10 lg:flex lg:border-r ${selected ? "hidden" : "flex"}`}>
         <div className="p-3">
@@ -95,7 +96,7 @@ export function MessagesBoard({
             />
           </label>
         </div>
-        <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto px-2 pb-3">
+        <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto px-2 pb-28 lg:pb-3">
           {visible.length === 0 && <li className="px-3 py-8 text-center text-sm text-white/50">No member found.</li>}
           {visible.map((item) => {
             const active = item.userId === selectedId;
@@ -141,7 +142,7 @@ export function MessagesBoard({
       </aside>
 
       {/* ----- La discussion ----- */}
-      <section className={`min-h-0 min-w-0 flex-col lg:flex ${selected ? "flex" : "hidden"}`}>
+      <section className={`min-h-0 min-w-0 flex-col max-lg:pb-24 lg:flex ${selected ? "flex" : "hidden"}`}>
         {selected ? (
           <>
             <header className="flex items-center gap-3 border-b border-white/10 bg-white/[0.04] px-3 py-3 sm:px-4">

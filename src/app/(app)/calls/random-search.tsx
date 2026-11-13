@@ -63,7 +63,7 @@ export function RandomSearchCard() {
   }
 
   return (
-    <section className="neu rounded-3xl p-6">
+    <section className="neu rounded-3xl px-4 py-5 sm:p-6">
       {searching ? (
         <div className="flex flex-col items-center gap-4 py-2 text-center">
           {/* Les ondes qui pulsent autour du téléphone */}
@@ -94,11 +94,11 @@ export function RandomSearchCard() {
           </button>
         </div>
       ) : (
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
           <span className="neu-inset flex size-14 shrink-0 items-center justify-center rounded-2xl text-accent">
             <SearchPhoneIcon />
           </span>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-[9rem] flex-1">
             <h2 className="font-display text-lg font-bold text-white">Random partner</h2>
             <p className="text-sm text-white/65">
               Practice English with a surprise member of the club.
@@ -108,14 +108,14 @@ export function RandomSearchCard() {
             type="button"
             onClick={start}
             disabled={pending}
-            className="neu-btn shrink-0 rounded-full bg-brand px-5 py-2.5 text-sm font-bold text-white shadow-md disabled:opacity-60"
+            className="neu-btn shrink-0 rounded-full bg-brand px-5 py-2.5 max-[420px]:w-full text-sm font-bold text-white shadow-md disabled:opacity-60"
           >
             {pending ? "..." : "Search"}
           </button>
         </div>
       )}
 
-      <p aria-live="polite" className="mt-3 min-h-5 text-center text-sm text-amber-300">
+      <p aria-live="polite" className="mt-3 text-center text-sm text-amber-300 empty:hidden">
         {message}
       </p>
     </section>

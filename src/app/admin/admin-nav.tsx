@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { BellIcon, CalendarIcon, ChatIcon, GridIcon, RoomIcon, UsersIcon } from "./admin-icons";
 
 /** Les pastilles : notifications pas lues + messages pas lus. */
@@ -73,41 +73,112 @@ export function AdminSideLinks({ badges }: { badges: AdminBadges }) {
   );
 }
 
-/** La barre du bas (téléphone et tablette), comme dans l'espace membre. */
+/** Les 4 onglets toujours visibles en bas ; les autres s'ouvrent avec le bouton "+". */
+const MAIN_TABS = TABS.slice(0, 4);
+const MORE_TABS = TABS.slice(4);
+
+const BOTTOM_ITEM =
+  "relative flex flex-col items-center gap-0.5 rounded-full px-0.5 py-2 text-[10px] font-semibold leading-tight transition-all duration-300 sm:text-[11px]";
+
+/** Un onglet de la barre du bas (icône + nom + pastille). */
+function BottomTab({
+  tab,
+  pathname,
+  badges,
+  onClick,
+}: {
+  tab: (typeof TABS)[number];
+  pathname: string;
+  badges: AdminBadges;
+  onClick?: () => void;
+}) {
+  const active = isActive(pathname, tab.href, tab.exact);
+  const Icon = tab.icon;
+  const unread = tab.badge && !(active && tab.badge !== "inbox" && tab.badge !== "messages") ? badges[tab.badge] : 0;
+  return (
+    <Link
+      href={tab.href}
+      onClick={onClick}
+      aria-current={active ? "page" : undefined}
+      className={`${BOTTOM_ITEM} ${active ? "neu-inset text-accent" : "text-white/60 hover:-translate-y-0.5 hover:text-white"}`}
+    >
+      <Icon />
+      {tab.label}
+      {unread > 0 && <Dot count={unread} />}
+    </Link>
+  );
+}
+
+function Dot({ count }: { count: number }) {
+  return (
+    <span className="absolute right-[18%] top-1 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold leading-4 text-navy">
+      {count > 9 ? "9+" : count}
+    </span>
+  );
+}
+
+/**
+ * La barre du bas (téléphone et tablette), comme dans l'espace membre.
+ * 4 onglets + un bouton "+" : il ouvre les autres onglets (Messages, Inbox) au-dessus,
+ * et devient "×" pour tout refermer.
+ */
 export function AdminBottomLinks({ badges }: { badges: AdminBadges }) {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
+  const moreActive = MORE_TABS.some((tab) => isActive(pathname, tab.href, tab.exact));
+  const moreUnread = MORE_TABS.reduce((total, tab) => total + badges[tab.badge], 0);
+
   return (
-    <nav
-      aria-label="Admin sections"
-      className="neu fixed inset-x-2 bottom-4 z-40 mx-auto max-w-md rounded-full p-1.5 sm:inset-x-4 sm:p-2 lg:hidden"
-    >
-      <ul className="flex items-center justify-between">
-        {TABS.map((tab) => {
-          const active = isActive(pathname, tab.href, tab.exact);
-          const Icon = tab.icon;
-          const unread = tab.badge && !(active && tab.badge !== "inbox" && tab.badge !== "messages") ? badges[tab.badge] : 0;
-          return (
+    <div className="fixed inset-x-2 bottom-4 z-40 mx-auto max-w-md sm:inset-x-4 lg:hidden">
+      {/* Les autres onglets : sortent au-dessus du bouton "+" */}
+      <nav
+        aria-label="More admin sections"
+        inert={!open}
+        className={`neu nav-glass absolute bottom-full right-0 mb-3 flex w-44 gap-1 rounded-[1.75rem] p-1.5 transition-all duration-300 [transform-origin:bottom_right] ${
+          open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-2 scale-90 opacity-0"
+        }`}
+      >
+        {MORE_TABS.map((tab) => (
+          <div key={tab.href} className="flex-1">
+            <BottomTab tab={tab} pathname={pathname} badges={badges} onClick={close} />
+          </div>
+        ))}
+      </nav>
+
+      <nav aria-label="Admin sections" className="neu nav-glass rounded-full p-1.5 sm:p-2">
+        <ul className="flex items-center">
+          {MAIN_TABS.map((tab) => (
             <li key={tab.href} className="flex-1">
-              <Link
-                href={tab.href}
-                aria-current={active ? "page" : undefined}
-                className={`relative flex flex-col items-center gap-0.5 rounded-full px-0.5 py-2 text-[9px] min-[400px]:text-[10px] font-semibold leading-tight transition-all duration-300 sm:text-[11px] ${
-                  active ? "neu-inset text-accent" : "text-white/60 hover:-translate-y-0.5 hover:text-white"
-                }`}
-              >
-                <Icon />
-                {tab.label}
-                {unread > 0 && (
-                  <span className="absolute right-[18%] top-1 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold text-navy">
-                    {unread > 9 ? "9+" : unread}
-                  </span>
-                )}
-              </Link>
+              <BottomTab tab={tab} pathname={pathname} badges={badges} onClick={close} />
             </li>
-          );
-        })}
-      </ul>
-    </nav>
+          ))}
+          <li className="flex-1">
+            <button
+              type="button"
+              onClick={() => setOpen((value) => !value)}
+              aria-expanded={open}
+              aria-label={open ? "Hide the other menus" : "Show all menus"}
+              className={`${BOTTOM_ITEM} w-full ${
+                moreActive && !open ? "neu-inset text-accent" : open ? "text-accent" : "text-white/60 hover:text-white"
+              }`}
+            >
+              <PlusIcon className={`size-5 transition-transform duration-300 ${open ? "rotate-45" : ""}`} />
+              {open ? "Close" : "More"}
+              {!open && moreUnread > 0 && <Dot count={moreUnread} />}
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  );
+}
+
+function PlusIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className={className} aria-hidden>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
   );
 }
 

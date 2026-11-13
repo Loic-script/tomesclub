@@ -35,7 +35,7 @@ export function EventSessionFields({
   const topics = chosen?.topics ?? [];
 
   return (
-    <div className="anim-dropdown grid gap-4 sm:grid-cols-2">
+    <div className="anim-dropdown grid grid-cols-1 gap-4 sm:grid-cols-2">
       <label className="block">
         <span className={labelClass}>Activity</span>
         {/* Une activité de la liste, ou sa propre activité (on l'écrit) */}
