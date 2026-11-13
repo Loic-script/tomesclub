@@ -22,7 +22,7 @@ export async function createRoomAction(
 
   // Salle privée : verrouillée pour un simple membre ; Leader / Teacher → l'admin doit accepter.
   if (input.isPrivate && (await privateModeFor(user.id)) === "locked") {
-    return { error: "Only Leaders and Teachers can open a private room." };
+    return { error: "Please finish your profile before opening a private room." };
   }
   if (input.isPrivate) {
     // Une capture qui n'est pas la sienne ne compte pas.

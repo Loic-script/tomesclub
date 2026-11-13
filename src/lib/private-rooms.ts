@@ -4,18 +4,19 @@ import { prisma } from "@/lib/prisma";
 import { openLiveKitRoom } from "@/lib/rooms";
 
 // Les salles privées :
-//  - un simple membre ne peut pas en ouvrir ;
-//  - un Leader / Teacher peut, mais l'admin doit d'abord accepter ;
+//  - tout membre (Member, Leader, Teacher) peut en ouvrir : il paie par MVola,
+//    puis l admin vérifie et accepte ;
 //  - l'admin en ouvre directement ;
 //  - seuls l'hôte, l'admin et les membres invités par l'hôte peuvent entrer.
 
 /** Qui peut ouvrir une salle privée, et comment. */
 export type PrivateRoomMode = "locked" | "approval" | "direct";
 
-/** member → "locked" ; leader / teacher → "approval" (l'admin doit accepter). */
+/** Tout membre au profil terminé → "approval" (paiement + accord de l admin). */
 export async function privateModeFor(userId: string): Promise<PrivateRoomMode> {
-  const profile = await prisma.profile.findUnique({ where: { userId }, select: { role: true } });
-  return profile?.role === "leader" || profile?.role === "teacher" ? "approval" : "locked";
+  // Tous les membres (Member, Leader, Teacher) : paiement MVola, puis accord de l admin.
+  const member = await prisma.profile.findUnique({ where: { userId }, select: { completedAt: true } });
+  return member?.completedAt ? "approval" : "locked";
 }
 
 export type InvitableMember = { id: string; name: string; hasPhoto: boolean };

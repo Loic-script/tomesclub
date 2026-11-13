@@ -31,7 +31,7 @@ export type PaymentInfo = { price: number; mvola: string | null; receiver: strin
 const formatAr = (amount: number) => `${new Intl.NumberFormat("fr-FR").format(amount)} Ar`;
 
 const PRIVATE_HINT: Record<PrivateMode, string> = {
-  locked: "Private rooms are for Leaders and Teachers.",
+  locked: "Finish your profile to open a private room.",
   approval: "Only the members you invite can join. The admin must approve it first.",
   direct: "Only the members you invite can join.",
 };
