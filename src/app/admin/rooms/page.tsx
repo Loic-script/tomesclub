@@ -58,7 +58,7 @@ async function AdminRooms() {
           className="mb-5 ring-1 ring-amber-300/30"
           style={delay(80)}
           title="Private room requests"
-          icon={<span aria-hidden>🔒</span>}
+          icon={<LockIcon />}
           action={<Chip tone="warn">{pendingRooms.length} waiting</Chip>}
         >
           <PendingPrivateRooms
@@ -139,7 +139,7 @@ async function AdminRooms() {
                           )}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-1.5">
-                          {room.isPrivate && <Chip>🔒 Private</Chip>}
+                          {room.isPrivate && <Chip>Private</Chip>}
                           {room.level && <Chip tone="navy">{levelLabel(room.level)}</Chip>}
                           {room.format && <Chip>{room.format}</Chip>}
                         </div>
@@ -200,5 +200,15 @@ async function AdminRooms() {
         />
       </Panel>
     </>
+  );
+}
+
+/** Un cadenas fin (même style que les autres icônes de l'admin). */
+function LockIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-[18px]">
+      <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" />
+      <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
+    </svg>
   );
 }

@@ -179,7 +179,7 @@ function ActivityCard({
         <span
           className={`rounded-full px-2.5 py-1 ${fileCount > 0 ? "bg-accent/15 font-semibold text-accent" : "bg-white/[0.07] text-white/70"}`}
         >
-          📎 {fileCount} {fileCount === 1 ? "file" : "files"}
+          {fileCount} {fileCount === 1 ? "file" : "files"}
         </span>
       </div>
 

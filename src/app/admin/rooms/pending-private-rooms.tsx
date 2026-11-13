@@ -42,7 +42,7 @@ function PendingRow({ room }: { room: PendingRoomView }) {
         </span>
         <div className="min-w-0 flex-1">
           <p className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-white">
-            🔒 {room.name}
+            {room.name}
           </p>
           <p className="mt-0.5 text-xs text-white/60">
             {room.hostName} · <span className="text-accent">{userTypeLabel(room.hostRole)}</span> · asked{" "}
@@ -62,7 +62,7 @@ function PendingRow({ room }: { room: PendingRoomView }) {
           </p>
           {room.payment ? (
             <p className="mt-2 inline-flex flex-wrap items-center gap-1.5 rounded-xl bg-emerald-500/10 px-2.5 py-1.5 text-xs text-emerald-100 ring-1 ring-emerald-400/30">
-              💳 Paid {room.payment.amount} by <strong>MVola</strong>
+              Paid {room.payment.amount} by <strong>MVola</strong>
               {room.payment.ref && (
                 <>
                   {" "}· ref{" "}
@@ -76,7 +76,7 @@ function PendingRow({ room }: { room: PendingRoomView }) {
                   rel="noreferrer"
                   className="rounded-full bg-white/10 px-2 py-0.5 font-semibold text-white hover:bg-white/20"
                 >
-                  📷 View screenshot
+                  View screenshot
                 </a>
               )}
               <span className="text-emerald-200/70">— check it before accepting</span>

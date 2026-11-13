@@ -223,7 +223,7 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
                   title="See the payment screenshot"
                   className="shrink-0 rounded-full bg-white/10 px-2 py-1 text-[11px] font-semibold text-white/80 hover:bg-white/20 hover:text-white"
                 >
-                  📷
+                  Screenshot
                 </a>
               )}
               {event.isPaid && <PaidToggle eventId={event.id} userId={person.id} paid={person.paid} />}

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -111,7 +112,7 @@ export function PaymentDialog({
 
         {/* MVola */}
         <div className="mt-4 flex items-center gap-3 rounded-2xl bg-gradient-to-br from-[#ffd400] to-[#f5b800] p-3.5 text-[#1b1b1b] shadow-lg">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-[#1b1b1b] text-sm font-black text-[#ffd400]">M</span>
+          <Image src="/mvola.png" alt="MVola" width={40} height={40} className="size-10 shrink-0 rounded-xl object-cover shadow-sm" />
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-extrabold">Pay with MVola</span>
             <span className="block text-xs opacity-75">{receiver ? `To ${receiver}` : "To the Tomes Club admin"}</span>
@@ -204,7 +205,6 @@ export function PaymentDialog({
                   disabled={uploading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-white/25 px-3 py-3 text-sm font-semibold text-white/75 transition hover:border-accent hover:text-white disabled:opacity-60"
                 >
-                  <span aria-hidden>📷</span>
                   {uploading ? "Sending the picture..." : "Add a screenshot of the payment"}
                 </button>
               )}

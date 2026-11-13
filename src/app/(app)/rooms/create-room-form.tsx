@@ -558,7 +558,7 @@ function RoomOptions({
           <input type="hidden" name="paymentRef" value={paid.ref} />
           <input type="hidden" name="paymentProofId" value={paid.proofId ?? ""} />
           <span>
-            💳 {formatAr(payment!.price)} paid by <strong>MVola</strong>
+            {formatAr(payment!.price)} paid by <strong>MVola</strong>
             {paid.ref && (
               <>
                 {" "}· ref <code className="font-mono">{paid.ref}</code>
