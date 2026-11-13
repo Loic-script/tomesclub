@@ -35,13 +35,13 @@ model User {
   profile Profile?
 
   // Salles de groupe créées + file d'attente "appel au hasard"
-  roomsCreated Room[]      @relation("RoomsCreated")
-  roomInvites  RoomInvite[]
-  paymentProofs PaymentProof[]
-  rings         Ring[]
-  eventsCreated Event[] @relation("EventsCreated")
+  roomsCreated   Room[]          @relation("RoomsCreated")
+  roomInvites    RoomInvite[]
+  paymentProofs  PaymentProof[]
+  rings          Ring[]
+  eventsCreated  Event[]         @relation("EventsCreated")
   eventResponses EventResponse[]
-  matchQueue   MatchQueue?
+  matchQueue     MatchQueue?
 
   // Les notifications reçues (appels, événements, annonces)
   notifications Notification[]
@@ -112,36 +112,36 @@ model Verification {
 
 /// Les réponses du formulaire d'accueil d'un membre.
 model Profile {
-  userId       String    @id
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  firstName    String
-  lastName     String
-  birthDate    DateTime?
-  country      String?
-  city         String? // où il habite
-  phone        String?
+  userId        String    @id
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName     String
+  lastName      String
+  birthDate     DateTime?
+  country       String?
+  city          String? // où il habite
+  phone         String?
   /// Occupations cochées, avec le détail de chacune :
   /// [{ "kind": "student", "detail": "informatique" }, ...]
-  occupations  Json?
-  languages    String[]  @default([]) // langues parlées
-  englishLevel String? // beginner | elementary | intermediate | advanced
+  occupations   Json?
+  languages     String[]  @default([]) // langues parlées
+  englishLevel  String? // beginner | elementary | intermediate | advanced
   /// Le type confirmé : member (tout le monde au départ) | leader | teacher
-  role         String    @default("member")
+  role          String    @default("member")
   /// La demande en attente de validation par l admin : leader | teacher (null = aucune)
-  roleRequest  String?
-  interests    String[]  @default([]) // centres d'intérêt
-  photo        Bytes? // la photo du membre (petite image)
-  photoType    String? // ex : image/jpeg
-  completedAt  DateTime? // rempli = formulaire terminé
+  roleRequest   String?
+  interests     String[]  @default([]) // centres d'intérêt
+  photo         Bytes? // la photo du membre (petite image)
+  photoType     String? // ex : image/jpeg
+  completedAt   DateTime? // rempli = formulaire terminé
   /// Réglages des notifications (le membre peut les couper)
-  notifyCalls  Boolean   @default(true) // quand on m'appelle
-  notifyEvents Boolean   @default(true) // nouveaux événements et annonces
-  notifyFollows Boolean  @default(true) // quand quelqu'un m'ajoute (follow)
-  notifyRooms   Boolean  @default(true) // quand une salle de groupe s'ouvre
+  notifyCalls   Boolean   @default(true) // quand on m'appelle
+  notifyEvents  Boolean   @default(true) // nouveaux événements et annonces
+  notifyFollows Boolean   @default(true) // quand quelqu'un m'ajoute (follow)
+  notifyRooms   Boolean   @default(true) // quand une salle de groupe s'ouvre
   /// Dernier signe de vie du navigateur : sert à afficher le point vert "en ligne"
-  lastSeenAt   DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @default(now()) @updatedAt
+  lastSeenAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
 
   @@map("profile")
 }
@@ -181,33 +181,33 @@ model CallParticipant {
 /// Une salle de groupe. Salle LiveKit : "room_<id>".
 /// Privée = cachée de la liste publique, on y entre seulement avec le lien.
 model Room {
-  id          String   @id @default(cuid())
-  name        String
-  topic       String? // le thème de la conversation (proposé ou écrit par l hôte)
-  isPrivate   Boolean  @default(false)
+  id              String       @id @default(cuid())
+  name            String
+  topic           String? // le thème de la conversation (proposé ou écrit par l hôte)
+  isPrivate       Boolean      @default(false)
   /// L activité choisie (clé du catalogue : "debate", "open-discussion"...)
-  activity    String?
-  description String?
-  format      String? // ex : "Team debate", "Breakout pairs"
-  level       String? // all | beginner | elementary | intermediate | advanced
-  durationMin Int? // 1 à 30 minutes
+  activity        String?
+  description     String?
+  format          String? // ex : "Team debate", "Breakout pairs"
+  level           String? // all | beginner | elementary | intermediate | advanced
+  durationMin     Int? // 1 à 30 minutes
   maxParticipants Int? // limite choisie par l hôte (2 à 20)
   /// null = salle ouverte par le coach (session admin, sans compte membre)
-  createdById String?
-  createdBy   User?    @relation("RoomsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  createdById     String?
+  createdBy       User?        @relation("RoomsCreated", fields: [createdById], references: [id], onDelete: Cascade)
   /// Salle privée d un Leader / Teacher : en attente de l accord de l admin (pas encore dans LiveKit)
-  pendingApproval Boolean @default(false)
+  pendingApproval Boolean      @default(false)
   /// Salle privée refusée par l admin : la page d attente renvoie l hôte vers Rooms (puis la salle est supprimée)
-  refusedAt DateTime?
+  refusedAt       DateTime?
   /// Salle privée payante : comment l hôte a payé l admin (mvola | orange), la référence et le montant (Ar)
-  paymentMethod String?
-  paymentRef    String?
-  paymentAmount Int?
+  paymentMethod   String?
+  paymentRef      String?
+  paymentAmount   Int?
   /// Ou une capture d écran du paiement (table payment_proof)
-  paymentProofId String?
+  paymentProofId  String?
   /// Les membres invités par l hôte (salle privée)
-  invites     RoomInvite[]
-  createdAt   DateTime @default(now())
+  invites         RoomInvite[]
+  createdAt       DateTime     @default(now())
 
   @@index([createdById])
   @@map("room")
@@ -228,32 +228,34 @@ model RoomInvite {
 
 /// Un événement du club (cours programmé...) ou une annonce de l'admin.
 model Event {
-  id          String    @id @default(cuid())
-  kind        String // "event" (avec date) | "announcement" (annonce)
-  title       String
-  description String?
-  startsAt    DateTime? // la date du cours/événement (null pour une annonce)
-  image       Bytes? // l'image de la carte (facultative)
-  imageType   String? // ex : image/jpeg
+  id              String          @id @default(cuid())
+  kind            String // "event" (avec date) | "announcement" (annonce)
+  title           String
+  description     String?
+  startsAt        DateTime? // la date du cours/événement (null pour une annonce)
+  image           Bytes? // l'image de la carte (facultative)
+  imageType       String? // ex : image/jpeg
   /// Le direct vidéo de l événement : lancé par l admin, terminé par l admin.
-  liveStartedAt DateTime?
-  liveEndedAt   DateTime?
+  liveStartedAt   DateTime?
+  liveEndedAt     DateTime?
+  /// Le rappel « l'événement commence dans 24 h » : quand il a été envoyé (null = pas encore)
+  reminderSentAt  DateTime?
   /// Payant ou gratuit. Si payant : le tarif (nombre entier) et la monnaie (Ar, €, $).
   /// Qui organise : null = l admin ; sinon un Leader / Teacher (son événement doit être validé par l admin)
-  createdById String?
-  createdBy   User?    @relation("EventsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  createdById     String?
+  createdBy       User?           @relation("EventsCreated", fields: [createdById], references: [id], onDelete: Cascade)
   /// published (visible) | pending (attend l admin) | refused
-  status      String   @default("published")
+  status          String          @default("published")
   /// Le direct vidéo : l activité (clé du catalogue), le thème, la durée (min, max 120) et la limite de personnes (max 60)
   activity        String?
   topic           String?
   durationMin     Int?
   maxParticipants Int?
-  isPaid      Boolean   @default(false)
-  price       Int?
-  currency    String?
-  createdAt   DateTime  @default(now())
-  responses   EventResponse[]
+  isPaid          Boolean         @default(false)
+  price           Int?
+  currency        String?
+  createdAt       DateTime        @default(now())
+  responses       EventResponse[]
 
   @@index([kind, startsAt])
   @@map("event")
@@ -261,17 +263,17 @@ model Event {
 
 /// Un membre inscrit à un événement (status = "registered").
 model EventResponse {
-  eventId   String
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status    String // registered
+  eventId        String
+  event          Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status         String // registered
   /// Événement payant : la date où l admin a confirmé le paiement (null = pas encore payé)
-  paidAt    DateTime?
+  paidAt         DateTime?
   /// Événement payant : la référence MVola donnée par le membre, et/ou sa capture d écran
   paymentRef     String?
   paymentProofId String?
-  createdAt DateTime @default(now())
+  createdAt      DateTime  @default(now())
 
   @@id([eventId, userId, status])
   @@index([userId])
