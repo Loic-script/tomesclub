@@ -1,26 +1,31 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import { delay, PageHeader } from "@/components/app-ui";
 import { MemberAvatar } from "@/components/member-avatar";
 import { OCCUPATIONS, userTypeLabel } from "@/lib/onboarding-options";
-import { getFullProfile } from "@/lib/profile";
+import { getFullProfile, getProfileFormInitial } from "@/lib/profile";
 import { requireMember } from "@/lib/session";
+import { EditProfileLauncher } from "./edit-profile-launcher";
 
 export const metadata: Metadata = { title: "Profile" };
 
-// Page /profile : ma fiche, avec le bouton pour la modifier.
-export default function ProfilePage() {
+// Page /profile : ma carte de membre. Le crayon sur la carte ouvre la fenêtre "Edit profile".
+// /profile?edit=1 ouvre directement la fenêtre.
+export default function ProfilePage({ searchParams }: PageProps<"/profile">) {
   return (
     <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
-      <ProfileHome />
+      <ProfileHome searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function ProfileHome() {
+async function ProfileHome({ searchParams }: { searchParams: PageProps<"/profile">["searchParams"] }) {
   const user = await requireMember();
-  const profile = await getFullProfile(user.id);
+  const [profile, formInitial, params] = await Promise.all([
+    getFullProfile(user.id),
+    getProfileFormInitial(user.id),
+    searchParams,
+  ]);
   if (!profile) return null; // impossible en pratique : requireMember vérifie déjà
 
   const occupations = Array.isArray(profile.occupations)
@@ -41,23 +46,15 @@ async function ProfileHome() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Your member card"
-        title="Profile"
-        right={
-          <Link
-            href="/profile/edit"
-            className="neu-sm neu-btn rounded-full px-4 py-2 text-sm font-semibold text-white"
-          >
-            Edit
-          </Link>
-        }
-      />
+      <PageHeader eyebrow="Your member card" title="Profile" />
 
       <div className="space-y-6">
         {/* ----- Le badge de membre, comme une carte d'identité du club ----- */}
         <div className="anim-pop mx-auto w-full max-w-xs" style={delay(150)}>
           <div className="relative overflow-hidden rounded-[1.75rem] bg-white pb-6 text-zinc-900 shadow-[0_26px_55px_-18px_rgba(0,0,0,0.65)]">
+            {/* Le crayon : modifier ma fiche (fenêtre aux couleurs de la carte) */}
+            {formInitial && <EditProfileLauncher initial={formInitial} defaultOpen={params.edit === "1"} />}
+
             {/* La fente du badge (pour le cordon) */}
             <div className="relative z-10 pt-4">
               <div className="mx-auto h-2.5 w-16 rounded-full bg-zinc-200 shadow-inner" />

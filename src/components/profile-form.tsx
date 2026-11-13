@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   startTransition,
   useActionState,
+  useEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -27,7 +28,7 @@ import {
 //  - mode "onboarding" : juste après la première connexion ;
 //  - mode "edit" : modifier son profil depuis l'application.
 
-export type ProfileFormState = { error: string | null };
+export type ProfileFormState = { error: string | null; saved?: boolean };
 
 export type ProfileFormInitial = {
   firstName: string;
@@ -70,7 +71,13 @@ export function ProfileForm({
   mode,
   initial,
   action,
+  onClose,
+  onSaved,
 }: {
+  /** Mode fenêtre (Edit profile) : fermer la fenêtre */
+  onClose?: () => void;
+  /** Mode fenêtre : appelé quand l'enregistrement a réussi */
+  onSaved?: () => void;
   mode: "onboarding" | "edit";
   initial: ProfileFormInitial;
   action: (
@@ -79,6 +86,10 @@ export function ProfileForm({
   ) => Promise<ProfileFormState>;
 }) {
   const [state, formAction, pending] = useActionState(action, initialState);
+  const inModal = mode === "edit" && Boolean(onClose);
+  useEffect(() => {
+    if (state.saved) onSaved?.();
+  }, [state.saved, onSaved]);
   const [step, setStep] = useState(0);
   const [stepError, setStepError] = useState<string | null>(null);
 
@@ -171,10 +182,15 @@ export function ProfileForm({
   }
 
   function submit() {
-    const error = validateStep(step);
-    if (error) {
-      setStepError(error);
-      return;
+    // En modification on peut enregistrer depuis n'importe quelle étape : on les vérifie toutes.
+    const toCheck = mode === "edit" ? STEPS.map((_, index) => index) : [step];
+    for (const index of toCheck) {
+      const error = validateStep(index);
+      if (error) {
+        setStep(index);
+        setStepError(error);
+        return;
+      }
     }
     setStepError(null);
 
@@ -215,7 +231,32 @@ export function ProfileForm({
         : "Finish without photo";
 
   return (
-    <div className="anim-rise relative w-full max-w-2xl overflow-hidden rounded-[2rem] bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15">
+    <div
+      className={`anim-rise relative w-full max-w-2xl overflow-hidden rounded-[2rem] bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 ${
+        inModal ? "flex max-h-[92dvh] flex-col" : ""
+      }`}
+    >
+      {/* En fenêtre : le bandeau diagonal de la carte de membre, le titre et le bouton fermer */}
+      {inModal && (
+        <div className="relative h-24 shrink-0">
+          <svg aria-hidden viewBox="0 0 320 100" preserveAspectRatio="none" className="absolute inset-0 size-full">
+            <polygon points="0,0 320,0 320,48 0,96" fill="#9c0b3b" />
+            <polygon points="0,0 320,0 320,26 0,70" fill="#2e3192" opacity="0.92" />
+            <polygon points="215,0 320,0 320,58" fill="#f7944a" />
+          </svg>
+          <p className="relative px-6 pt-5 font-display text-2xl font-extrabold text-white drop-shadow sm:px-8">Edit profile</p>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute right-4 top-4 flex size-9 items-center justify-center rounded-full bg-white text-navy shadow-lg transition hover:scale-105 hover:text-brand"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" aria-hidden className="size-4">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </div>
+      )}
       {/* Touches de couleur très douces dans le blanc (comme la page de connexion) */}
       <div
         aria-hidden
@@ -226,10 +267,10 @@ export function ProfileForm({
         className="pointer-events-none absolute -bottom-28 -left-20 size-56 rounded-full bg-accent/10 blur-3xl"
       />
 
-      <div className="relative p-6 sm:p-10">
+      <div className={`relative ${inModal ? "overflow-y-auto px-6 pb-6 pt-1 sm:px-8" : "p-6 sm:p-10"}`}>
         {/* ----- En-tête : logo + titre + étape ----- */}
         <header className="mb-7">
-          <div className="anim-rise flex items-center gap-4" style={delay(100)}>
+          <div className={`anim-rise flex items-center gap-4 ${inModal ? "hidden" : ""}`} style={delay(100)}>
             <span className="relative shrink-0">
               <span
                 aria-hidden
@@ -264,7 +305,7 @@ export function ProfileForm({
           </div>
 
           {/* Les étapes : des cercles numérotés reliés par une ligne */}
-          <ol className="anim-rise mt-7 flex items-start" style={delay(200)}>
+          <ol className={`anim-rise flex items-start ${inModal ? "mt-1" : "mt-7"}`} style={delay(200)}>
             {STEPS.map((item, index) => {
               const done = index < step;
               const current = index === step;
@@ -286,9 +327,16 @@ export function ProfileForm({
                       />
                     </span>
                   )}
-                  <span
+                  <button
+                    type="button"
+                    disabled={mode !== "edit"}
+                    onClick={() => {
+                      setStepError(null);
+                      setStep(index);
+                    }}
+                    aria-label={item.title}
                     aria-current={current ? "step" : undefined}
-                    className={`relative z-10 flex size-8 items-center justify-center rounded-full text-sm font-bold transition-all duration-300 ${
+                    className={`relative z-10 flex size-8 items-center justify-center rounded-full text-sm font-bold transition-all duration-300 enabled:hover:scale-110 ${
                       done
                         ? "bg-accent text-white shadow-md shadow-accent/30"
                         : current
@@ -297,7 +345,7 @@ export function ProfileForm({
                     }`}
                   >
                     {done ? "✓" : index + 1}
-                  </span>
+                  </button>
                   <span
                     className={`mt-2 hidden text-[11px] font-semibold sm:block ${
                       current
@@ -317,7 +365,7 @@ export function ProfileForm({
 
         <div
           aria-hidden
-          className="mb-7 h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent"
+          className={`h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent ${inModal ? "mb-5 mt-5" : "mb-7"}`}
         />
 
         {/* ----- Le contenu de l'étape (re-animé à chaque changement) ----- */}
@@ -600,7 +648,27 @@ export function ProfileForm({
           </p>
         )}
 
-        <div className="mt-7 flex items-center justify-between gap-3 border-t border-zinc-100 pt-5">
+        {inModal && (
+          <div className="sticky bottom-0 -mx-6 mt-6 flex items-center justify-end gap-3 border-t border-zinc-100 bg-white/95 px-6 py-4 backdrop-blur sm:-mx-8 sm:px-8">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={pending}
+              className="rounded-full px-5 py-2.5 text-sm font-semibold text-zinc-600 ring-1 ring-zinc-200 transition hover:bg-zinc-50 hover:text-navy"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={submit}
+              disabled={pending}
+              className="rounded-full bg-gradient-to-r from-brand to-[#c2185b] px-7 py-3 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(156,11,59,0.8)] transition hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60"
+            >
+              {pending ? "Saving..." : "Save changes"}
+            </button>
+          </div>
+        )}
+        <div className={`mt-7 flex items-center justify-between gap-3 border-t border-zinc-100 pt-5 ${inModal ? "hidden" : ""}`}>
           <button
             type="button"
             onClick={goBack}

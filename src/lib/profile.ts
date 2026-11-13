@@ -1,4 +1,5 @@
 import "server-only";
+import type { ProfileFormInitial } from "@/components/profile-form";
 import {
   ENGLISH_LEVELS,
   MAX_PHOTO_BYTES,
@@ -37,6 +38,7 @@ export function getFullProfile(userId: string) {
       interests: true,
       photoType: true,
       completedAt: true,
+      updatedAt: true,
       role: true,
       roleRequest: true,
     },
@@ -165,4 +167,30 @@ export async function saveProfileFromForm(
   }
 
   return null;
+}
+
+/** Les valeurs de départ du formulaire "Edit profile" (null si la fiche n'est pas terminée). */
+export async function getProfileFormInitial(userId: string): Promise<ProfileFormInitial | null> {
+  const profile = await getFullProfile(userId);
+  if (!profile?.completedAt) return null;
+  const occupations = Array.isArray(profile.occupations)
+    ? (profile.occupations as { kind?: string; detail?: string }[]).flatMap((entry) =>
+        entry.kind ? [{ kind: entry.kind, detail: entry.detail ?? "" }] : [],
+      )
+    : [];
+  return {
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    birthDate: profile.birthDate ? profile.birthDate.toISOString().slice(0, 10) : "",
+    country: profile.country ?? "",
+    city: profile.city ?? "",
+    phone: profile.phone ?? "",
+    occupations,
+    languages: profile.languages,
+    englishLevel: profile.englishLevel ?? "",
+    interests: profile.interests,
+    userType: profile.roleRequest ?? profile.role,
+    userTypePending: Boolean(profile.roleRequest),
+    photoUrl: profile.photoType ? `/api/profile/photo/${userId}?v=${profile.updatedAt.getTime()}` : null,
+  };
 }
