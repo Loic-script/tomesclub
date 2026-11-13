@@ -22,9 +22,9 @@ function friendlyError(code: string | undefined, message: string | undefined): s
 
 export function EmailAuthForm({ mode }: { mode: "signin" | "register" }) {
   const router = useRouter();
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,13 +34,14 @@ export function EmailAuthForm({ mode }: { mode: "signin" | "register" }) {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    if (register && !name.trim()) return setError("Please write your name.");
     if (register && password.length < MIN_PASSWORD) {
       return setError(`The password needs at least ${MIN_PASSWORD} characters.`);
     }
+    if (register && password !== confirm) return setError("The two passwords are not the same.");
     setPending(true);
     const result = register
-      ? await authClient.signUp.email({ name: name.trim(), email: email.trim(), password })
+      ? // Le nom est demandé juste après, dans le formulaire d'accueil : en attendant, le début de l'email.
+        await authClient.signUp.email({ name: email.trim().split("@")[0] || "Member", email: email.trim(), password })
       : await authClient.signIn.email({ email: email.trim(), password });
     if (result.error) {
       setPending(false);
@@ -53,20 +54,6 @@ export function EmailAuthForm({ mode }: { mode: "signin" | "register" }) {
 
   return (
     <form onSubmit={submit} className="space-y-3 text-left" noValidate>
-      {register && (
-        <Field label="Your name" icon={<UserIcon />}>
-          <input
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            autoComplete="name"
-            required
-            maxLength={80}
-            placeholder="e.g. Faneva Rakoto"
-            className={input}
-          />
-        </Field>
-      )}
-
       <Field label="Email" icon={<MailIcon />}>
         <input
           type="email"
@@ -105,6 +92,33 @@ export function EmailAuthForm({ mode }: { mode: "signin" | "register" }) {
         />
       </Field>
 
+      {register && (
+        <Field
+          label="Confirm password"
+          icon={<LockIcon />}
+          right={
+            confirm && (
+              <span
+                aria-label={confirm === password ? "The passwords match" : "The passwords are different"}
+                className={`mr-1 text-sm font-bold ${confirm === password ? "text-emerald-500" : "text-red-400"}`}
+              >
+                {confirm === password ? "✓" : "✕"}
+              </span>
+            )
+          }
+        >
+          <input
+            type={showPassword ? "text" : "password"}
+            value={confirm}
+            onChange={(event) => setConfirm(event.target.value)}
+            autoComplete="new-password"
+            required
+            placeholder="Write the password again"
+            className={input}
+          />
+        </Field>
+      )}
+
       {error && (
         <p aria-live="polite" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-red-200">
           {error}
@@ -113,7 +127,7 @@ export function EmailAuthForm({ mode }: { mode: "signin" | "register" }) {
 
       <button
         type="submit"
-        disabled={pending || !email.trim() || !password}
+        disabled={pending || !email.trim() || !password || (register && !confirm)}
         className="w-full rounded-full bg-gradient-to-r from-brand to-[#c2185b] px-5 py-3 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(156,11,59,0.8)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-10px_rgba(156,11,59,0.9)] active:translate-y-0 disabled:translate-y-0 disabled:opacity-60"
       >
         {pending ? "Please wait..." : register ? "Create my account" : "Sign in"}
@@ -174,15 +188,6 @@ function LockIcon() {
     <svg {...iconProps}>
       <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" />
       <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
-    </svg>
-  );
-}
-
-function UserIcon() {
-  return (
-    <svg {...iconProps}>
-      <circle cx="12" cy="8" r="3.6" />
-      <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
     </svg>
   );
 }
