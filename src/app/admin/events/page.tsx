@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { markAdminTabRead } from "@/lib/admin-notifications";
 import { userTypeLabel } from "@/lib/onboarding-options";
 import { formatEventPrice } from "@/lib/event-price";
 import { formatMoney, revenueOf } from "@/lib/member-events";
@@ -82,6 +83,8 @@ function toInputValue(date: Date): string {
 
 async function AdminEvents() {
   await requireAdmin();
+  // Ce menu est ouvert : sa pastille disparaît
+  await markAdminTabRead("events");
   const [events, activities] = await Promise.all([
     loadEvents(),
     listActivities(),

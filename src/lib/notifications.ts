@@ -156,3 +156,36 @@ export async function setNotificationSetting(
 ): Promise<void> {
   await prisma.profile.update({ where: { userId }, data: { [field]: value } });
 }
+
+/** Quel menu de la barre du bas montre quelles sortes de notifications. */
+export const MEMBER_TAB_KINDS = {
+  home: ["follow"],
+  calls: ["call"],
+  rooms: ["room"],
+  events: ["event", "announcement"],
+} as const;
+
+/** Les notifications pas lues de chaque menu (pour les pastilles de la barre du bas). */
+export async function countUnreadByTab(userId: string): Promise<Record<keyof typeof MEMBER_TAB_KINDS, number>> {
+  const rows = await prisma.notification.groupBy({
+    by: ["kind"],
+    where: { userId, readAt: null },
+    _count: { _all: true },
+  });
+  const byKind = new Map(rows.map((row) => [row.kind, row._count._all]));
+  const sum = (kinds: readonly string[]) => kinds.reduce((total, kind) => total + (byKind.get(kind) ?? 0), 0);
+  return {
+    home: sum(MEMBER_TAB_KINDS.home),
+    calls: sum(MEMBER_TAB_KINDS.calls),
+    rooms: sum(MEMBER_TAB_KINDS.rooms),
+    events: sum(MEMBER_TAB_KINDS.events),
+  };
+}
+
+/** Le membre ouvre un menu : ses notifications de ce menu sont lues (la pastille disparaît). */
+export async function markTabRead(userId: string, tab: keyof typeof MEMBER_TAB_KINDS): Promise<void> {
+  await prisma.notification.updateMany({
+    where: { userId, readAt: null, kind: { in: [...MEMBER_TAB_KINDS[tab]] } },
+    data: { readAt: new Date() },
+  });
+}

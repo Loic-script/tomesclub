@@ -77,3 +77,36 @@ export async function markAllAdminRead(): Promise<void> {
 export async function clearAdminNotifications(): Promise<void> {
   await prisma.adminNotification.deleteMany({});
 }
+
+/** Quel menu de l'admin montre quelles sortes de notifications. */
+export const ADMIN_TAB_KINDS = {
+  overview: ["call"],
+  members: ["signup", "member", "role"],
+  rooms: ["room"],
+  events: ["event"],
+} as const;
+
+/** Les notifications pas lues de chaque menu de l'admin. */
+export async function countAdminUnreadByTab(): Promise<Record<keyof typeof ADMIN_TAB_KINDS, number>> {
+  const rows = await prisma.adminNotification.groupBy({
+    by: ["kind"],
+    where: { readAt: null },
+    _count: { _all: true },
+  });
+  const byKind = new Map(rows.map((row) => [row.kind, row._count._all]));
+  const sum = (kinds: readonly string[]) => kinds.reduce((total, kind) => total + (byKind.get(kind) ?? 0), 0);
+  return {
+    overview: sum(ADMIN_TAB_KINDS.overview),
+    members: sum(ADMIN_TAB_KINDS.members),
+    rooms: sum(ADMIN_TAB_KINDS.rooms),
+    events: sum(ADMIN_TAB_KINDS.events),
+  };
+}
+
+/** L'admin ouvre un menu : ses notifications sont lues (la pastille disparaît). */
+export async function markAdminTabRead(tab: keyof typeof ADMIN_TAB_KINDS): Promise<void> {
+  await prisma.adminNotification.updateMany({
+    where: { readAt: null, kind: { in: [...ADMIN_TAB_KINDS[tab]] } },
+    data: { readAt: new Date() },
+  });
+}

@@ -1,10 +1,11 @@
-import { countUnread } from "@/lib/notifications";
+import { countUnread, countUnreadByTab } from "@/lib/notifications";
 import { getCurrentUser } from "@/lib/session";
 
-// GET /api/notifications/unread → { unread: 3 }
-// La pastille de l'onglet "Alerts" de la barre du bas.
+// GET /api/notifications/unread → { unread: 3, tabs: { home, calls, rooms, events } }
+// Les pastilles de la barre du bas (Alerts = le total).
 export async function GET() {
   const user = await getCurrentUser();
-  if (!user) return Response.json({ unread: 0 }, { status: 401 });
-  return Response.json({ unread: await countUnread(user.id) });
+  if (!user) return Response.json({ unread: 0, tabs: null }, { status: 401 });
+  const [unread, tabs] = await Promise.all([countUnread(user.id), countUnreadByTab(user.id)]);
+  return Response.json({ unread, tabs });
 }

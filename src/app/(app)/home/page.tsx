@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { markTabRead } from "@/lib/notifications";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense, type ReactNode } from "react";
@@ -40,6 +41,8 @@ async function loadHome(userId: string) {
 
 async function HomeDashboard() {
   const user = await requireMember();
+  // Ce menu est ouvert : sa pastille disparaît
+  await markTabRead(user.id, "home");
   const [profile, activeCalls, rooms, nextEvent, upcomingCount] = await loadHome(user.id);
 
   return (

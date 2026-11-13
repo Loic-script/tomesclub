@@ -19,7 +19,7 @@ export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
-  const unread = useUnreadCount(pathname);
+  const { unread, tabs } = useUnreadCount(pathname);
 
   async function signOut() {
     setSigningOut(true);
@@ -50,14 +50,19 @@ export function BottomNav() {
               >
                 <span className="relative">
                   <Icon />
-                  {tab.href === "/notifications" && unread > 0 && (
-                    <span
-                      aria-label={`${unread} new`}
-                      className="absolute -right-2.5 -top-2 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold leading-4 text-navy ring-2 ring-[#2a1238]"
-                    >
-                      {unread > 9 ? "9+" : unread}
-                    </span>
-                  )}
+                  {(() => {
+                    // Alerts = le total ; les autres menus = leurs propres notifications (rien sur le menu ouvert)
+                    const count =
+                      tab.href === "/notifications" ? unread : active ? 0 : (tabs[TAB_KEY[tab.href] ?? ""] ?? 0);
+                    return count > 0 ? (
+                      <span
+                        aria-label={`${count} new`}
+                        className="absolute -right-2.5 -top-2 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold leading-4 text-navy ring-2 ring-[#2a1238]"
+                      >
+                        {count > 9 ? "9+" : count}
+                      </span>
+                    ) : null;
+                  })()}
                 </span>
                 {tab.label}
               </Link>
@@ -86,8 +91,12 @@ export function BottomNav() {
  * Le nombre de notifications pas lues : relu à chaque changement de page
  * et toutes les 30 secondes (seulement si l onglet est visible).
  */
-function useUnreadCount(pathname: string): number {
+/** Le menu et sa clé dans les pastilles (voir MEMBER_TAB_KINDS). */
+const TAB_KEY: Record<string, string> = { "/home": "home", "/calls": "calls", "/rooms": "rooms", "/events": "events" };
+
+function useUnreadCount(pathname: string): { unread: number; tabs: Record<string, number> } {
   const [unread, setUnread] = useState(0);
+  const [tabs, setTabs] = useState<Record<string, number>>({});
   useEffect(() => {
     let alive = true;
     const load = async () => {
@@ -95,8 +104,11 @@ function useUnreadCount(pathname: string): number {
       try {
         const response = await fetch("/api/notifications/unread", { cache: "no-store" });
         if (!response.ok) return;
-        const data = (await response.json()) as { unread?: number };
-        if (alive) setUnread(data.unread ?? 0);
+        const data = (await response.json()) as { unread?: number; tabs?: Record<string, number> | null };
+        if (alive) {
+          setUnread(data.unread ?? 0);
+          setTabs(data.tabs ?? {});
+        }
       } catch {
         // Pas de réseau : on réessaie au prochain tour.
       }
@@ -108,7 +120,7 @@ function useUnreadCount(pathname: string): number {
       clearInterval(timer);
     };
   }, [pathname]);
-  return unread;
+  return { unread, tabs };
 }
 
 /* Icônes fines (traits blancs) */

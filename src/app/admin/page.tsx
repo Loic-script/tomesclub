@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { markAdminTabRead } from "@/lib/admin-notifications";
 import { ActivityIcon } from "@/components/activity-icon";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -32,6 +33,8 @@ export default function AdminPage() {
 
 async function AdminHome() {
   await requireAdmin();
+  // Ce menu est ouvert : sa pastille disparaît
+  await markAdminTabRead("overview");
   const data = await loadDashboard();
   const { totals } = data;
 

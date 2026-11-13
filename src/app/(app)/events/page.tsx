@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { markTabRead } from "@/lib/notifications";
 import { MyEvents } from "./my-events";
 import { canProposeEvents, formatMoney, listMyEvents } from "@/lib/member-events";
 import { listActivities } from "@/lib/activities";
@@ -31,6 +32,8 @@ export default function EventsPage({ searchParams }: PageProps<"/events">) {
 
 async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">["searchParams"] }) {
   const user = await requireMember();
+  // Ce menu est ouvert : sa pastille disparaît
+  await markTabRead(user.id, "events");
   // Venu du calendrier : l'événement à montrer.
   const wanted = (await searchParams).event;
   const focusId = typeof wanted === "string" ? wanted : null;

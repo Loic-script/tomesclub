@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { markTabRead } from "@/lib/notifications";
 import { privateRoomPayment } from "@/lib/private-room-payment";
 import { listInvitableMembers, privateModeFor } from "@/lib/private-rooms";
 import { ActivityIcon } from "@/components/activity-icon";
@@ -28,6 +29,8 @@ export default function RoomsPage({ searchParams }: PageProps<"/rooms">) {
 
 async function RoomsHome({ searchParams }: { searchParams: PageProps<"/rooms">["searchParams"] }) {
   const user = await requireMember();
+  // Ce menu est ouvert : sa pastille disparaît
+  await markTabRead(user.id, "rooms");
   const refused = (await searchParams).refused === "1";
   const [rooms, activities, privateMode, members] = await Promise.all([
     listOpenRooms(user.id),

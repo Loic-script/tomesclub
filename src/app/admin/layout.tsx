@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { isAdmin } from "@/lib/admin";
-import { countAdminUnread } from "@/lib/admin-notifications";
+import { countAdminUnread, countAdminUnreadByTab } from "@/lib/admin-notifications";
 import { countUnreadForCoach } from "@/lib/coach-chat";
 import { adminSignOut } from "../(auth)/admin/login/actions";
 import { LogoutIcon } from "./admin-icons";
@@ -96,9 +96,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
 /** Les pastilles des onglets (0 sans session admin). */
 async function loadBadges(): Promise<AdminBadges> {
-  if (!(await isAdmin())) return { inbox: 0, messages: 0 };
-  const [inbox, messages] = await Promise.all([countAdminUnread(), countUnreadForCoach()]);
-  return { inbox, messages };
+  if (!(await isAdmin())) return { inbox: 0, messages: 0, overview: 0, members: 0, rooms: 0, events: 0 };
+  const [inbox, messages, tabs] = await Promise.all([
+    countAdminUnread(),
+    countUnreadForCoach(),
+    countAdminUnreadByTab(),
+  ]);
+  return { inbox, messages, ...tabs };
 }
 
 async function SideLinksWithCount() {

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { markTabRead } from "@/lib/notifications";
 import Link from "next/link";
 import { Suspense } from "react";
 import { delay, GlassCard, PageHeader } from "@/components/app-ui";
@@ -21,6 +22,8 @@ export default function CallsPage() {
 
 async function CallsHome() {
   const user = await requireMember();
+  // Ce menu est ouvert : sa pastille disparaît
+  await markTabRead(user.id, "calls");
   const [members, activeCalls] = await Promise.all([
     // Tout le monde (0 = pas de limite), avec "en ligne" et "je le suis".
     listMembers(user.id, 0),

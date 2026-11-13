@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { markAdminTabRead } from "@/lib/admin-notifications";
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/admin";
 import { ENGLISH_LEVELS } from "@/lib/onboarding-options";
@@ -68,6 +69,8 @@ async function loadMembers(): Promise<AdminMemberRow[]> {
 
 async function MembersList() {
   await requireAdmin();
+  // Ce menu est ouvert : sa pastille disparaît
+  await markAdminTabRead("members");
   const members = await loadMembers();
   const online = members.filter((member) => member.online).length;
 

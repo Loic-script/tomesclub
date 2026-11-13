@@ -6,14 +6,21 @@ import { useEffect } from "react";
 import { BellIcon, CalendarIcon, ChatIcon, GridIcon, RoomIcon, UsersIcon } from "./admin-icons";
 
 /** Les pastilles : notifications pas lues + messages pas lus. */
-export type AdminBadges = { inbox: number; messages: number };
+export type AdminBadges = {
+  inbox: number;
+  messages: number;
+  overview: number;
+  members: number;
+  rooms: number;
+  events: number;
+};
 
 // Les onglets de l'espace admin : barre latérale (ordinateur) ou barre du bas (téléphone).
 const TABS = [
-  { href: "/admin", label: "Overview", icon: GridIcon, exact: true, badge: null },
-  { href: "/admin/members", label: "Members", icon: UsersIcon, exact: false, badge: null },
-  { href: "/admin/rooms", label: "Rooms", icon: RoomIcon, exact: false, badge: null },
-  { href: "/admin/events", label: "Events", icon: CalendarIcon, exact: false, badge: null },
+  { href: "/admin", label: "Overview", icon: GridIcon, exact: true, badge: "overview" },
+  { href: "/admin/members", label: "Members", icon: UsersIcon, exact: false, badge: "members" },
+  { href: "/admin/rooms", label: "Rooms", icon: RoomIcon, exact: false, badge: "rooms" },
+  { href: "/admin/events", label: "Events", icon: CalendarIcon, exact: false, badge: "events" },
   { href: "/admin/messages", label: "Messages", icon: ChatIcon, exact: false, badge: "messages" },
   { href: "/admin/notifications", label: "Inbox", icon: BellIcon, exact: false, badge: "inbox" },
 ] as const;
@@ -30,7 +37,7 @@ export function AdminSideLinks({ badges }: { badges: AdminBadges }) {
       {TABS.map((tab) => {
         const active = isActive(pathname, tab.href, tab.exact);
         const Icon = tab.icon;
-        const unread = tab.badge ? badges[tab.badge] : 0;
+        const unread = tab.badge && !(active && tab.badge !== "inbox" && tab.badge !== "messages") ? badges[tab.badge] : 0;
         return (
           <Link
             key={tab.href}
@@ -78,7 +85,7 @@ export function AdminBottomLinks({ badges }: { badges: AdminBadges }) {
         {TABS.map((tab) => {
           const active = isActive(pathname, tab.href, tab.exact);
           const Icon = tab.icon;
-          const unread = tab.badge ? badges[tab.badge] : 0;
+          const unread = tab.badge && !(active && tab.badge !== "inbox" && tab.badge !== "messages") ? badges[tab.badge] : 0;
           return (
             <li key={tab.href} className="flex-1">
               <Link
