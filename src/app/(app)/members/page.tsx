@@ -26,8 +26,8 @@ async function MembersHome() {
 
   return (
     <>
-      {/* Ordinateur : le tableau (data-members-board → le calendrier et les panneaux se cachent, voir globals.css) */}
-      <div data-members-board className="max-lg:hidden">
+      {/* Ordinateur : le tableau (il cache le calendrier et le panneau Members, voir MembersBoard) */}
+      <div className="max-lg:hidden">
         <MembersBoard members={members} />
       </div>
 

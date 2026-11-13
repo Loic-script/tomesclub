@@ -419,10 +419,10 @@ h3,
 /* Page Members sur ordinateur (seulement cette page) : on enlève le calendrier, le panneau Members et les bulles,
    la barre du bas et le bouton message restent, et la colonne centrale s'élargit pour le tableau. */
 @media (min-width: 1024px) {
-  .on-dark:has([data-members-board]) .app-side {
+  html.members-page .on-dark .app-side {
     display: none !important;
   }
-  .on-dark:has([data-members-board]) .app-column {
+  html.members-page .on-dark .app-column {
     max-width: 86rem;
     padding-left: 2.5rem;
     padding-right: 2.5rem;

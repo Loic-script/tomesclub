@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from "react";
 import { Flag } from "@/components/flag";
 import { FollowButton } from "@/components/follow-button";
 import { MemberAvatar } from "@/components/member-avatar";
@@ -49,6 +49,14 @@ function matches(member: MemberCard, filter: FilterKey): boolean {
 export function MembersBoard({ members }: { members: MemberCard[] }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
+
+  // Tant que ce tableau est affiché, la page porte la marque "members-page" (voir globals.css) :
+  // le calendrier et le panneau Members se cachent. On quitte la page → la marque part.
+  // (Pas de règle CSS sur le tableau lui-même : Next.js garde la page quittée cachée dans le document.)
+  useEffect(() => {
+    document.documentElement.classList.add("members-page");
+    return () => document.documentElement.classList.remove("members-page");
+  }, []);
   const wanted = simplify(query);
   const onlineCount = members.filter((member) => member.online).length;
   const shown = members.filter(
