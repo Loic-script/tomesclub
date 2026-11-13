@@ -25,14 +25,18 @@ async function MembersHome() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Community"
-        title="Members"
-        subtitle={`Everyone in the club · ${onlineCount} online`}
-        members={false}
-      />
-      <GlassCard className="anim-rise flex flex-col" style={delay(120)}>
-        <SideMembersList members={members} />
+      {/* Téléphone et tablette : pas de haut, la liste commence tout de suite */}
+      <div className="max-lg:hidden">
+        <PageHeader
+          eyebrow="Community"
+          title="Members"
+          subtitle={`Everyone in the club · ${onlineCount} online`}
+          members={false}
+        />
+      </div>
+      {/* Aux couleurs du bouton message (comme le panneau Members sur ordinateur) */}
+      <GlassCard className="card-accent anim-rise flex flex-col" style={delay(120)}>
+        <SideMembersList members={members} showOnline />
       </GlassCard>
     </>
   );

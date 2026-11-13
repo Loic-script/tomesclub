@@ -26,7 +26,14 @@ const simplify = (text: string) =>
     .trim();
 
 // Tous les membres du panneau de droite, avec la barre de recherche par nom.
-export function SideMembersList({ members }: { members: SideMember[] }) {
+export function SideMembersList({
+  members,
+  showOnline = false,
+}: {
+  members: SideMember[];
+  /** Affiche "● N online" à côté du nombre de membres. */
+  showOnline?: boolean;
+}) {
   const [query, setQuery] = useState("");
   const wanted = simplify(query);
   const shown = wanted
@@ -84,11 +91,15 @@ export function SideMembersList({ members }: { members: SideMember[] }) {
         )}
       </div>
 
-      <p aria-live="polite" className="mb-2 px-1 text-[11px] text-white/45">
-        {wanted
-          ? `${shown.length} ${shown.length === 1 ? "member" : "members"} found`
-          : `${members.length} ${members.length === 1 ? "member" : "members"}`}
-      </p>
+      <div className="mb-2 flex items-center gap-2 px-1">
+        <p aria-live="polite" className="text-[11px] text-white/60">
+          {wanted
+            ? `${shown.length} ${shown.length === 1 ? "member" : "members"} found`
+            : `${members.length} ${members.length === 1 ? "member" : "members"}`}
+        </p>
+        {/* Les membres connectés maintenant (page Members sur téléphone) */}
+        {showOnline && <OnlineChip count={members.filter((member) => member.online).length} />}
+      </div>
 
       {shown.length === 0 ? (
         <p className="py-6 text-center text-sm text-white/55">
@@ -143,5 +154,18 @@ export function SideMembersList({ members }: { members: SideMember[] }) {
         </ul>
       )}
     </>
+  );
+}
+
+/** "● 2 online" : point vert qui pulse quand quelqu'un est connecté. */
+function OnlineChip({ count }: { count: number }) {
+  return (
+    <span className="ml-auto flex items-center gap-1.5 rounded-full bg-black/20 px-2.5 py-1 text-[11px] font-semibold text-white/85">
+      <span className="relative flex size-2">
+        {count > 0 && <span aria-hidden className="anim-ping absolute inset-0 rounded-full bg-emerald-400/70" />}
+        <span className={`relative size-2 rounded-full ${count > 0 ? "bg-emerald-400" : "bg-white/35"}`} />
+      </span>
+      {count} online
+    </span>
   );
 }
