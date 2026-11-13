@@ -136,11 +136,11 @@ export function EmailAuthForm({ mode }: { mode: "signin" | "register" }) {
   );
 }
 
-const input =
+export const input =
   "min-w-0 flex-1 bg-transparent py-3 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 autofill:shadow-[inset_0_0_0_1000px_#fff] autofill:[-webkit-text-fill-color:#18181b]";
 
 /** Un champ : l'étiquette, l'icône à gauche, et un bouton à droite (facultatif). */
-function Field({
+export function Field({
   label,
   icon,
   right,
@@ -183,7 +183,7 @@ function MailIcon() {
   );
 }
 
-function LockIcon() {
+export function LockIcon() {
   return (
     <svg {...iconProps}>
       <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" />

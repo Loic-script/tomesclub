@@ -126,16 +126,20 @@ export function AuthFlip() {
 
         {/* ----- Verso : l'admin ----- */}
         <Face hidden={!flipped} back>
-          <span className="mx-auto mb-5 flex size-16 items-center justify-center rounded-full bg-navy/5 text-navy ring-1 ring-navy/15">
-            <UserKeyIcon />
-          </span>
+          {/* Même en-tête que la face membre : le logo, le titre, une phrase */}
+          <div className="relative mx-auto mb-4 w-fit">
+            <span aria-hidden className="anim-halo absolute -inset-2 rounded-full bg-accent/40 blur-lg" />
+            <Image
+              src="/logo.png"
+              alt="Tomes Club logo"
+              width={64}
+              height={64}
+              className="relative rounded-full drop-shadow-md"
+            />
+          </div>
 
-          <h2 className="font-display text-3xl font-bold text-navy">Admin</h2>
-          <span
-            aria-hidden
-            className="mx-auto mt-2 block h-1 w-12 rounded-full bg-gradient-to-r from-navy to-brand"
-          />
-          <p className="mt-3 text-sm text-zinc-600">Reserved for the Tomes Club team.</p>
+          <h2 className="font-display text-[1.75rem] font-bold leading-tight text-navy">Admin sign in</h2>
+          <p className="mt-1.5 text-sm text-zinc-500">Reserved for the Tomes Club team.</p>
 
           {expired && (
             <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-amber-200">
@@ -143,11 +147,11 @@ export function AuthFlip() {
             </p>
           )}
 
-          <div className="mb-6" />
+          <div className="mt-5">
+            <AdminLoginForm />
+          </div>
 
-          <AdminLoginForm />
-
-          <p className="mt-6 border-t border-zinc-100 pt-4 text-xs text-zinc-400">
+          <p className="mt-5 border-t border-zinc-100 pt-3 text-xs text-zinc-400">
             Not the admin?{" "}
             <button
               type="button"
@@ -182,27 +186,5 @@ function Face({
     >
       {children}
     </div>
-  );
-}
-
-/** Personne + clé (l'accès admin), de la même couleur que le titre Admin. */
-function UserKeyIcon() {
-  return (
-    <svg
-      viewBox="0 0 48 48"
-      className="size-9"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="4.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      {/* La personne */}
-      <circle cx="19" cy="12.5" r="7.3" />
-      <path d="M29 26.5a14.5 14.5 0 0 0-21.5 9V42h13" />
-      {/* La clé */}
-      <circle cx="30" cy="37" r="5.2" />
-      <path d="M34.2 32.8 43.5 23.5M39.5 27.5l3.4 3.4M43.5 23.5l3 3" />
-    </svg>
   );
 }
