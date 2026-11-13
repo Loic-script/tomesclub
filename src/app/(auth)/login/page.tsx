@@ -13,7 +13,7 @@ const delay = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
 export default function LoginPage() {
   return (
     <div
-      className="anim-rise grid w-full max-w-4xl overflow-hidden rounded-[2rem] bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 md:min-h-[520px] md:grid-cols-2 short:min-h-[480px] tiny:min-h-0"
+      className="anim-rise grid w-full max-w-4xl overflow-hidden rounded-[2rem] bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 md:grid-cols-2"
       style={delay(0)}
     >
       {/* ----- Panneau de gauche : la marque ----- */}
