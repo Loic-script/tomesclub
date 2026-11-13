@@ -52,11 +52,11 @@ export type ProfileFormInitial = {
 const STEPS = [
   {
     title: "About you",
-    subtitle: "Tell us who you are. Only your name is required.",
+    subtitle: "Tell us who you are. Fields with * are required.",
   },
   {
     title: "What you do",
-    subtitle: "Check everything that fits you — or skip this step.",
+    subtitle: "Check at least one. The details are optional.",
   },
   { title: "English & interests", subtitle: "So your classes fit your level." },
   { title: "Your photo", subtitle: "Last step! Help the club recognize you." },
@@ -100,7 +100,8 @@ export function ProfileForm({
   const [country, setCountry] = useState(initial.country);
   const [city, setCity] = useState(initial.city);
   const [phone, setPhone] = useState(initial.phone);
-  const [userType, setUserType] = useState(initial.userType || "member");
+  // Rien de choisi au départ (inscription) : le membre doit choisir.
+  const [userType, setUserType] = useState(initial.userType);
 
   // --- Étape 2 ---
   const [occupations, setOccupations] = useState<OccupationState>(
@@ -133,19 +134,21 @@ export function ProfileForm({
   );
 
   function validateStep(index: number): string | null {
-    if (index === 0 && (!firstName.trim() || !lastName.trim())) {
-      return "Please fill in your first and last name.";
+    if (index === 0) {
+      if (!firstName.trim() || !lastName.trim()) return "Please fill in your first and last name.";
+      if (!birthDate) return "Please give your date of birth.";
+      if (!country) return "Please choose your country.";
+      if (!userType) return "Please choose who you are: Member, Leader or Teacher.";
     }
-    if (index === 1) {
-      for (const occupation of OCCUPATIONS) {
-        const value = occupations[occupation.kind];
-        if (value.on && !value.detail.trim()) {
-          return `Please add a detail for "${occupation.label}".`;
-        }
+    // Au moins une occupation cochée (le détail est facultatif)
+    if (index === 1 && !OCCUPATIONS.some((occupation) => occupations[occupation.kind].on)) {
+      return "Please check at least one.";
+    }
+    if (index === 2) {
+      if (![...languages, languageDraft].some((language) => language.trim())) {
+        return "Please add at least one language you speak.";
       }
-    }
-    if (index === 2 && !englishLevel) {
-      return "Please choose your English level.";
+      if (!englishLevel) return "Please choose your English level.";
     }
     return null;
   }
@@ -392,7 +395,7 @@ export function ProfileForm({
                 autoComplete="family-name"
               />
               <TextField
-                label="Date of birth"
+                label="Date of birth *"
                 type="date"
                 value={birthDate}
                 onChange={setBirthDate}
@@ -407,7 +410,7 @@ export function ProfileForm({
                 autoComplete="tel"
               />
               <CountrySelect
-                label="Country"
+                label="Country *"
                 value={country}
                 onChange={setCountry}
               />
@@ -422,7 +425,7 @@ export function ProfileForm({
               {/* Le type d'utilisateur : Leader et Teacher doivent être validés par le coach */}
               <div className="sm:col-span-2">
                 <p className="mb-1.5 block text-xs font-semibold text-zinc-600">
-                  You are
+                  You are *
                 </p>
                 <div className="grid gap-2 sm:grid-cols-3">
                   {USER_TYPES.map((type) => (
@@ -500,7 +503,7 @@ export function ProfileForm({
                     >
                       <div className="overflow-hidden">
                         <TextField
-                          label={`${occupation.detailLabel} *`}
+                          label={occupation.detailLabel}
                           value={value.detail}
                           onChange={(detail) =>
                             setOccupations((current) => ({
@@ -524,7 +527,7 @@ export function ProfileForm({
           {step === 2 && (
             <div className="space-y-7">
               <ChipPicker
-                label="Languages you speak"
+                label="Languages you speak *"
                 options={LANGUAGE_OPTIONS}
                 selected={languages}
                 onToggle={(value) =>

@@ -64,6 +64,8 @@ export async function saveProfileFromForm(
   if (!firstName || !lastName) return "Please fill in your first and last name.";
 
   let birthDate: Date | null = null;
+  if (!formData.get("birthDate")) return "Please give your date of birth.";
+  if (!text("country")) return "Please choose your country.";
   const birthRaw = String(formData.get("birthDate") ?? "");
   if (birthRaw) {
     const parsed = new Date(`${birthRaw}T00:00:00Z`);
@@ -81,7 +83,6 @@ export async function saveProfileFromForm(
     const detail = String(formData.get(`occupationDetail_${occupation.kind}`) ?? "")
       .trim()
       .slice(0, 200);
-    if (!detail) return `Please add a detail for "${occupation.label}".`;
     occupations.push({ kind: occupation.kind, detail });
   }
 
@@ -95,11 +96,13 @@ export async function saveProfileFromForm(
     [
       ...new Set(values.map((value) => String(value).trim().slice(0, 50)).filter(Boolean)),
     ].slice(0, 20);
+  if (occupations.length === 0) return "Please check at least one occupation.";
   const languages = cleanList(formData.getAll("languages"));
+  if (languages.length === 0) return "Please add at least one language you speak.";
   const interests = cleanList(formData.getAll("interests"));
 
   // --- Type d'utilisateur (Leader / Teacher = demande à valider par l'admin) ---
-  const userType = String(formData.get("userType") ?? "member");
+  const userType = String(formData.get("userType") ?? "");
   if (!USER_TYPES.some((type) => type.value === userType)) return "Please choose a valid user type.";
 
   // --- Photo (facultative ; si absente, on garde l'ancienne) ---

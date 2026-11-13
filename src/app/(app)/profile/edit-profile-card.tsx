@@ -59,12 +59,12 @@ export function EditProfileCard({
   async function save() {
     setError(null);
     if (!firstName.trim() || !lastName.trim()) return setError("Please write your first and last name.");
+    if (!birthDate) return setError("Please give your date of birth.");
+    if (!country) return setError("Please choose your country.");
+    if (!userType) return setError("Please choose who you are.");
+    if (Object.keys(occupations).length === 0) return setError("Please choose at least one occupation (Does).");
+    if (languages.length === 0) return setError("Please add at least one language you speak.");
     if (!englishLevel) return setError("Please choose your English level.");
-    for (const occupation of OCCUPATIONS) {
-      if (occupation.kind in occupations && !occupations[occupation.kind].trim()) {
-        return setError(`Please add a detail for "${occupation.label}".`);
-      }
-    }
 
     // Les mêmes champs que le formulaire d'accueil (même vérification côté serveur).
     const data = new FormData();
