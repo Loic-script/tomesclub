@@ -140,10 +140,26 @@ model Profile {
   notifyRooms   Boolean   @default(true) // quand une salle de groupe s'ouvre
   /// Dernier signe de vie du navigateur : sert à afficher le point vert "en ligne"
   lastSeenAt    DateTime?
+  /// Le guide "How it works" : vu le (null = à montrer une fois, à l'arrivée)
+  guideSeenAt   DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @default(now()) @updatedAt
 
   @@map("profile")
+}
+
+/// Le guide de l'application (fenêtre "How it works" sur Home) : une ligne par étape, modifiable par l'admin.
+/// Table vide = les étapes par défaut (src/lib/guide-defaults.ts).
+model GuideStep {
+  id        String   @id @default(cuid())
+  position  Int
+  icon      String
+  title     String
+  body      String
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([position])
+  @@map("guide_step")
 }
 
 // ===================================================================

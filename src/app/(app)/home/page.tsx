@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { countUnread, markTabRead } from "@/lib/notifications";
+import { GuideButton } from "@/components/guide-dialog";
+import { getGuideSteps, shouldShowGuide } from "@/lib/guide";
+import { markGuideSeenAction } from "../guide-actions";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense, type ReactNode } from "react";
@@ -44,10 +47,8 @@ async function HomeDashboard() {
   const user = await requireMember();
   // Ce menu est ouvert : sa pastille disparaît
   await markTabRead(user.id, "home");
-  const [[profile, activeCalls, rooms, nextEvent, upcomingCount, membersCount], unread] = await Promise.all([
-    loadHome(user.id),
-    countUnread(user.id),
-  ]);
+  const [[profile, activeCalls, rooms, nextEvent, upcomingCount, membersCount], unread, guideSteps, firstVisit] =
+    await Promise.all([loadHome(user.id), countUnread(user.id), getGuideSteps(), shouldShowGuide(user.id)]);
 
   return (
     <>
@@ -63,14 +64,18 @@ async function HomeDashboard() {
         members={false}
         rightTop
         right={
-          <Link href="/profile" aria-label="My profile" className="neu-sm neu-btn rounded-full p-1">
-            <MemberAvatar
-              userId={user.id}
-              name={user.firstName}
-              hasPhoto={Boolean(profile?.photoType)}
-              size="size-12"
-            />
-          </Link>
+          <div className="flex items-center gap-2.5">
+            {/* Le guide "How it works" (s'ouvre tout seul une fois pour un nouveau membre) */}
+            <GuideButton steps={guideSteps} autoOpen={firstVisit} onSeen={markGuideSeenAction} />
+            <Link href="/profile" aria-label="My profile" className="neu-sm neu-btn rounded-full p-1">
+              <MemberAvatar
+                userId={user.id}
+                name={user.firstName}
+                hasPhoto={Boolean(profile?.photoType)}
+                size="size-12"
+              />
+            </Link>
+          </div>
         }
       />
 

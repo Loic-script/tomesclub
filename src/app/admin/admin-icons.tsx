@@ -13,6 +13,16 @@ const base = {
   "aria-hidden": true,
 } as const;
 
+/** Le livre ouvert : le guide de l'application. */
+export function BookIcon({ className = "size-5" }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5Z" />
+      <path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5A2.5 2.5 0 0 1 4 20.5ZM9 7.5h7M9 11h5" />
+    </svg>
+  );
+}
+
 export function GridIcon({ className = "size-5" }: IconProps) {
   return (
     <svg {...base} className={className}>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BellIcon, CalendarIcon, ChatIcon, GridIcon, RoomIcon, UsersIcon } from "./admin-icons";
+import { BellIcon, BookIcon, CalendarIcon, ChatIcon, GridIcon, RoomIcon, UsersIcon } from "./admin-icons";
 
 /** Les pastilles : notifications pas lues + messages pas lus. */
 export type AdminBadges = {
@@ -23,6 +23,7 @@ const TABS = [
   { href: "/admin/events", label: "Events", icon: CalendarIcon, exact: false, badge: "events" },
   { href: "/admin/messages", label: "Messages", icon: ChatIcon, exact: false, badge: "messages" },
   { href: "/admin/notifications", label: "Inbox", icon: BellIcon, exact: false, badge: "inbox" },
+  { href: "/admin/guide", label: "Guide", icon: BookIcon, exact: false, badge: null },
 ] as const;
 
 function isActive(pathname: string, href: string, exact: boolean) {
@@ -127,7 +128,7 @@ export function AdminBottomLinks({ badges }: { badges: AdminBadges }) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   const moreActive = MORE_TABS.some((tab) => isActive(pathname, tab.href, tab.exact));
-  const moreUnread = MORE_TABS.reduce((total, tab) => total + badges[tab.badge], 0);
+  const moreUnread = MORE_TABS.reduce((total, tab) => total + (tab.badge ? badges[tab.badge] : 0), 0);
 
   return (
     <div className="fixed inset-x-2 bottom-4 z-40 mx-auto max-w-md sm:inset-x-4 lg:hidden">
@@ -135,7 +136,7 @@ export function AdminBottomLinks({ badges }: { badges: AdminBadges }) {
       <nav
         aria-label="More admin sections"
         inert={!open}
-        className={`neu nav-glass absolute bottom-full right-0 mb-3 flex w-44 sm:hidden gap-1 rounded-[1.75rem] p-1.5 transition-all duration-300 [transform-origin:bottom_right] ${
+        className={`neu nav-glass absolute bottom-full right-0 mb-3 flex w-60 sm:hidden gap-1 rounded-[1.75rem] p-1.5 transition-all duration-300 [transform-origin:bottom_right] ${
           open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-2 scale-90 opacity-0"
         }`}
       >
