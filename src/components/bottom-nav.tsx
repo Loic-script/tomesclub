@@ -19,6 +19,7 @@ export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
+  const [open, setOpen] = useState(false);
   const { unread, tabs } = useUnreadCount(pathname);
 
   async function signOut() {
@@ -28,62 +29,116 @@ export function BottomNav() {
     router.refresh();
   }
 
-  return (
-    <nav
-      aria-label="Main"
-      className="neu nav-glass fixed inset-x-2 bottom-4 z-20 mx-auto max-w-md rounded-full p-1.5 sm:inset-x-4 sm:p-2"
-    >
-      <ul className="flex items-center justify-between gap-0 sm:gap-1">
-        {TABS.map((tab) => {
-          const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
-          const Icon = tab.icon;
-          return (
-            <li key={tab.href} className="flex-1">
-              <Link
-                href={tab.href}
-                aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center gap-0.5 rounded-full px-0.5 py-2 text-[9px] min-[400px]:text-[10px] font-semibold leading-tight transition-all duration-300 sm:px-3 sm:text-[11px] ${
-                  active
-                    ? "neu-inset text-accent"
-                    : "text-white/60 hover:-translate-y-0.5 hover:text-white"
-                }`}
-              >
-                <span className="relative">
-                  <Icon />
-                  {(() => {
-                    // Alerts = le total ; les autres menus = leurs propres notifications (rien sur le menu ouvert)
-                    const count =
-                      tab.href === "/notifications" ? unread : active ? 0 : (tabs[TAB_KEY[tab.href] ?? ""] ?? 0);
-                    return count > 0 ? (
-                      <span
-                        aria-label={`${count} new`}
-                        className="absolute -right-2.5 -top-2 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold leading-4 text-navy ring-2 ring-[#2a1238]"
-                      >
-                        {count > 9 ? "9+" : count}
-                      </span>
-                    ) : null;
-                  })()}
-                </span>
-                {tab.label}
-              </Link>
-            </li>
-          );
-        })}
+  const close = () => setOpen(false);
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const moreActive = MORE_TABS.some((tab) => isActive(tab.href));
 
-        {/* Se déconnecter, directement depuis la barre */}
-        <li className="flex-1">
+  /** Un onglet : icône + nom + pastille (Alerts = le total ; rien sur le menu ouvert). */
+  const renderTab = (tab: (typeof TABS)[number]) => {
+    const active = isActive(tab.href);
+    const Icon = tab.icon;
+    const count = tab.href === "/notifications" ? unread : active ? 0 : (tabs[TAB_KEY[tab.href] ?? ""] ?? 0);
+    return (
+      <Link
+        href={tab.href}
+        onClick={close}
+        aria-current={active ? "page" : undefined}
+        className={`${ITEM} ${active ? "neu-inset text-accent" : "text-white/60 hover:-translate-y-0.5 hover:text-white"}`}
+      >
+        <span className="relative">
+          <Icon />
+          {count > 0 && <Badge count={count} />}
+        </span>
+        {tab.label}
+      </Link>
+    );
+  };
+
+  return (
+    // Menu ouvert : la barre passe au-dessus du bouton message flottant (z-50).
+    <div className={`fixed inset-x-2 bottom-4 mx-auto max-w-md sm:inset-x-4 ${open ? "z-[60]" : "z-20"}`}>
+      {/* Les autres menus (Alerts, Profile, Logout) : sortent au-dessus du bouton "+" */}
+      <nav
+        aria-label="More"
+        inert={!open}
+        className={`neu nav-glass absolute bottom-full right-0 mb-3 flex w-60 gap-1 rounded-[1.75rem] p-1.5 transition-all duration-300 [transform-origin:bottom_right] ${
+          open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-2 scale-90 opacity-0"
+        }`}
+      >
+        {MORE_TABS.map((tab) => (
+          <div key={tab.href} className="flex-1">
+            {renderTab(tab)}
+          </div>
+        ))}
+        {/* Se déconnecter */}
+        <div className="flex-1">
           <button
             type="button"
             onClick={signOut}
             disabled={signingOut}
-            className="flex w-full flex-col items-center gap-0.5 rounded-full px-0.5 py-2 text-[9px] min-[400px]:text-[10px] font-semibold leading-tight text-white/60 transition-all duration-300 hover:-translate-y-0.5 hover:text-accent disabled:opacity-60 sm:px-3 sm:text-[11px]"
+            className={`${ITEM} w-full text-white/60 hover:-translate-y-0.5 hover:text-accent disabled:opacity-60`}
           >
             <LogoutIcon />
             {signingOut ? "..." : "Logout"}
           </button>
-        </li>
-      </ul>
-    </nav>
+        </div>
+      </nav>
+
+      <nav aria-label="Main" className="neu nav-glass rounded-full p-1.5 sm:p-2">
+        <ul className="flex items-center justify-between gap-0 sm:gap-1">
+          {MAIN_TABS.map((tab) => (
+            <li key={tab.href} className="flex-1">
+              {renderTab(tab)}
+            </li>
+          ))}
+          {/* "+" : ouvre les autres menus, puis devient "×" pour tout refermer */}
+          <li className="flex-1">
+            <button
+              type="button"
+              onClick={() => setOpen((value) => !value)}
+              aria-expanded={open}
+              aria-label={open ? "Hide the other menus" : "Show all menus"}
+              className={`${ITEM} w-full ${
+                moreActive && !open ? "neu-inset text-accent" : open ? "text-accent" : "text-white/60 hover:text-white"
+              }`}
+            >
+              <span className="relative">
+                <PlusIcon open={open} />
+                {!open && unread > 0 && <Badge count={unread} />}
+              </span>
+              {open ? "Close" : "More"}
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  );
+}
+
+/** Le style commun des boutons de la barre. */
+const ITEM =
+  "flex flex-col items-center gap-0.5 rounded-full px-0.5 py-2 text-[10px] font-semibold leading-tight transition-all duration-300 sm:px-3 sm:text-[11px]";
+
+/** 4 menus toujours visibles ; les autres s'ouvrent avec le "+". */
+const MAIN_TABS = TABS.slice(0, 4);
+const MORE_TABS = TABS.slice(4);
+
+function Badge({ count }: { count: number }) {
+  return (
+    <span
+      aria-label={`${count} new`}
+      className="absolute -right-2.5 -top-2 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold leading-4 text-navy ring-2 ring-[#2a1238]"
+    >
+      {count > 9 ? "9+" : count}
+    </span>
+  );
+}
+
+function PlusIcon({ open }: { open: boolean }) {
+  return (
+    <svg {...iconProps} className={`size-5 transition-transform duration-300 ${open ? "rotate-45" : ""}`}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
   );
 }
 
