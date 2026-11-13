@@ -67,7 +67,7 @@ export function EmailAuthForm({ mode }: { mode: "signin" | "register" }) {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3.5 text-left short:space-y-2.5" noValidate>
+    <form onSubmit={submit} className="space-y-3.5 text-left" noValidate>
       <Field label="Email" icon={<MailIcon />}>
         <input
           type="email"
@@ -157,7 +157,7 @@ export function EmailAuthForm({ mode }: { mode: "signin" | "register" }) {
         disabled={
           pending || !email.trim() || !password || (register && !confirm)
         }
-        className="w-full rounded-full bg-gradient-to-r from-brand to-[#c2185b] px-5 py-3 text-sm short:py-2.5 font-bold text-white shadow-[0_10px_24px_-10px_rgba(156,11,59,0.8)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-10px_rgba(156,11,59,0.9)] active:translate-y-0 disabled:translate-y-0 disabled:opacity-60"
+        className="w-full rounded-full bg-gradient-to-r from-brand to-[#c2185b] px-5 py-3 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(156,11,59,0.8)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-10px_rgba(156,11,59,0.9)] active:translate-y-0 disabled:translate-y-0 disabled:opacity-60"
       >
         {pending
           ? "Please wait..."
@@ -170,7 +170,7 @@ export function EmailAuthForm({ mode }: { mode: "signin" | "register" }) {
 }
 
 export const input =
-  "min-w-0 flex-1 bg-transparent py-3 text-sm short:py-2.5 text-zinc-900 outline-none placeholder:text-zinc-400 autofill:shadow-[inset_0_0_0_1000px_#fff] autofill:[-webkit-text-fill-color:#18181b]";
+  "min-w-0 flex-1 bg-transparent py-3 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 autofill:shadow-[inset_0_0_0_1000px_#fff] autofill:[-webkit-text-fill-color:#18181b]";
 
 /** Un champ : l'étiquette, l'icône à gauche, et un bouton à droite (facultatif). */
 export function Field({
@@ -186,7 +186,7 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-semibold text-zinc-600 short:mb-1">
+      <span className="mb-1.5 block text-xs font-semibold text-zinc-600">
         {label}
       </span>
       <span className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-4 shadow-sm transition focus-within:border-brand/50 focus-within:ring-4 focus-within:ring-brand/10">

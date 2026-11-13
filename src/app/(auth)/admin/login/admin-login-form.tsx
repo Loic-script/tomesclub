@@ -12,7 +12,7 @@ export function AdminLoginForm() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <form action={formAction} className="space-y-3.5 text-left short:space-y-2.5">
+    <form action={formAction} className="space-y-3.5 text-left">
       <Field label="Username" icon={<UserIcon />}>
         <input
           name="username"
@@ -57,7 +57,7 @@ export function AdminLoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-full bg-gradient-to-r from-brand to-[#c2185b] px-5 py-3 text-sm short:py-2.5 font-bold text-white shadow-[0_10px_24px_-10px_rgba(156,11,59,0.8)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-10px_rgba(156,11,59,0.9)] active:translate-y-0 disabled:translate-y-0 disabled:opacity-60"
+        className="w-full rounded-full bg-gradient-to-r from-brand to-[#c2185b] px-5 py-3 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(156,11,59,0.8)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-10px_rgba(156,11,59,0.9)] active:translate-y-0 disabled:translate-y-0 disabled:opacity-60"
       >
         {pending ? "Please wait..." : "Sign in as admin"}
       </button>

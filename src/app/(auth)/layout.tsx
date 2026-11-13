@@ -5,7 +5,7 @@ import type { CSSProperties, ReactNode } from "react";
 // adapté à la palette Tomes Club).
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <main className="relative flex flex-1 items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#1a1150,#45091f_52%,#7a082e)] px-4 py-10 short:py-4">
+    <main className="relative flex flex-1 items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#1a1150,#45091f_52%,#7a082e)] px-4 py-10">
       {/* Lueurs douces dans les coins */}
       <div aria-hidden className="absolute -right-24 -top-24 size-96 rounded-full bg-navy/50 blur-3xl" />
       <div aria-hidden className="absolute -bottom-32 -left-24 size-[28rem] rounded-full bg-accent/15 blur-3xl" />

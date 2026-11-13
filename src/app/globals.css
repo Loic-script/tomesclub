@@ -1,9 +1,5 @@
 @import "tailwindcss";
 
-/* Écran d'ordinateur peu haut (ex : 1366×768 en plein écran) : pages de connexion plus compactes */
-@custom-variant short (@media (min-width: 48rem) and (max-height: 54rem));
-@custom-variant tiny (@media (min-width: 48rem) and (max-height: 44rem));
-
 :root {
   --background: #ffffff;
   --foreground: #171717;
