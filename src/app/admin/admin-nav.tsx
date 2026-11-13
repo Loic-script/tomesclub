@@ -135,7 +135,7 @@ export function AdminBottomLinks({ badges }: { badges: AdminBadges }) {
       <nav
         aria-label="More admin sections"
         inert={!open}
-        className={`neu nav-glass absolute bottom-full right-0 mb-3 flex w-44 gap-1 rounded-[1.75rem] p-1.5 transition-all duration-300 [transform-origin:bottom_right] ${
+        className={`neu nav-glass absolute bottom-full right-0 mb-3 flex w-44 sm:hidden gap-1 rounded-[1.75rem] p-1.5 transition-all duration-300 [transform-origin:bottom_right] ${
           open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-2 scale-90 opacity-0"
         }`}
       >
@@ -153,7 +153,13 @@ export function AdminBottomLinks({ badges }: { badges: AdminBadges }) {
               <BottomTab tab={tab} pathname={pathname} badges={badges} onClick={close} />
             </li>
           ))}
-          <li className="flex-1">
+          {/* Tablette : tous les onglets dans la barre (le "+" est pour le téléphone) */}
+          {MORE_TABS.map((tab) => (
+            <li key={tab.href} className="flex-1 max-sm:hidden">
+              <BottomTab tab={tab} pathname={pathname} badges={badges} />
+            </li>
+          ))}
+          <li className="flex-1 sm:hidden">
             <button
               type="button"
               onClick={() => setOpen((value) => !value)}

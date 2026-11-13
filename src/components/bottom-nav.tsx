@@ -61,7 +61,7 @@ export function BottomNav() {
       <nav
         aria-label="More"
         inert={!open}
-        className={`neu nav-glass absolute bottom-full right-0 mb-3 flex w-60 gap-1 rounded-[1.75rem] p-1.5 transition-all duration-300 [transform-origin:bottom_right] ${
+        className={`neu nav-glass absolute bottom-full right-0 mb-3 flex w-60 sm:hidden gap-1 rounded-[1.75rem] p-1.5 transition-all duration-300 [transform-origin:bottom_right] ${
           open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-2 scale-90 opacity-0"
         }`}
       >
@@ -91,8 +91,25 @@ export function BottomNav() {
               {renderTab(tab)}
             </li>
           ))}
-          {/* "+" : ouvre les autres menus, puis devient "×" pour tout refermer */}
-          <li className="flex-1">
+          {/* Tablette et ordinateur : tous les menus dans la barre (le "+" est pour le téléphone) */}
+          {MORE_TABS.map((tab) => (
+            <li key={tab.href} className="flex-1 max-sm:hidden">
+              {renderTab(tab)}
+            </li>
+          ))}
+          <li className="flex-1 max-sm:hidden">
+            <button
+              type="button"
+              onClick={signOut}
+              disabled={signingOut}
+              className={`${ITEM} w-full text-white/60 hover:-translate-y-0.5 hover:text-accent disabled:opacity-60`}
+            >
+              <LogoutIcon />
+              {signingOut ? "..." : "Logout"}
+            </button>
+          </li>
+          {/* Téléphone : "+" ouvre les autres menus, puis devient "×" pour tout refermer */}
+          <li className="flex-1 sm:hidden">
             <button
               type="button"
               onClick={() => setOpen((value) => !value)}

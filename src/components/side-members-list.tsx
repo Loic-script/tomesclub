@@ -29,10 +29,13 @@ const simplify = (text: string) =>
 export function SideMembersList({
   members,
   showOnline = false,
+  grid = false,
 }: {
   members: SideMember[];
   /** Affiche "● N online" à côté du nombre de membres. */
   showOnline?: boolean;
+  /** Page Members : sur ordinateur, des lignes plus grandes (photo, nom, Follow). */
+  grid?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const wanted = simplify(query);
@@ -106,14 +109,25 @@ export function SideMembersList({
           No member called &ldquo;{query.trim()}&rdquo;.
         </p>
       ) : (
-        <ul className="-mr-2 min-h-0 flex-1 space-y-2 overflow-y-auto pr-2">
+        <ul
+          className={
+            grid
+              ? // Page Members : la liste, un peu plus grande sur ordinateur
+                "space-y-2 lg:space-y-2.5"
+              : "-mr-2 min-h-0 flex-1 space-y-2 overflow-y-auto pr-2"
+          }
+        >
           {shown.map((member, index) => (
             <li
               key={member.id}
               className="anim-rise"
               style={{ "--d": `${Math.min(index, 8) * 40}ms` } as CSSProperties}
             >
-              <div className="neu-sm flex items-center gap-2.5 rounded-2xl p-2">
+              <div
+                className={`neu-sm flex items-center gap-2.5 rounded-2xl p-2 ${
+                  grid ? "lg:gap-4 lg:rounded-3xl lg:p-3 lg:pr-4" : ""
+                }`}
+              >
                 {/* La photo + le point vert, cliquables : ça ouvre la fiche */}
                 <Link
                   href={`/members/${member.id}`}
@@ -124,13 +138,13 @@ export function SideMembersList({
                     userId={member.id}
                     name={`${member.firstName} ${member.lastName}`}
                     hasPhoto={member.hasPhoto}
-                    size="size-10"
+                    size={grid ? "size-10 lg:size-12" : "size-10"}
                   />
                   <span
                     aria-label={member.online ? "Online" : "Offline"}
                     className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-[#2b1538] ${
                       member.online ? "bg-emerald-400" : "bg-white/30"
-                    }`}
+                    } ${grid ? "lg:size-3.5" : ""}`}
                   />
                 </Link>
 

@@ -35,8 +35,8 @@ async function MembersHome() {
         />
       </div>
       {/* Aux couleurs du bouton message (comme le panneau Members sur ordinateur) */}
-      <GlassCard className="card-accent anim-rise flex flex-col" style={delay(120)}>
-        <SideMembersList members={members} showOnline />
+      <GlassCard className="card-accent-phone card-dark-desktop anim-rise flex flex-col" style={delay(120)}>
+        <SideMembersList members={members} showOnline grid />
       </GlassCard>
     </>
   );
