@@ -60,11 +60,6 @@ export function AuthFlip() {
             <GoogleSignInButton />
           </div>
 
-          <p className="anim-rise text-xs leading-5 text-zinc-500" style={delay(800)}>
-            No password to remember — Google keeps your account safe. By signing in, you agree to
-            the Tomes Club <span className="font-medium text-brand">Terms &amp; Conditions</span>.
-          </p>
-
           <p
             className="anim-rise mt-6 border-t border-zinc-100 pt-4 text-xs text-zinc-400"
             style={delay(950)}
