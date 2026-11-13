@@ -15,7 +15,7 @@ export async function SideMembers({ className = "" }: { className?: string }) {
   return (
     <aside aria-label="Members" className={className}>
       <div
-        className="neu anim-rise flex max-h-[76vh] w-72 flex-col rounded-[2rem] p-5"
+        className="neu nav-glass anim-rise flex max-h-[76vh] w-72 flex-col rounded-[2rem] p-5"
         style={{ "--d": "300ms" } as CSSProperties}
       >
         <header className="mb-4 flex items-center gap-2">
