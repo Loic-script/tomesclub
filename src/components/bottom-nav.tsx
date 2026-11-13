@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import { authClient } from "@/lib/auth-client";
 
 // La barre de navigation en bas, style application mobile (pilule en verre).
@@ -34,7 +34,7 @@ export function BottomNav() {
   const moreActive = MORE_TABS.some((tab) => isActive(tab.href));
 
   /** Un onglet : icône + nom + pastille (Alerts = le total ; rien sur le menu ouvert). */
-  const renderTab = (tab: (typeof TABS)[number]) => {
+  const renderTab = (tab: { href: string; label: string; icon: () => ReactElement }) => {
     const active = isActive(tab.href);
     const Icon = tab.icon;
     const count = tab.href === "/notifications" ? unread : active ? 0 : (tabs[TAB_KEY[tab.href] ?? ""] ?? 0);
@@ -57,14 +57,16 @@ export function BottomNav() {
   return (
     // Menu ouvert : la barre passe au-dessus du bouton message flottant (z-50).
     <div className={`fixed inset-x-2 bottom-4 mx-auto max-w-md sm:inset-x-4 ${open ? "z-[60]" : "z-20"}`}>
-      {/* Les autres menus (Alerts, Profile, Logout) : sortent au-dessus du bouton "+" */}
+      {/* Les autres menus (Members, Alerts, Profile, Logout) : sortent au-dessus du bouton "+" */}
       <nav
         aria-label="More"
         inert={!open}
-        className={`neu nav-glass absolute bottom-full right-0 mb-3 flex w-60 sm:hidden gap-1 rounded-[1.75rem] p-1.5 transition-all duration-300 [transform-origin:bottom_right] ${
+        className={`neu nav-glass absolute bottom-full right-0 mb-3 flex w-[19rem] max-w-full sm:hidden gap-1 rounded-[1.75rem] p-1.5 transition-all duration-300 [transform-origin:bottom_right] ${
           open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-2 scale-90 opacity-0"
         }`}
       >
+        {/* Members : seulement dans ce menu du téléphone */}
+        <div className="flex-1">{renderTab(MEMBERS_TAB)}</div>
         {MORE_TABS.map((tab) => (
           <div key={tab.href} className="flex-1">
             {renderTab(tab)}
@@ -139,6 +141,22 @@ const ITEM =
 /** 4 menus toujours visibles ; les autres s'ouvrent avec le "+". */
 const MAIN_TABS = TABS.slice(0, 4);
 const MORE_TABS = TABS.slice(4);
+
+/** La liste des membres : dans le menu "+" du téléphone. */
+const MEMBERS_TAB = { href: "/members", label: "Members", icon: MembersIcon } as const;
+
+function MembersIcon() {
+  return (
+    <svg {...iconProps}>
+      <circle cx="12" cy="7.5" r="3" />
+      <path d="M6.5 19a5.5 5.5 0 0 1 11 0" />
+      <circle cx="5" cy="10" r="2.1" />
+      <path d="M1.8 17.5a3.6 3.6 0 0 1 4-3" />
+      <circle cx="19" cy="10" r="2.1" />
+      <path d="M22.2 17.5a3.6 3.6 0 0 0-4-3" />
+    </svg>
+  );
+}
 
 function Badge({ count }: { count: number }) {
   return (

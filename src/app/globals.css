@@ -335,7 +335,9 @@ h3,
 /* Le dégradé du bouton message, seulement sur téléphone et tablette (ex : la page Members). */
 @media (max-width: 1023.98px) {
   .on-dark .neu.card-accent-phone {
-    background: linear-gradient(150deg, var(--color-accent), var(--color-brand) 70%);
+    background: linear-gradient(165deg, rgba(247, 148, 74, 0.42), rgba(156, 11, 59, 0.36) 55%, rgba(58, 12, 44, 0.5));
+    -webkit-backdrop-filter: blur(22px) saturate(120%);
+    backdrop-filter: blur(22px) saturate(120%);
     border-color: rgba(255, 255, 255, 0.25);
     box-shadow: 0 22px 45px -15px rgba(0, 0, 0, 0.7);
   }
