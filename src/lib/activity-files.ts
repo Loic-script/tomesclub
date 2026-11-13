@@ -45,14 +45,18 @@ export function safeExtension(name: string): string {
  * Ecrit un fichier envoye sur le disque (en flux, sans tout garder en memoire).
  * Rend sa taille. Rejette avec UploadTooBigError au-dela de la limite.
  */
-export async function writeUpload(body: ReadableStream<Uint8Array>, target: string): Promise<number> {
+export async function writeUpload(
+  body: ReadableStream<Uint8Array>,
+  target: string,
+  maxBytes: number = MAX_UPLOAD_BYTES,
+): Promise<number> {
   const partial = `${target}.part`;
   await mkdir(path.dirname(target), { recursive: true });
   let size = 0;
   const counter = new Transform({
     transform(chunk: Buffer, _encoding, done) {
       size += chunk.length;
-      if (size > MAX_UPLOAD_BYTES) done(new UploadTooBigError("too big"));
+      if (size > maxBytes) done(new UploadTooBigError("too big"));
       else done(null, chunk);
     },
   });
@@ -66,19 +70,31 @@ export async function writeUpload(body: ReadableStream<Uint8Array>, target: stri
   return size;
 }
 
+/**
+ * Les types qu'on peut afficher dans le navigateur sans risque. Tout le reste (HTML, SVG, inconnu…)
+ * est seulement téléchargé : sinon un fichier piégé envoyé dans le chat pourrait lancer
+ * du code sur notre site quand l'admin l'ouvre (XSS).
+ */
+const INLINE_SAFE = /^(image\/(jpeg|png|webp|gif|avif)|video\/(mp4|webm|ogg|quicktime)|audio\/[a-z0-9.+-]+|application\/pdf|text\/plain)$/i;
+
 /** Envoie un fichier du disque au navigateur (gere "Range" pour avancer dans une video). */
 export function fileResponse(
   request: Request,
   file: { path: string; size: number; mime: string; name: string },
 ): Response {
   const url = new URL(request.url);
-  const disposition = `${url.searchParams.get("download") ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(file.name)}`;
+  const inlineOk = INLINE_SAFE.test(file.mime);
+  const disposition = `${url.searchParams.get("download") || !inlineOk ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(file.name)}`;
   const headers: Record<string, string> = {
-    "Content-Type": file.mime,
+    "Content-Type": inlineOk ? file.mime : "application/octet-stream",
     "Accept-Ranges": "bytes",
     "Content-Disposition": disposition,
     "Cache-Control": "private, max-age=3600",
     "X-Content-Type-Options": "nosniff",
+    // Ouvert seul dans un onglet : aucun script ne peut tourner (le lecteur PDF du navigateur reste permis).
+    ...(file.mime.toLowerCase() === "application/pdf"
+      ? {}
+      : { "Content-Security-Policy": "sandbox; default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'" }),
   };
 
   const range = request.headers.get("range")?.match(/^bytes=(\d*)-(\d*)$/);

@@ -15,6 +15,7 @@ import {
   createRoomServiceClient,
   getBrowserLiveKitUrl,
 } from "@/lib/livekit";
+import { REGISTERED } from "@/lib/event-responses";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, requireMember } from "@/lib/session";
 
@@ -90,6 +91,34 @@ async function LiveEvent({
   // L'hôte : l'admin, ou le Leader / Teacher qui organise l'événement
 
   const hosting = person.coach || (event.createdById !== null && event.createdById === person.id);
+
+  // Événement payant : seulement les inscrits dont l'admin a confirmé le paiement.
+  if (event.isPaid && !hosting) {
+    const registration = await prisma.eventResponse.findFirst({
+      where: { eventId: event.id, userId: person.id, status: REGISTERED },
+      select: { paidAt: true },
+    });
+    if (!registration?.paidAt) {
+      return (
+        <div className="m-auto max-w-sm px-6 text-center">
+          <h1 className="font-display text-2xl font-bold text-white">
+            {registration ? "Payment not confirmed yet" : "Registration needed"}
+          </h1>
+          <p className="mt-2 text-sm text-white/60">
+            {registration
+              ? "This is a paid event. You can join as soon as the admin confirms your payment."
+              : "This is a paid event. Register and pay on the Events page to join the live."}
+          </p>
+          <Link
+            href="/events"
+            className="mt-6 inline-block rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white"
+          >
+            Back to events
+          </Link>
+        </div>
+      );
+    }
+  }
 
   if (!eventIsLive(event)) {
     return (

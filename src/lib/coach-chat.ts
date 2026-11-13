@@ -77,6 +77,9 @@ export async function listThread(userId: string): Promise<ChatMessage[]> {
 
 type NewFile = { name: string; mime: string; body: ReadableStream<Uint8Array> };
 
+/** Taille max d'un fichier envoyé par un membre dans le chat. */
+const MEMBER_CHAT_MAX_BYTES = 100 * 1024 * 1024;
+
 /** Enregistre un message (texte et/ou fichier). */
 async function createMessage(userId: string, fromCoach: boolean, body: string, file?: NewFile): Promise<ChatMessage> {
   if (!file) {
@@ -86,7 +89,8 @@ async function createMessage(userId: string, fromCoach: boolean, body: string, f
   const id = randomUUID();
   const name = cleanFileName(file.name);
   const target = chatFilePath(id, name);
-  const size = await writeUpload(file.body, target);
+  // Un membre : 100 Mo par fichier au plus (le disque ne se remplit pas) ; l'admin : la grande limite.
+  const size = await writeUpload(file.body, target, fromCoach ? undefined : MEMBER_CHAT_MAX_BYTES);
   try {
     const row = await prisma.coachMessage.create({
       data: {

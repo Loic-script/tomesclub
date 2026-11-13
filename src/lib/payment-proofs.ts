@@ -30,7 +30,7 @@ export async function savePaymentProof(input: {
 }): Promise<string> {
   const id = randomUUID();
   const name = cleanFileName(input.name);
-  const size = await writeUpload(input.body, proofPath(id, name));
+  const size = await writeUpload(input.body, proofPath(id, name), MAX_PROOF_BYTES);
   await prisma.paymentProof.create({ data: { id, userId: input.userId, name, mime: input.mime, size } });
   return id;
 }

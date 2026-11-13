@@ -21,7 +21,7 @@ export function eventIsLive(event: { liveStartedAt: Date | null; liveEndedAt: Da
 /** L evenement pour la page du direct (sans les octets de l image). */
 export function getLiveEvent(eventId: string) {
   return prisma.event.findFirst({
-    where: { id: eventId, kind: "event" },
+    where: { id: eventId, kind: "event", status: "published" },
     select: {
       id: true,
       title: true,
@@ -34,6 +34,7 @@ export function getLiveEvent(eventId: string) {
       durationMin: true,
       maxParticipants: true,
       createdById: true,
+      isPaid: true,
     },
   });
 }
