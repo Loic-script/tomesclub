@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { AdminLoginForm } from "../admin/login/admin-login-form";
+import { EmailAuthForm } from "./email-auth-form";
 import { GoogleSignInButton } from "./google-button";
 
 const delay = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
@@ -14,6 +15,10 @@ const delay = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
 export function AuthFlip() {
   const searchParams = useSearchParams();
   const [flipped, setFlipped] = useState(searchParams.get("admin") === "1");
+  // Membre : se connecter, ou créer un compte
+  const [mode, setMode] = useState<"signin" | "register">(
+    searchParams.get("mode") === "register" ? "register" : "signin",
+  );
   // Arrivé ici parce que la session admin n'était plus valide ?
   const expired = searchParams.get("expired") === "1";
 
@@ -33,30 +38,74 @@ export function AuthFlip() {
       >
         {/* ----- Recto : les membres ----- */}
         <Face hidden={flipped}>
-          <div className="anim-pop relative mx-auto mb-5 w-fit" style={delay(350)}>
-            <span aria-hidden className="anim-halo absolute -inset-2.5 rounded-full bg-accent/40 blur-lg" />
+          <div className="anim-pop relative mx-auto mb-4 w-fit" style={delay(350)}>
+            <span aria-hidden className="anim-halo absolute -inset-2 rounded-full bg-accent/40 blur-lg" />
             <Image
               src="/logo.png"
               alt="Tomes Club logo"
-              width={88}
-              height={88}
+              width={64}
+              height={64}
               preload
               className="relative rounded-full drop-shadow-md"
             />
           </div>
 
-          <div className="anim-rise" style={delay(500)}>
-            <h1 className="font-display text-3xl font-bold text-navy">Sign in</h1>
-            <span
-              aria-hidden
-              className="mx-auto mt-2 block h-1 w-12 rounded-full bg-gradient-to-r from-brand to-accent"
-            />
-            <p className="mt-3 text-sm leading-6 text-zinc-600">
-              One click with your Google account, and your class is waiting.
+          <div className="anim-rise" style={delay(450)}>
+            <h1 className="font-display text-[1.75rem] font-bold leading-tight text-navy">
+              {mode === "register" ? "Join the club" : "Welcome back"}
+            </h1>
+            <p className="mt-1.5 text-sm text-zinc-500">
+              {mode === "register"
+                ? "Create your account in a few seconds."
+                : "Sign in to join your classes and rooms."}
             </p>
           </div>
 
-          <div className="anim-rise mt-7" style={delay(650)}>
+          {/* Les deux onglets : se connecter / créer un compte */}
+          <div
+            role="tablist"
+            aria-label="Sign in or create an account"
+            className="anim-rise relative mx-auto mt-5 grid grid-cols-2 rounded-full bg-zinc-100 p-1 text-sm font-semibold"
+            style={delay(550)}
+          >
+            <span
+              aria-hidden
+              className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm ring-1 ring-black/5 transition-transform duration-300 ${
+                mode === "register" ? "translate-x-full" : ""
+              }`}
+            />
+            {(
+              [
+                { value: "signin", label: "Sign in" },
+                { value: "register", label: "Create account" },
+              ] as const
+            ).map((tab) => (
+              <button
+                key={tab.value}
+                type="button"
+                role="tab"
+                aria-selected={mode === tab.value}
+                onClick={() => setMode(tab.value)}
+                className={`relative z-10 rounded-full px-3 py-2 transition ${
+                  mode === tab.value ? "text-navy" : "text-zinc-500 hover:text-zinc-700"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="anim-rise mt-5" style={delay(650)}>
+            <EmailAuthForm key={mode} mode={mode} />
+          </div>
+
+          {/* ou Google */}
+          <div className="anim-rise my-4 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400" style={delay(750)}>
+            <span className="h-px flex-1 bg-zinc-200" />
+            or
+            <span className="h-px flex-1 bg-zinc-200" />
+          </div>
+          <div className="anim-rise" style={delay(800)}>
             <GoogleSignInButton />
           </div>
 

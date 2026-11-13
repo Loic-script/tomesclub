@@ -14,16 +14,16 @@ const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
 
-  // La seule façon de se connecter sur le site : le compte Google.
+  // Deux façons de se connecter : le compte Google, ou un email + un mot de passe.
   socialProviders:
     googleClientId && googleClientSecret
       ? { google: { clientId: googleClientId, clientSecret: googleClientSecret } }
       : {},
 
-  // Email + mot de passe : PAS sur le site. Gardé seulement en développement,
-  // pour les comptes de test automatiques (via l'API). Éteint en production.
+  // Email + mot de passe : connexion et inscription depuis la page /login.
+  // (Pas encore d'envoi d'email : pas de vérification d'adresse ni de "mot de passe oublié".)
   emailAndPassword: {
-    enabled: process.env.NODE_ENV !== "production",
+    enabled: true,
     minPasswordLength: 8,
     autoSignIn: true,
   },
