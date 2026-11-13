@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { ProfileForm, type ProfileFormInitial } from "@/components/profile-form";
-import { saveProfileInline } from "./edit/actions";
+import type { ProfileFormInitial } from "@/components/profile-form";
+import { EditProfileCard } from "./edit-profile-card";
 
 // Le bouton crayon, posé sur la carte de membre : il ouvre la fenêtre "Edit profile"
 // (même bandeau diagonal que la carte). Après l'enregistrement, la carte se met à jour.
@@ -63,13 +63,13 @@ export function EditProfileLauncher({
       {open &&
         createPortal(
           <div
-            className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm"
             onClick={(event) => {
               if (event.target === event.currentTarget) close();
             }}
           >
-            <div role="dialog" aria-modal="true" aria-label="Edit profile" className="flex w-full max-w-2xl justify-center">
-              <ProfileForm mode="edit" initial={initial} action={saveProfileInline} onClose={close} onSaved={saved} />
+            <div role="dialog" aria-modal="true" aria-label="Edit profile" className="flex w-full justify-center p-3">
+              <EditProfileCard initial={initial} onClose={close} onSaved={saved} />
             </div>
           </div>,
           document.body,
