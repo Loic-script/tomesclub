@@ -1,5 +1,6 @@
 import { after } from "next/server";
 import { getActivity } from "@/lib/activities";
+import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/admin";
 import { convertToPdf, MAX_UPLOAD_BYTES, saveActivityFile, UploadTooBigError } from "@/lib/activity-files";
 
@@ -10,8 +11,17 @@ export async function POST(request: Request) {
   if (!(await isAdmin())) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const url = new URL(request.url);
-  const activity = await getActivity(url.searchParams.get("activity"));
-  if (!activity) return Response.json({ error: "Unknown activity." }, { status: 404 });
+  // Une activité ("debate") ou un événement ("event:<id>")
+  const key = url.searchParams.get("activity") ?? "";
+  let ownerKey: string | null = null;
+  if (key.startsWith("event:")) {
+    const event = await prisma.event.findFirst({ where: { id: key.slice(6), kind: "event" }, select: { id: true } });
+    ownerKey = event ? key : null;
+  } else {
+    ownerKey = (await getActivity(key))?.key ?? null;
+  }
+  if (!ownerKey) return Response.json({ error: "Unknown activity or event." }, { status: 404 });
+  const activity = { key: ownerKey };
 
   const name = url.searchParams.get("name")?.trim();
   if (!name) return Response.json({ error: "The file has no name." }, { status: 400 });

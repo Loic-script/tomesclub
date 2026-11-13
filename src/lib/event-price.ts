@@ -9,3 +9,11 @@ export function formatEventPrice(event: { isPaid: boolean; price: number | null;
   if (!event.isPaid || event.price === null) return "Free";
   return `${new Intl.NumberFormat("fr-FR").format(event.price)} ${event.currency ?? "Ar"}`;
 }
+
+/** Le direct vidéo d'un événement : durée et nombre de places maximum. */
+export const EVENT_MAX_DURATION = 120;
+export const EVENT_MIN_PEOPLE = 2;
+export const EVENT_MAX_PEOPLE = 60;
+
+/** La clé des fichiers d'un événement (même table que les fichiers des activités). */
+export const eventFilesKey = (eventId: string) => `event:${eventId}`;

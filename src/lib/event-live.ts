@@ -10,7 +10,7 @@ export const EVENT_ROOM_PREFIX = "event_";
 
 /** La salle se ferme 30 minutes apres le depart de la derniere personne. */
 const EMPTY_TIMEOUT_SECONDS = 30 * 60;
-const MAX_PARTICIPANTS = 50;
+const MAX_PARTICIPANTS = 60;
 
 /** Le direct est-il en cours ? */
 export function eventIsLive(event: { liveStartedAt: Date | null; liveEndedAt: Date | null }): boolean {
@@ -28,6 +28,10 @@ export function getLiveEvent(eventId: string) {
       startsAt: true,
       liveStartedAt: true,
       liveEndedAt: true,
+      activity: true,
+      topic: true,
+      durationMin: true,
+      maxParticipants: true,
     },
   });
 }
@@ -36,7 +40,7 @@ export function getLiveEvent(eventId: string) {
 export async function startEventLive(eventId: string): Promise<boolean> {
   const event = await prisma.event.findFirst({
     where: { id: eventId, kind: "event" },
-    select: { id: true, title: true, liveStartedAt: true, liveEndedAt: true },
+    select: { id: true, title: true, liveStartedAt: true, liveEndedAt: true, maxParticipants: true },
   });
   if (!event) return false;
   if (eventIsLive(event)) return true; // deja en direct
@@ -44,7 +48,7 @@ export async function startEventLive(eventId: string): Promise<boolean> {
   await createRoomServiceClient().createRoom({
     name: `${EVENT_ROOM_PREFIX}${event.id}`,
     emptyTimeout: EMPTY_TIMEOUT_SECONDS,
-    maxParticipants: MAX_PARTICIPANTS,
+    maxParticipants: Math.min(event.maxParticipants ?? MAX_PARTICIPANTS, MAX_PARTICIPANTS),
   });
   await prisma.event.update({
     where: { id: event.id },

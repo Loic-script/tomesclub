@@ -237,6 +237,11 @@ model Event {
   liveStartedAt DateTime?
   liveEndedAt   DateTime?
   /// Payant ou gratuit. Si payant : le tarif (nombre entier) et la monnaie (Ar, €, $).
+  /// Le direct vidéo : l activité (clé du catalogue), le thème, la durée (min, max 120) et la limite de personnes (max 60)
+  activity        String?
+  topic           String?
+  durationMin     Int?
+  maxParticipants Int?
   isPaid      Boolean   @default(false)
   price       Int?
   currency    String?

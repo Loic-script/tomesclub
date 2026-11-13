@@ -21,6 +21,13 @@ import {
 } from "./actions";
 import { DeleteEventButton } from "./delete-event-button";
 import { EventPriceFields } from "./event-price-fields";
+import {
+  EventSessionFields,
+  type EventActivityChoice,
+} from "./event-session-fields";
+import { ActivityFilesDialog } from "../rooms/activity-files-dialog";
+import { ActivityIcon } from "@/components/activity-icon";
+import type { ActivityFileView } from "@/lib/file-kinds";
 
 export type AdminEventView = {
   id: string;
@@ -47,10 +54,28 @@ export type AdminEventView = {
   }[];
   past: boolean;
   live: boolean;
+  /** Le direct vidéo */
+  activity: string | null;
+  activityName: string | null;
+  activityIcon: string | null;
+  topic: string | null;
+  durationMin: number | null;
+  maxParticipants: number | null;
+  /** Les fichiers à montrer pendant le direct */
+  files: ActivityFileView[];
 };
 
 // Une ligne de la liste admin : l'événement, ses boutons, et son formulaire de modification.
-export function AdminEventItem({ event }: { event: AdminEventView }) {
+export function AdminEventItem({
+  event,
+  activities,
+  storageReady,
+}: {
+  event: AdminEventView;
+  activities: EventActivityChoice[];
+  storageReady: boolean;
+}) {
+  const [showFiles, setShowFiles] = useState(false);
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
   const [confirmEnd, setConfirmEnd] = useState(false);
@@ -112,6 +137,26 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
               >
                 {formatEventPrice(event)}
               </span>
+              {/* Le direct : activité, durée, places */}
+              {event.activityName && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 font-semibold text-white/75">
+                  <ActivityIcon
+                    icon={event.activityIcon}
+                    className="size-3.5 text-accent"
+                  />
+                  {event.activityName}
+                </span>
+              )}
+              {event.durationMin && (
+                <span className="rounded-full bg-white/10 px-2 py-0.5 font-semibold text-white/75">
+                  {event.durationMin} min
+                </span>
+              )}
+              {event.maxParticipants && (
+                <span className="rounded-full bg-white/10 px-2 py-0.5 font-semibold text-white/75">
+                  {event.maxParticipants} places
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => setShowPeople((value) => !value)}
@@ -221,6 +266,19 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
             ))}
 
           <span className="flex items-center gap-2">
+            {event.kind === "event" && (
+              <button
+                type="button"
+                onClick={() => setShowFiles(true)}
+                title="Files for the live"
+                className="neu-sm neu-btn flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-bold text-white/70 hover:text-white"
+              >
+                Files
+                <span className="rounded-full bg-white/10 px-1.5 tabular-nums">
+                  {event.files.length}
+                </span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setEditing((value) => !value)}
@@ -253,7 +311,23 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
       )}
 
       {editing && (
-        <EditEventForm event={event} onDone={() => setEditing(false)} />
+        <EditEventForm
+          event={event}
+          activities={activities}
+          onDone={() => setEditing(false)}
+        />
+      )}
+      {showFiles && (
+        <ActivityFilesDialog
+          activity={{
+            key: `event:${event.id}`,
+            name: event.title,
+            icon: event.activityIcon ?? "📅",
+          }}
+          files={event.files}
+          storageReady={storageReady}
+          onClose={() => setShowFiles(false)}
+        />
       )}
     </li>
   );
@@ -441,9 +515,11 @@ const initialState: UpdateEventState = { error: null, saved: false };
 /** Le formulaire de modification, déplié sous la ligne. */
 function EditEventForm({
   event,
+  activities,
   onDone,
 }: {
   event: AdminEventView;
+  activities: EventActivityChoice[];
   onDone: () => void;
 }) {
   const [state, formAction, pending] = useActionState(
@@ -544,6 +620,19 @@ function EditEventForm({
               defaultPaid={event.isPaid}
               defaultPrice={event.price}
               defaultCurrency={event.currency}
+              fieldClass={field}
+              labelClass={label}
+            />
+          </div>
+        )}
+        {kind === "event" && (
+          <div className="sm:col-span-2">
+            <EventSessionFields
+              activities={activities}
+              defaultActivity={event.activity}
+              defaultTopic={event.topic}
+              defaultDuration={event.durationMin}
+              defaultPeople={event.maxParticipants}
               fieldClass={field}
               labelClass={label}
             />

@@ -7,14 +7,19 @@ import { eventIsLive } from "@/lib/event-live";
 import { CalendarIcon } from "../admin-icons";
 import { AdminHeader, delay, EmptyState, Panel } from "../admin-ui";
 import { AdminEventItem } from "./admin-event-item";
-import { CreateEventForm } from "./create-event-form";
+import { NewEventButton } from "./create-event-form";
+import { listActivities } from "@/lib/activities";
+import { listFilesByActivity } from "@/lib/activity-files";
+import { eventFilesKey } from "@/lib/event-price";
 
 export const metadata: Metadata = { title: "Events · Admin" };
 
 // Page /admin/events : publier et gérer les événements et annonces du club.
 export default function AdminEventsPage() {
   return (
-    <Suspense fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}>
+    <Suspense
+      fallback={<p className="pt-20 text-center text-white/60">Loading...</p>}
+    >
       <AdminEvents />
     </Suspense>
   );
@@ -35,6 +40,10 @@ async function loadEvents() {
       createdAt: true,
       liveStartedAt: true,
       liveEndedAt: true,
+      activity: true,
+      topic: true,
+      durationMin: true,
+      maxParticipants: true,
       isPaid: true,
       price: true,
       currency: true,
@@ -62,8 +71,28 @@ function toInputValue(date: Date): string {
 
 async function AdminEvents() {
   await requireAdmin();
-  const events = await loadEvents();
-  const upcoming = events.filter((event) => event.kind === "event" && !event.past).length;
+  const [events, activities] = await Promise.all([
+    loadEvents(),
+    listActivities(),
+  ]);
+  const filesByKey = await listFilesByActivity(
+    events.map((event) => eventFilesKey(event.id)),
+  );
+  const activityByKey = new Map(
+    activities.map((activity) => [activity.key, activity]),
+  );
+  // Pour les formulaires : chaque activité avec ses thèmes proposés
+  const activityChoices = activities.map((activity) => ({
+    key: activity.key,
+    name: activity.name,
+    topics: activity.categories.flatMap((category) => category.topics),
+  }));
+  const storageReady = Boolean(
+    process.env.TWINS_VOLUME_MOUNT_PATH || process.env.UPLOAD_DIR,
+  );
+  const upcoming = events.filter(
+    (event) => event.kind === "event" && !event.past,
+  ).length;
 
   const day = new Intl.DateTimeFormat("en-GB", { day: "numeric" });
   const month = new Intl.DateTimeFormat("en-GB", { month: "short" });
@@ -81,21 +110,19 @@ async function AdminEvents() {
         eyebrow="Publishing"
         title="Events & news"
         subtitle={`${upcoming} upcoming ${upcoming === 1 ? "event" : "events"} · members are notified when you publish`}
+        right={<NewEventButton activities={activityChoices} />}
       />
 
-      <div className="grid items-start gap-5 xl:grid-cols-5">
-        {/* ----- Publier ----- */}
-        <div className="xl:sticky xl:top-8 xl:col-span-2">
-          <CreateEventForm />
-        </div>
-
-        {/* ----- Ce qui est publié ----- */}
+      <div>
+        {/* ----- Ce qui est publié (on publie avec le bouton "New event") ----- */}
         <Panel
-          className="xl:col-span-3"
           style={delay(160)}
           title={
             <>
-              Published <span className="text-sm font-semibold text-white/40">({events.length})</span>
+              Published{" "}
+              <span className="text-sm font-semibold text-white/40">
+                ({events.length})
+              </span>
             </>
           }
           icon={<CalendarIcon className="size-[18px]" />}
@@ -111,14 +138,34 @@ async function AdminEvents() {
               {events.map((event) => (
                 <AdminEventItem
                   key={event.id}
+                  activities={activityChoices}
+                  storageReady={storageReady}
                   event={{
+                    activity: event.activity,
+                    activityName: event.activity
+                      ? (activityByKey.get(event.activity)?.name ?? null)
+                      : null,
+                    activityIcon: event.activity
+                      ? (activityByKey.get(event.activity)?.icon ?? null)
+                      : null,
+                    topic: event.topic,
+                    durationMin: event.durationMin,
+                    maxParticipants: event.maxParticipants,
+                    files: filesByKey[eventFilesKey(event.id)] ?? [],
                     id: event.id,
-                    kind: event.kind === "announcement" ? "announcement" : "event",
+                    kind:
+                      event.kind === "announcement" ? "announcement" : "event",
                     title: event.title,
                     description: event.description,
-                    startsAtInput: event.startsAt ? toInputValue(event.startsAt) : "",
-                    dayLabel: event.startsAt ? day.format(event.startsAt) : null,
-                    monthLabel: event.startsAt ? month.format(event.startsAt) : null,
+                    startsAtInput: event.startsAt
+                      ? toInputValue(event.startsAt)
+                      : "",
+                    dayLabel: event.startsAt
+                      ? day.format(event.startsAt)
+                      : null,
+                    monthLabel: event.startsAt
+                      ? month.format(event.startsAt)
+                      : null,
                     whenLabel: event.startsAt
                       ? full.format(event.startsAt)
                       : `Posted ${full.format(event.createdAt)}`,

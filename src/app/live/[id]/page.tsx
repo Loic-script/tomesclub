@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import { endLiveIfOver } from "./actions";
+import { eventFilesKey } from "@/lib/event-price";
+import { listFilesForActivity } from "@/lib/activity-files";
+import { getActivity } from "@/lib/activities";
 import { countryCodeOf } from "@/lib/countries";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -6,7 +10,11 @@ import { Suspense } from "react";
 import { VideoRoom } from "@/components/video-room";
 import { isAdmin } from "@/lib/admin";
 import { EVENT_ROOM_PREFIX, eventIsLive, getLiveEvent } from "@/lib/event-live";
-import { createParticipantToken, getBrowserLiveKitUrl } from "@/lib/livekit";
+import {
+  createParticipantToken,
+  createRoomServiceClient,
+  getBrowserLiveKitUrl,
+} from "@/lib/livekit";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, requireMember } from "@/lib/session";
 
@@ -14,10 +22,15 @@ export const metadata: Metadata = { title: "Live event" };
 
 // Page /live/<id> : le direct vidéo d'un événement.
 // Le coach (session admin) et les membres arrivent dans la même salle.
-export default function LiveEventPage({ params, searchParams }: PageProps<"/live/[id]">) {
+export default function LiveEventPage({
+  params,
+  searchParams,
+}: PageProps<"/live/[id]">) {
   return (
     <main className="flex h-dvh flex-col bg-zinc-950">
-      <Suspense fallback={<p className="m-auto text-zinc-400">Connecting...</p>}>
+      <Suspense
+        fallback={<p className="m-auto text-zinc-400">Connecting...</p>}
+      >
         {Promise.all([params, searchParams]).then(([{ id }, query]) => (
           <LiveEvent eventId={id} asAdmin={query.as === "admin"} />
         ))}
@@ -32,19 +45,42 @@ export default function LiveEventPage({ params, searchParams }: PageProps<"/live
  */
 async function whoIsJoining(
   asAdmin: boolean,
-): Promise<{ id: string; name: string; coach: boolean; country: string | null }> {
-  if (asAdmin && (await isAdmin())) return { id: "coach", name: "Admin", coach: true, country: null };
-  if (!(await getCurrentUser()) && (await isAdmin())) return { id: "coach", name: "Admin", coach: true, country: null };
+): Promise<{
+  id: string;
+  name: string;
+  coach: boolean;
+  country: string | null;
+}> {
+  if (asAdmin && (await isAdmin()))
+    return { id: "coach", name: "Admin", coach: true, country: null };
+  if (!(await getCurrentUser()) && (await isAdmin()))
+    return { id: "coach", name: "Admin", coach: true, country: null };
   const user = await requireMember();
   const profile = await prisma.profile.findUnique({
     where: { userId: user.id },
     select: { role: true, country: true },
   });
-  const role = profile?.role === "teacher" ? " · Teacher" : profile?.role === "leader" ? " · Leader" : "";
-  return { id: user.id, name: `${user.firstName}${role}`, coach: false, country: countryCodeOf(profile?.country) };
+  const role =
+    profile?.role === "teacher"
+      ? " · Teacher"
+      : profile?.role === "leader"
+        ? " · Leader"
+        : "";
+  return {
+    id: user.id,
+    name: `${user.firstName}${role}`,
+    coach: false,
+    country: countryCodeOf(profile?.country),
+  };
 }
 
-async function LiveEvent({ eventId, asAdmin }: { eventId: string; asAdmin: boolean }) {
+async function LiveEvent({
+  eventId,
+  asAdmin,
+}: {
+  eventId: string;
+  asAdmin: boolean;
+}) {
   const person = await whoIsJoining(asAdmin);
   const leaveTo = person.coach ? "/admin/events" : "/events";
 
@@ -75,6 +111,51 @@ async function LiveEvent({ eventId, asAdmin }: { eventId: string; asAdmin: boole
     );
   }
 
+  // Complet ? (On peut revenir si on y est déjà, par exemple après un rechargement.)
+  if (event.maxParticipants) {
+    const people = await createRoomServiceClient()
+      .listParticipants(`${EVENT_ROOM_PREFIX}${event.id}`)
+      .then((list) => list.map((participant) => participant.identity))
+      .catch(() => null);
+    if (
+      people &&
+      people.length >= event.maxParticipants &&
+      !people.includes(person.id)
+    ) {
+      return (
+        <div className="m-auto max-w-sm px-6 text-center">
+          <h1 className="font-display text-2xl font-bold text-white">
+            This live is full
+          </h1>
+          <p className="mt-2 text-sm text-white/60">
+            {people.length}/{event.maxParticipants} people are already inside.
+          </p>
+          <Link
+            href={leaveTo}
+            className="mt-6 inline-block rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white"
+          >
+            Back to events
+          </Link>
+        </div>
+      );
+    }
+  }
+
+  // L'activité, ses fichiers et ceux de l'événement (montrés par l'admin, comme dans une room)
+  const activity = await getActivity(event.activity);
+  const files = person.coach
+    ? [
+        ...(await listFilesForActivity(eventFilesKey(event.id))),
+        ...(await listFilesForActivity(event.activity)),
+      ]
+    : [];
+  const endsAt =
+    event.durationMin && event.liveStartedAt
+      ? new Date(
+          event.liveStartedAt.getTime() + event.durationMin * 60 * 1000,
+        ).toISOString()
+      : null;
+
   const [serverUrl, token] = await Promise.all([
     getBrowserLiveKitUrl(),
     createParticipantToken({
@@ -90,15 +171,21 @@ async function LiveEvent({ eventId, asAdmin }: { eventId: string; asAdmin: boole
       token={token}
       serverUrl={serverUrl}
       leaveTo={leaveTo}
+      stage={{
+        isHost: person.coach,
+        files,
+        activityName: activity?.name ?? event.title,
+      }}
+      onTimeUp={endsAt ? endLiveIfOver.bind(null, event.id) : undefined}
       room={{
-        activityIcon: "🔴",
-        activityName: "Live event",
-        theme: event.title,
+        activityIcon: activity?.icon ?? "🔴",
+        activityName: activity ? `${activity.name} · Live event` : "Live event",
+        theme: event.topic ?? event.title,
         description: event.description,
         format: null,
         level: null,
-        durationMin: null,
-        endsAt: null,
+        durationMin: event.durationMin,
+        endsAt,
       }}
     />
   );

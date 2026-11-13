@@ -4,13 +4,21 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
 import { endEventLive, startEventLive } from "@/lib/event-live";
-import { EVENT_CURRENCIES } from "@/lib/event-price";
+import {
+  EVENT_CURRENCIES,
+  EVENT_MAX_DURATION,
+  EVENT_MAX_PEOPLE,
+  EVENT_MIN_PEOPLE,
+  eventFilesKey,
+} from "@/lib/event-price";
+import { getActivity } from "@/lib/activities";
+import { deleteFilesOfActivity } from "@/lib/activity-files";
 import { setRegistrationPaid } from "@/lib/event-responses";
 import { notifyAllMembers } from "@/lib/notifications";
 import { MAX_PHOTO_BYTES, PHOTO_TYPES } from "@/lib/onboarding-options";
 import { prisma } from "@/lib/prisma";
 
-export type CreateEventState = { error: string | null };
+export type CreateEventState = { error: string | null; eventId?: string };
 export type UpdateEventState = { error: string | null; saved: boolean };
 
 type EventInput = {
@@ -22,18 +30,28 @@ type EventInput = {
   isPaid: boolean;
   price: number | null;
   currency: string | null;
+  /** Le direct : activité, thème, durée (min), places */
+  activity: string | null;
+  topic: string | null;
+  durationMin: number | null;
+  maxParticipants: number | null;
   image: { bytes: Uint8Array<ArrayBuffer>; type: string } | null;
 };
 
 /** Lit et vérifie le formulaire (création ou modification). Texte = message d'erreur. */
 async function readEventForm(formData: FormData): Promise<EventInput | string> {
   const kind = String(formData.get("kind") ?? "");
-  if (kind !== "event" && kind !== "announcement") return "Please choose a type.";
+  if (kind !== "event" && kind !== "announcement")
+    return "Please choose a type.";
 
-  const title = String(formData.get("title") ?? "").trim().slice(0, 120);
+  const title = String(formData.get("title") ?? "")
+    .trim()
+    .slice(0, 120);
   if (!title) return "Please write a title.";
 
-  const description = String(formData.get("description") ?? "").trim().slice(0, 1000);
+  const description = String(formData.get("description") ?? "")
+    .trim()
+    .slice(0, 1000);
 
   let startsAt: Date | null = null;
   if (kind === "event") {
@@ -50,22 +68,81 @@ async function readEventForm(formData: FormData): Promise<EventInput | string> {
   let currency: string | null = null;
   if (isPaid) {
     price = Math.round(Number(formData.get("price") ?? ""));
-    if (!Number.isFinite(price) || price <= 0) return "Please write the price of the event.";
+    if (!Number.isFinite(price) || price <= 0)
+      return "Please write the price of the event.";
     if (price > 100_000_000) return "The price is too high.";
     const chosen = String(formData.get("currency") ?? "Ar");
-    currency = (EVENT_CURRENCIES as readonly string[]).includes(chosen) ? chosen : "Ar";
+    currency = (EVENT_CURRENCIES as readonly string[]).includes(chosen)
+      ? chosen
+      : "Ar";
   }
 
   // L'image de la carte (facultative).
   let image: EventInput["image"] = null;
   const file = formData.get("image");
   if (file instanceof File && file.size > 0) {
-    if (!PHOTO_TYPES.includes(file.type)) return "The image must be a JPG, PNG or WebP file.";
-    if (file.size > MAX_PHOTO_BYTES) return "The image is too big (3 MB maximum).";
-    image = { bytes: new Uint8Array(await file.arrayBuffer()), type: file.type };
+    if (!PHOTO_TYPES.includes(file.type))
+      return "The image must be a JPG, PNG or WebP file.";
+    if (file.size > MAX_PHOTO_BYTES)
+      return "The image is too big (3 MB maximum).";
+    image = {
+      bytes: new Uint8Array(await file.arrayBuffer()),
+      type: file.type,
+    };
   }
 
-  return { kind, title, description: description || null, startsAt, isPaid, price, currency, image };
+  // Le direct vidéo (seulement pour un événement daté)
+  let activity: string | null = null;
+  let topic: string | null = null;
+  let durationMin: number | null = null;
+  let maxParticipants: number | null = null;
+  if (kind === "event") {
+    const activityKey = String(formData.get("activity") ?? "").trim();
+    activity = activityKey
+      ? ((await getActivity(activityKey))?.key ?? null)
+      : null;
+    topic =
+      String(formData.get("topic") ?? "")
+        .trim()
+        .slice(0, 160) || null;
+    const minutes = Math.round(Number(formData.get("durationMin") ?? ""));
+    if (formData.get("durationMin")) {
+      if (
+        !Number.isFinite(minutes) ||
+        minutes < 1 ||
+        minutes > EVENT_MAX_DURATION
+      ) {
+        return `The duration must be between 1 and ${EVENT_MAX_DURATION} minutes.`;
+      }
+      durationMin = minutes;
+    }
+    const people = Math.round(Number(formData.get("maxParticipants") ?? ""));
+    if (formData.get("maxParticipants")) {
+      if (
+        !Number.isFinite(people) ||
+        people < EVENT_MIN_PEOPLE ||
+        people > EVENT_MAX_PEOPLE
+      ) {
+        return `The number of people must be between ${EVENT_MIN_PEOPLE} and ${EVENT_MAX_PEOPLE}.`;
+      }
+      maxParticipants = people;
+    }
+  }
+
+  return {
+    kind,
+    title,
+    description: description || null,
+    startsAt,
+    isPaid,
+    price,
+    currency,
+    activity,
+    topic,
+    durationMin,
+    maxParticipants,
+    image,
+  };
 }
 
 /** Formulaire admin : publier un événement (avec date) ou une annonce. */
@@ -77,10 +154,17 @@ export async function createEvent(
 
   const input = await readEventForm(formData);
   if (typeof input === "string") return { error: input };
-  const { kind, title, description, startsAt, isPaid, price, currency, image } = input;
+  const { kind, title, description, startsAt, isPaid, price, currency, image } =
+    input;
+  const { activity, topic, durationMin, maxParticipants } = input;
 
-  await prisma.event.create({
+  const created = await prisma.event.create({
+    select: { id: true },
     data: {
+      activity,
+      topic,
+      durationMin,
+      maxParticipants,
       kind,
       title,
       description,
@@ -110,7 +194,9 @@ export async function createEvent(
     link: "/events",
   });
 
-  redirect("/admin/events");
+  // La fenêtre envoie ensuite les fichiers choisis, puis se ferme.
+  refresh();
+  return { error: null, eventId: created.id };
 }
 
 /** Modifier un événement ou une annonce (l'image n'est remplacée que si on en choisit une). */
@@ -133,6 +219,10 @@ export async function updateEvent(
       description: input.description,
       startsAt: input.startsAt,
       isPaid: input.isPaid,
+      activity: input.activity,
+      topic: input.topic,
+      durationMin: input.durationMin,
+      maxParticipants: input.maxParticipants,
       price: input.price,
       currency: input.currency,
       ...(input.image
@@ -142,7 +232,8 @@ export async function updateEvent(
           : {}),
     },
   });
-  if (result.count === 0) return { error: "This event no longer exists.", saved: false };
+  if (result.count === 0)
+    return { error: "This event no longer exists.", saved: false };
   refresh();
   return { error: null, saved: true };
 }
@@ -151,6 +242,7 @@ export async function updateEvent(
 export async function deleteEvent(eventId: string): Promise<void> {
   await requireAdmin();
   await endEventLive(eventId);
+  await deleteFilesOfActivity(eventFilesKey(eventId));
   await prisma.event.delete({ where: { id: eventId } }).catch(() => {
     // Déjà supprimé : rien à faire.
   });
@@ -173,7 +265,11 @@ export async function endEventAction(eventId: string): Promise<void> {
 }
 
 /** Événement payant : confirmer (ou annuler) le paiement d'un inscrit. */
-export async function setPaidAction(eventId: string, userId: string, paid: boolean): Promise<void> {
+export async function setPaidAction(
+  eventId: string,
+  userId: string,
+  paid: boolean,
+): Promise<void> {
   await requireAdmin();
   await setRegistrationPaid(eventId, userId, paid === true);
   refresh();
