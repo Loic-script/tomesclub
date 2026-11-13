@@ -71,6 +71,7 @@ async function AdminRooms() {
                 activityIcon: activity?.icon ?? null,
                 activityName: activity?.name ?? null,
                 durationMin: room.durationMin,
+                hostId: room.hostId,
                 hostName: room.hostName,
                 hostRole: room.hostRole,
                 invitees: room.invitees,

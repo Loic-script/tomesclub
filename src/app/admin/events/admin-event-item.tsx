@@ -2,11 +2,23 @@
 
 import Link from "next/link";
 import { MemberAvatar } from "@/components/member-avatar";
-import { MvolaLogo, ScreenshotIcon } from "@/components/payment-dialog";
+import { MvolaLogo } from "@/components/payment-dialog";
+import { PaymentCheckDialog } from "../payment-check-dialog";
 import { formatEventPrice } from "@/lib/event-price";
 import { useActionState, useEffect, useState, useTransition } from "react";
-import { CalendarIcon, CheckIcon, ImageIcon, MegaphoneIcon } from "../admin-icons";
-import { endEventAction, setPaidAction, startEventAction, updateEvent, type UpdateEventState } from "./actions";
+import {
+  CalendarIcon,
+  CheckIcon,
+  ImageIcon,
+  MegaphoneIcon,
+} from "../admin-icons";
+import {
+  endEventAction,
+  setPaidAction,
+  startEventAction,
+  updateEvent,
+  type UpdateEventState,
+} from "./actions";
 import { DeleteEventButton } from "./delete-event-button";
 import { EventPriceFields } from "./event-price-fields";
 
@@ -48,7 +60,11 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
   return (
     <li
       className={`neu-inset overflow-hidden rounded-2xl transition ${
-        event.live ? "ring-2 ring-red-400/60" : event.past && !editing ? "opacity-60" : ""
+        event.live
+          ? "ring-2 ring-red-400/60"
+          : event.past && !editing
+            ? "opacity-60"
+            : ""
       }`}
     >
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3 p-3">
@@ -65,23 +81,33 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
                 LIVE
               </span>
             ) : event.kind === "event" ? (
-              <span className="rounded-full bg-accent/15 px-2.5 py-1 text-[11px] font-semibold text-accent">Event</span>
+              <span className="rounded-full bg-accent/15 px-2.5 py-1 text-[11px] font-semibold text-accent">
+                Event
+              </span>
             ) : (
               <span className="rounded-full bg-[#6d72ff]/20 px-2.5 py-1 text-[11px] font-semibold text-[#b9bcff]">
                 Announcement
               </span>
             )}
             {event.past && !event.live && (
-              <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/60">Past</span>
+              <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/60">
+                Past
+              </span>
             )}
           </span>
-          <span className="mt-1 block truncate text-sm font-semibold text-white">{event.title}</span>
-          <span className="block truncate text-[11px] text-white/45">{event.whenLabel}</span>
+          <span className="mt-1 block truncate text-sm font-semibold text-white">
+            {event.title}
+          </span>
+          <span className="block truncate text-[11px] text-white/45">
+            {event.whenLabel}
+          </span>
           {event.kind === "event" && (
             <span className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px]">
               <span
                 className={`rounded-full px-2 py-0.5 font-bold ${
-                  event.isPaid ? "bg-accent/20 text-accent" : "bg-emerald-400/15 text-emerald-300"
+                  event.isPaid
+                    ? "bg-accent/20 text-accent"
+                    : "bg-emerald-400/15 text-emerald-300"
                 }`}
               >
                 {formatEventPrice(event)}
@@ -96,8 +122,16 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
                 {event.registered.length > 0 && (
                   <span className="flex -space-x-1.5">
                     {event.registered.slice(0, 4).map((person) => (
-                      <span key={person.id} className="rounded-full ring-2 ring-[#2a1238]">
-                        <MemberAvatar userId={person.id} name={person.name} hasPhoto={person.hasPhoto} size="size-5" />
+                      <span
+                        key={person.id}
+                        className="rounded-full ring-2 ring-[#2a1238]"
+                      >
+                        <MemberAvatar
+                          userId={person.id}
+                          name={person.name}
+                          hasPhoto={person.hasPhoto}
+                          size="size-5"
+                        />
                       </span>
                     ))}
                   </span>
@@ -106,14 +140,21 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
                 {event.isPaid && event.registered.length > 0 && (
                   <span
                     className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                      paidCount === event.registered.length ? "bg-emerald-400/15 text-emerald-300" : "bg-amber-400/15 text-amber-300"
+                      paidCount === event.registered.length
+                        ? "bg-emerald-400/15 text-emerald-300"
+                        : "bg-amber-400/15 text-amber-300"
                     }`}
                   >
                     {paidCount}/{event.registered.length} paid
                   </span>
                 )}
                 {event.registered.length > 0 && (
-                  <span aria-hidden className={`transition-transform ${showPeople ? "rotate-180" : ""}`}>▾</span>
+                  <span
+                    aria-hidden
+                    className={`transition-transform ${showPeople ? "rotate-180" : ""}`}
+                  >
+                    ▾
+                  </span>
                 )}
               </button>
             </span>
@@ -168,7 +209,9 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
               <button
                 type="button"
                 disabled={pending}
-                onClick={() => startTransition(() => startEventAction(event.id))}
+                onClick={() =>
+                  startTransition(() => startEventAction(event.id))
+                }
                 title="Start the live video and tell all members"
                 className="neu-btn flex items-center gap-1.5 rounded-full bg-gradient-to-r from-accent to-brand px-4 py-2 text-xs font-bold text-white shadow-lg shadow-brand/30 disabled:opacity-60"
               >
@@ -197,74 +240,170 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
 
       {/* La liste des inscrits */}
       {showPeople && event.registered.length > 0 && (
-        <ul className="anim-dropdown grid gap-1.5 border-t border-white/10 p-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="anim-dropdown divide-y divide-white/[0.06] border-t border-white/10 px-3 py-1.5">
           {event.registered.map((person, index) => (
-            <li key={person.id} className="flex items-center gap-1 rounded-xl transition hover:bg-white/[0.06]">
-              <Link
-                href={`/admin/members/${person.id}`}
-                className="flex min-w-0 flex-1 items-center gap-2.5 px-2 py-1.5 text-sm text-white/85 hover:text-white"
-              >
-                <span className="w-5 text-right text-[11px] tabular-nums text-white/35">{index + 1}</span>
-                <MemberAvatar userId={person.id} name={person.name} hasPhoto={person.hasPhoto} size="size-7" />
-                <span className="min-w-0">
-                  <span className="block truncate">{person.name}</span>
-                  {/* Ce que le membre a donné pour prouver le paiement */}
-                  {event.isPaid && (person.paymentRef || person.paymentProofId) && (
-                    <span className="block truncate text-[11px] text-white/45">
-                      <MvolaLogo size={13} /> MVola{person.paymentRef ? ` · ref ${person.paymentRef}` : ""}
-                    </span>
-                  )}
-                </span>
-              </Link>
-              {event.isPaid && person.paymentProofId && (
-                <a
-                  href={`/api/payment-proofs/${person.paymentProofId}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  title="See the payment screenshot"
-                  aria-label="See the payment screenshot"
-                  className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white"
-                >
-                  <ScreenshotIcon />
-                </a>
-              )}
-              {event.isPaid && <PaidToggle eventId={event.id} userId={person.id} paid={person.paid} />}
-            </li>
+            <RegisteredRow
+              key={person.id}
+              event={event}
+              person={person}
+              index={index}
+            />
           ))}
         </ul>
       )}
 
-      {editing && <EditEventForm event={event} onDone={() => setEditing(false)} />}
+      {editing && (
+        <EditEventForm event={event} onDone={() => setEditing(false)} />
+      )}
     </li>
   );
 }
 
 /**
- * Événement payant : "Paid ✓" (vert) ou "Not paid" (orange).
- * Un clic confirme le paiement ; un clic sur "Paid" l'annule (en cas d'erreur).
+ * Un inscrit : son nom, sa preuve de paiement (référence MVola) et son statut.
+ * Événement payant : "Check" ouvre la fenêtre "Payment check" pour confirmer le paiement.
  */
-function PaidToggle({ eventId, userId, paid }: { eventId: string; userId: string; paid: boolean }) {
+function RegisteredRow({
+  event,
+  person,
+  index,
+}: {
+  event: AdminEventView;
+  person: AdminEventView["registered"][number];
+  index: number;
+}) {
   const [pending, startTransition] = useTransition();
-  const [current, setCurrent] = useState(paid);
+  const [paid, setPaid] = useState(person.paid);
+  const [checking, setChecking] = useState(false);
+  const hasProof = Boolean(person.paymentRef || person.paymentProofId);
+
+  function setPayment(next: boolean) {
+    setPaid(next);
+    setChecking(false);
+    startTransition(() => setPaidAction(event.id, person.id, next));
+  }
+
   return (
-    <button
-      type="button"
-      disabled={pending}
-      onClick={() => {
-        const next = !current;
-        setCurrent(next);
-        startTransition(() => setPaidAction(eventId, userId, next));
-      }}
-      title={current ? "Click to mark as not paid" : "Click to confirm the payment"}
-      aria-pressed={current}
-      className={`mr-1 shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold transition disabled:opacity-60 ${
-        current
-          ? "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/40 hover:bg-emerald-500/30"
-          : "bg-amber-400/15 text-amber-300 ring-1 ring-amber-300/30 hover:bg-amber-400/25"
-      }`}
-    >
-      {current ? "Paid ✓" : "Not paid"}
-    </button>
+    <li className="flex items-center gap-3 py-2">
+      <span className="w-5 shrink-0 text-right text-[11px] tabular-nums text-white/35">
+        {index + 1}
+      </span>
+      <Link
+        href={`/admin/members/${person.id}`}
+        className="group flex min-w-0 flex-1 items-center gap-2.5"
+      >
+        <MemberAvatar
+          userId={person.id}
+          name={person.name}
+          hasPhoto={person.hasPhoto}
+          size="size-8"
+        />
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-semibold text-white/90 group-hover:text-white">
+            {person.name}
+          </span>
+          {event.isPaid && (
+            <span className="flex items-center gap-1.5 truncate text-[11px] text-white/45">
+              {hasProof ? (
+                <>
+                  <MvolaLogo size={13} />
+                  {person.paymentRef
+                    ? `ref ${person.paymentRef}`
+                    : "screenshot"}
+                  {person.paymentRef && person.paymentProofId
+                    ? " + screenshot"
+                    : ""}
+                </>
+              ) : (
+                "No payment proof"
+              )}
+            </span>
+          )}
+        </span>
+      </Link>
+
+      {event.isPaid && (
+        <>
+          <span
+            className={`hidden shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold sm:inline-flex ${
+              paid
+                ? "bg-emerald-400/15 text-emerald-300"
+                : "bg-amber-400/15 text-amber-300"
+            }`}
+          >
+            <span
+              className={`size-1.5 rounded-full ${paid ? "bg-emerald-300" : "bg-amber-300"}`}
+            />
+            {paid ? "Paid" : "Not paid"}
+          </span>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => setChecking(true)}
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold transition disabled:opacity-60 ${
+              paid
+                ? "bg-white/10 text-white/80 hover:bg-white/15"
+                : "bg-gradient-to-r from-accent to-brand text-white shadow-lg shadow-brand/25 hover:brightness-110"
+            }`}
+          >
+            {paid ? "View" : "Check"}
+          </button>
+        </>
+      )}
+
+      {checking && (
+        <PaymentCheckDialog
+          onClose={() => setChecking(false)}
+          check={{
+            memberId: person.id,
+            memberName: person.name,
+            hasPhoto: person.hasPhoto,
+            context: `Event · ${event.title}`,
+            amountLabel: formatEventPrice(event),
+            reference: person.paymentRef ?? null,
+            proofId: person.paymentProofId ?? null,
+            confirmed: paid,
+          }}
+          actions={
+            paid ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setPayment(false)}
+                  className="flex-1 rounded-full py-2.5 text-sm font-semibold text-white/70 ring-1 ring-white/15 hover:bg-white/10 hover:text-white"
+                >
+                  Mark as not paid
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChecking(false)}
+                  className="flex-1 rounded-full bg-white/10 py-2.5 text-sm font-bold hover:bg-white/15"
+                >
+                  Close
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setChecking(false)}
+                  className="flex-1 rounded-full py-2.5 text-sm font-semibold text-white/70 ring-1 ring-white/15 hover:bg-white/10 hover:text-white"
+                >
+                  Not yet
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPayment(true)}
+                  className="flex-[1.4] rounded-full bg-emerald-500 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-900/40 hover:bg-emerald-400"
+                >
+                  Confirm payment
+                </button>
+              </>
+            )
+          }
+        />
+      )}
+    </li>
   );
 }
 
@@ -274,11 +413,19 @@ function EventThumb({ event }: { event: AdminEventView }) {
     <span className="relative size-14 shrink-0 overflow-hidden rounded-xl sm:size-16 bg-gradient-to-br from-accent to-brand">
       {event.hasImage ? (
         // eslint-disable-next-line @next/next/no-img-element -- image privée servie par notre API
-        <img src={`/api/event/image/${event.id}`} alt="" className="size-full object-cover" />
+        <img
+          src={`/api/event/image/${event.id}`}
+          alt=""
+          className="size-full object-cover"
+        />
       ) : event.dayLabel ? (
         <span className="flex size-full flex-col items-center justify-center text-white">
-          <span className="font-display text-xl font-extrabold leading-none">{event.dayLabel}</span>
-          <span className="text-[10px] font-bold uppercase">{event.monthLabel}</span>
+          <span className="font-display text-xl font-extrabold leading-none">
+            {event.dayLabel}
+          </span>
+          <span className="text-[10px] font-bold uppercase">
+            {event.monthLabel}
+          </span>
         </span>
       ) : (
         <span className="flex size-full items-center justify-center bg-gradient-to-br from-[#6d72ff] to-navy text-white">
@@ -292,8 +439,17 @@ function EventThumb({ event }: { event: AdminEventView }) {
 const initialState: UpdateEventState = { error: null, saved: false };
 
 /** Le formulaire de modification, déplié sous la ligne. */
-function EditEventForm({ event, onDone }: { event: AdminEventView; onDone: () => void }) {
-  const [state, formAction, pending] = useActionState(updateEvent.bind(null, event.id), initialState);
+function EditEventForm({
+  event,
+  onDone,
+}: {
+  event: AdminEventView;
+  onDone: () => void;
+}) {
+  const [state, formAction, pending] = useActionState(
+    updateEvent.bind(null, event.id),
+    initialState,
+  );
   const [kind, setKind] = useState(event.kind);
   const [preview, setPreview] = useState<string | null>(null);
   const [removeImage, setRemoveImage] = useState(false);
@@ -311,16 +467,26 @@ function EditEventForm({ event, onDone }: { event: AdminEventView; onDone: () =>
 
   const field =
     "w-full rounded-xl bg-black/25 px-3.5 py-2.5 text-sm text-white placeholder:text-white/30 outline-none ring-1 ring-white/10 transition focus:ring-2 focus:ring-accent/60 [color-scheme:dark]";
-  const label = "mb-1 block text-[10px] font-bold uppercase tracking-wider text-white/45";
-  const showImage = preview ?? (event.hasImage && !removeImage ? `/api/event/image/${event.id}` : null);
+  const label =
+    "mb-1 block text-[10px] font-bold uppercase tracking-wider text-white/45";
+  const showImage =
+    preview ??
+    (event.hasImage && !removeImage ? `/api/event/image/${event.id}` : null);
 
   return (
-    <form action={formAction} className="anim-dropdown space-y-4 border-t border-white/10 p-4">
+    <form
+      action={formAction}
+      className="anim-dropdown space-y-4 border-t border-white/10 p-4"
+    >
       <div role="radiogroup" aria-label="Type" className="flex gap-2">
         {(
           [
             { value: "event", label: "Event", icon: CalendarIcon },
-            { value: "announcement", label: "Announcement", icon: MegaphoneIcon },
+            {
+              value: "announcement",
+              label: "Announcement",
+              icon: MegaphoneIcon,
+            },
           ] as const
         ).map((option) => {
           const active = kind === option.value;
@@ -329,7 +495,9 @@ function EditEventForm({ event, onDone }: { event: AdminEventView; onDone: () =>
             <label
               key={option.value}
               className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition focus-within:ring-2 focus-within:ring-accent/60 ${
-                active ? "bg-gradient-to-r from-accent to-brand text-white" : "bg-white/[0.06] text-white/60 hover:text-white"
+                active
+                  ? "bg-gradient-to-r from-accent to-brand text-white"
+                  : "bg-white/[0.06] text-white/60 hover:text-white"
               }`}
             >
               <input
@@ -350,7 +518,13 @@ function EditEventForm({ event, onDone }: { event: AdminEventView; onDone: () =>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block sm:col-span-2">
           <span className={label}>Title</span>
-          <input name="title" required maxLength={120} defaultValue={event.title} className={field} />
+          <input
+            name="title"
+            required
+            maxLength={120}
+            defaultValue={event.title}
+            className={field}
+          />
         </label>
         {kind === "event" && (
           <label className="block sm:col-span-2">
@@ -428,7 +602,10 @@ function EditEventForm({ event, onDone }: { event: AdminEventView; onDone: () =>
       </div>
 
       {state.error && (
-        <p aria-live="polite" className="rounded-xl bg-red-500/15 px-3 py-2 text-sm text-red-200">
+        <p
+          aria-live="polite"
+          className="rounded-xl bg-red-500/15 px-3 py-2 text-sm text-red-200"
+        >
           {state.error}
         </p>
       )}
