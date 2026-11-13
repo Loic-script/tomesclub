@@ -243,3 +243,28 @@ function Step({ n }: { n: number }) {
     </span>
   );
 }
+
+/** Le petit logo MVola, à mettre devant le mot "MVola". */
+export function MvolaLogo({ size = 16 }: { size?: number }) {
+  return (
+    <Image
+      src="/mvola.png"
+      alt="MVola"
+      width={size}
+      height={size}
+      className="inline-block shrink-0 rounded-[4px] object-cover align-[-3px]"
+      style={{ width: size, height: size }}
+    />
+  );
+}
+
+/** Une icône "image" dessinée (pour voir une capture d'écran). */
+export function ScreenshotIcon({ className = "size-3.5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}>
+      <rect x="3" y="4" width="18" height="16" rx="2.5" />
+      <circle cx="9" cy="10" r="1.8" />
+      <path d="m21 16-5-5-8 9" />
+    </svg>
+  );
+}

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { MemberAvatar } from "@/components/member-avatar";
+import { MvolaLogo, ScreenshotIcon } from "@/components/payment-dialog";
 import { formatEventPrice } from "@/lib/event-price";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { CalendarIcon, CheckIcon, ImageIcon, MegaphoneIcon } from "../admin-icons";
@@ -210,7 +211,7 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
                   {/* Ce que le membre a donné pour prouver le paiement */}
                   {event.isPaid && (person.paymentRef || person.paymentProofId) && (
                     <span className="block truncate text-[11px] text-white/45">
-                      MVola{person.paymentRef ? ` · ref ${person.paymentRef}` : ""}
+                      <MvolaLogo size={13} /> MVola{person.paymentRef ? ` · ref ${person.paymentRef}` : ""}
                     </span>
                   )}
                 </span>
@@ -221,9 +222,10 @@ export function AdminEventItem({ event }: { event: AdminEventView }) {
                   target="_blank"
                   rel="noreferrer"
                   title="See the payment screenshot"
-                  className="shrink-0 rounded-full bg-white/10 px-2 py-1 text-[11px] font-semibold text-white/80 hover:bg-white/20 hover:text-white"
+                  aria-label="See the payment screenshot"
+                  className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white"
                 >
-                  Screenshot
+                  <ScreenshotIcon />
                 </a>
               )}
               {event.isPaid && <PaidToggle eventId={event.id} userId={person.id} paid={person.paid} />}

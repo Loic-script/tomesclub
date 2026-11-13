@@ -2,7 +2,7 @@
 
 import { useActionState, useState, type ReactNode } from "react";
 import { ActivityIcon } from "@/components/activity-icon";
-import { PaymentDialog, type PaymentDraft } from "@/components/payment-dialog";
+import { MvolaLogo, PaymentDialog, type PaymentDraft } from "@/components/payment-dialog";
 import { MemberAvatar } from "@/components/member-avatar";
 import {
   DEFAULT_DURATION,
@@ -558,7 +558,7 @@ function RoomOptions({
           <input type="hidden" name="paymentRef" value={paid.ref} />
           <input type="hidden" name="paymentProofId" value={paid.proofId ?? ""} />
           <span>
-            {formatAr(payment!.price)} paid by <strong>MVola</strong>
+            {formatAr(payment!.price)} paid by <MvolaLogo /> <strong>MVola</strong>
             {paid.ref && (
               <>
                 {" "}· ref <code className="font-mono">{paid.ref}</code>
