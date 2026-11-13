@@ -27,19 +27,19 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       />
 
       {/* ----- Barre latérale (grand écran) ----- */}
-      <aside className="neu fixed inset-y-4 left-4 z-30 hidden w-64 flex-col rounded-[2rem] p-4 lg:flex">
+      <aside className="neu card-accent fixed inset-y-4 left-4 z-30 hidden w-64 flex-col rounded-[2rem] p-4 lg:flex">
         <Link href="/admin" className="mb-8 flex items-center gap-3 px-3 pt-3">
           <span>
             <span className="block font-display text-lg font-extrabold leading-tight text-white">
               Tomes Club
             </span>
-            <span className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-white/85">
               Admin
             </span>
           </span>
         </Link>
 
-        <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">Manage</p>
+        <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">Manage</p>
         <Suspense fallback={<div className="h-56" />}>
           <SideLinksWithCount />
         </Suspense>
