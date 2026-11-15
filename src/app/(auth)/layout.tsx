@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { InstallAppButton } from "@/components/install-app-button";
 
 // Fond des pages d'authentification : scène sombre bleu nuit → bordeaux,
 // avec des tuiles de verre qui flottent (style de l'image de référence,
@@ -28,6 +29,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
       {/* La carte de connexion, au-dessus de la scène */}
       <div className="relative z-10 flex w-full justify-center">{children}</div>
+
+      {/* Installer l'application (téléphone et ordinateur), en bas à droite */}
+      <InstallAppButton />
     </main>
   );
 }

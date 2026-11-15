@@ -21,6 +21,11 @@ const nextConfig: NextConfig = {
   // caméra / micro / partage d'écran seulement pour notre site, HTTPS retenu par le navigateur.
   async headers() {
     return [
+      // Le service worker de l'application installable : toujours la dernière version.
+      {
+        source: "/sw.js",
+        headers: [{ key: "Cache-Control", value: "no-cache, no-store, must-revalidate" }],
+      },
       {
         source: "/:path*",
         headers: [
