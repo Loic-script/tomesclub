@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { rm, stat } from "node:fs/promises";
 import path from "node:path";
 import { notifyAdmin } from "@/lib/admin-notifications";
+import { pushToAdmin, pushToUsers } from "@/lib/push";
 import { cleanFileName, safeExtension, storageRoot, writeUpload } from "@/lib/activity-files";
 import { MAX_MESSAGE_LENGTH, messagePreview, type ChatMessage, type Conversation } from "@/lib/chat-types";
 import { fileKindOf } from "@/lib/file-kinds";
@@ -122,6 +123,14 @@ export async function sendMemberMessage(
     where: { userId: user.id, fromCoach: false, readAt: null },
   });
   const message = await createMessage(user.id, false, body, file);
+  // Chaque message sonne chez l'admin (comme WhatsApp) ; la cloche n'en garde qu'un.
+  pushToAdmin({
+    kind: "message",
+    title: `💬 ${user.name}`,
+    body: messagePreview(body, message.file?.name),
+    url: `/admin/messages?m=${user.id}`,
+    tag: `chat:${user.id}`,
+  });
   if (alreadyWaiting === 0) {
     await notifyAdmin({
       kind: "message",
@@ -137,7 +146,15 @@ export async function sendMemberMessage(
 export async function sendCoachMessage(userId: string, body: string, file?: NewFile): Promise<ChatMessage | null> {
   const member = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
   if (!member) return null;
-  return createMessage(userId, true, body, file);
+  const message = await createMessage(userId, true, body, file);
+  pushToUsers([userId], {
+    kind: "message",
+    title: "💬 Coach",
+    body: messagePreview(body, message.file?.name),
+    url: "/home",
+    tag: "chat:coach",
+  });
+  return message;
 }
 
 /** Le fichier joint d'un message, si la personne a le droit de le voir (admin, ou le membre de la discussion). */

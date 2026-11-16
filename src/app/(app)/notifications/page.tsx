@@ -8,6 +8,7 @@ import {
   type MemberNotification,
   type NotificationSetting,
 } from "@/lib/notifications";
+import { PushSetting } from "@/components/push-notifications";
 import { requireMember } from "@/lib/session";
 import { clearAllAction, markAllReadAction, toggleSettingAction } from "./actions";
 
@@ -56,6 +57,9 @@ async function NotificationsHome() {
       />
 
       <div className="space-y-5">
+        {/* Les notifications du téléphone, même application fermée (comme WhatsApp) */}
+        <PushSetting audience="member" />
+
         {/* ----- Les réglages : je choisis ce que je veux recevoir ----- */}
         <GlassCard className="anim-rise" style={delay(100)}>
           <h2 className="font-display text-lg font-bold text-white">Settings</h2>

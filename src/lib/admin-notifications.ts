@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { pushToAdmin } from "@/lib/push";
 
 // Les notifications de l'admin : ce qui se passe dans le club.
 // (Une seule personne admin : pas besoin de destinataire.)
@@ -40,6 +41,15 @@ export async function notifyAdmin(notification: {
     });
   } catch (error) {
     console.warn("[admin] notification not saved:", error);
+  }
+  // Les messages ont leur propre notification push (une par message, voir coach-chat).
+  if (notification.kind !== "message") {
+    pushToAdmin({
+      kind: "notice",
+      title: notification.title,
+      body: notification.body,
+      url: notification.link ?? "/admin/notifications",
+    });
   }
 }
 

@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { pushToUsers } from "@/lib/push";
 
 // Tout ce qui concerne les notifications des membres.
 
@@ -74,6 +75,15 @@ export async function notifyMembers(
       body: notification.body ?? null,
       link: notification.link ?? null,
     })),
+  });
+
+  // ... et une notification push sur leurs téléphones / ordinateurs.
+  pushToUsers(allowed, {
+    kind: notification.kind === "call" ? "call" : "notice",
+    title: notification.title,
+    body: notification.body,
+    url: notification.link ?? "/notifications",
+    tag: notification.link ?? undefined,
   });
 }
 

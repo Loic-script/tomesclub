@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PushPrompt } from "@/components/push-notifications";
 import { Suspense, type ReactNode } from "react";
 import { isAdmin } from "@/lib/admin";
 import { countAdminUnread, countAdminUnreadByTab } from "@/lib/admin-notifications";
@@ -90,6 +91,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <Suspense fallback={null}>
         <LiveRefreshIfAdmin />
       </Suspense>
+
+      {/* Proposer d'allumer les notifications (messages, inscriptions, paiements…) */}
+      <PushPrompt audience="admin" />
     </div>
   );
 }

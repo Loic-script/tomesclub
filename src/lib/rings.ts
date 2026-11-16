@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { pushToUsers } from "@/lib/push";
 
 // Les "appels entrants" : une grande fenêtre qui sonne chez le membre, avec Accept / Decline.
 //  - call  : un membre l'appelle ;
@@ -43,6 +44,14 @@ export async function ringMembers(
   } catch (error) {
     console.warn("[rings] not saved:", error);
   }
+  // Ça sonne aussi sur le téléphone, même si l'application est fermée.
+  pushToUsers(unique, {
+    kind: "call",
+    title: `📞 ${ring.title}`,
+    body: ring.body ?? "is calling you",
+    url: ring.link,
+    tag: ring.link,
+  });
 }
 
 /** Les appels qui sonnent encore chez ce membre (le plus récent d'abord). */

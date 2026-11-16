@@ -2,6 +2,7 @@ import { Suspense, type ReactNode } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { CoachChat } from "@/components/coach-chat";
 import { IncomingCall } from "@/components/incoming-call";
+import { PushPrompt } from "@/components/push-notifications";
 import { PresencePing } from "@/components/presence-ping";
 import { SideCalendar } from "@/components/side-calendar";
 import { SideCalendarWithEvents } from "@/components/side-calendar-events";
@@ -72,6 +73,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Un appel entrant (membre, salle privée, direct d'un événement) : la fenêtre qui sonne */}
       <IncomingCall />
+      {/* Proposer d'allumer les notifications du téléphone (comme WhatsApp) */}
+      <PushPrompt audience="member" />
 
       {/* Dit au serveur que je suis en ligne (rien ne s'affiche). */}
       <PresencePing />

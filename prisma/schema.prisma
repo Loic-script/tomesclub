@@ -477,3 +477,30 @@ model RoomBan {
   @@unique([kind, targetId, userId])
   @@map("room_ban")
 }
+
+/// Un appareil (téléphone, ordinateur) qui accepte les notifications push.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  /// l'adresse unique donnée par le navigateur
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  /// le membre (null pour l'admin)
+  userId    String?
+  /// vrai = l'appareil de l'admin
+  admin     Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("push_subscription")
+}
+
+/// Les clés VAPID du site (créées une seule fois, automatiquement).
+model PushKey {
+  id         String   @id
+  publicKey  String
+  privateKey String
+  createdAt  DateTime @default(now())
+
+  @@map("push_key")
+}

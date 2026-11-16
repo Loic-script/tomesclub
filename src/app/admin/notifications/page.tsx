@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { PushSetting } from "@/components/push-notifications";
 import { requireAdmin } from "@/lib/admin";
 import { listAdminNotifications, type AdminNotificationItem } from "@/lib/admin-notifications";
 import { BellIcon, CheckIcon, KindIcon, kindTone, TrashIcon } from "../admin-icons";
@@ -95,6 +96,11 @@ async function Inbox() {
           </>
         }
       />
+      {/* Les notifications du téléphone / de l'ordinateur de l'admin */}
+      <div className="mb-5">
+        <PushSetting audience="admin" />
+      </div>
+
 
       {items.length === 0 ? (
         <Panel style={delay(100)}>
