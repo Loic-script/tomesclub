@@ -32,6 +32,8 @@ export function VideoRoom({
   room,
   callMinutes,
   onTimeUp,
+  onCallStarted,
+  onHangUpEarly,
   stage: stageConfig,
   moderation,
 }: {
@@ -47,6 +49,10 @@ export function VideoRoom({
   moderation?: ModerationConfig;
   /** Action serveur appelée à la fin du temps (ferme la salle pour tout le monde). */
   onTimeUp?: () => Promise<void>;
+  /** Appel entre membres : le compte à rebours démarre (les deux sont là). */
+  onCallStarted?: () => Promise<void>;
+  /** Appel entre membres : on raccroche avant le compte à rebours (coupe chez l'autre aussi). */
+  onHangUpEarly?: () => Promise<void>;
   /** Salle de groupe : les fichiers de l activite (l hote les montre, les autres regardent). */
   stage?: {
     isHost: boolean;
@@ -62,6 +68,8 @@ export function VideoRoom({
   const [ending, setEnding] = useState(false);
   // Vrai seulement si on a vraiment été connecté (pour ne pas cacher une erreur de connexion).
   const wasConnected = useRef(false);
+  // Appel entre membres : le compte à rebours a-t-il démarré ?
+  const countdownStarted = useRef(false);
 
   // Les sous-titres en anglais (bouton CC dans la barre du haut).
   const captions = useLiveCaptions(liveRoom);
@@ -80,9 +88,11 @@ export function VideoRoom({
     if (!callMinutes || callEndsAt) return;
     const start = () => {
       if (liveRoom.remoteParticipants.size > 0) {
+        countdownStarted.current = true;
         setCallEndsAt(
           new Date(Date.now() + callMinutes * 60 * 1000).toISOString(),
         );
+        onCallStarted?.().catch((err) => console.error("[VideoRoom] onCallStarted", err));
       }
     };
     liveRoom.on(RoomEvent.ParticipantConnected, start);
@@ -91,7 +101,7 @@ export function VideoRoom({
       liveRoom.off(RoomEvent.ParticipantConnected, start);
       liveRoom.off(RoomEvent.Connected, start);
     };
-  }, [liveRoom, callMinutes, callEndsAt]);
+  }, [liveRoom, callMinutes, callEndsAt, onCallStarted]);
 
   // La fin du temps : message, fermeture côté serveur, puis on coupe chez nous.
   const now = useNow();
@@ -256,7 +266,12 @@ export function VideoRoom({
             onDisconnected={() => {
               // "Leave", fin du temps, ou salle fermée par le serveur : retour à l app.
               // Si la connexion n a jamais marché, on reste ici pour voir l erreur.
-              if (wasConnected.current) router.push(leaveTo);
+              if (!wasConnected.current) return;
+              // Raccroché avant le compte à rebours : l'appel se coupe chez l'autre aussi.
+              if (callMinutes && !countdownStarted.current) {
+                onHangUpEarly?.().catch((err) => console.error("[VideoRoom] onHangUpEarly", err));
+              }
+              router.push(leaveTo);
             }}
             onError={(err) => {
               console.error("[VideoRoom]", err);

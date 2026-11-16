@@ -35,7 +35,21 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  if (event.action === "dismiss") return;
+  if (event.action === "dismiss") {
+    // Refuser l'appel : il se coupe aussi chez la personne qui appelle.
+    const link = event.notification.data?.url;
+    if (link && link.startsWith("/call/")) {
+      event.waitUntil(
+        fetch("/api/rings/decline", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ link }),
+        }).catch(() => {}),
+      );
+    }
+    return;
+  }
   const target = new URL(event.notification.data?.url || "/", self.location.origin).href;
   event.waitUntil(
     (async () => {

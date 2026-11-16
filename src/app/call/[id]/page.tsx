@@ -7,7 +7,8 @@ import { VideoRoom } from "@/components/video-room";
 import { CALL_MINUTES, getCallForMember } from "@/lib/calls";
 import { createParticipantToken, getBrowserLiveKitUrl } from "@/lib/livekit";
 import { requireUser } from "@/lib/session";
-import { endCallForTime } from "./actions";
+import { endCallForTime, hangUpBeforeStart, startCallCountdown } from "./actions";
+import Link from "next/link";
 
 export const metadata: Metadata = { title: "In a call" };
 
@@ -32,6 +33,20 @@ async function Room({ callId }: { callId: string }) {
   const call = await getCallForMember(callId, user.id);
   if (!call) notFound();
 
+  // Appel refusé, annulé ou déjà fini : on ne rentre pas dans une salle vide.
+  if (call.endedAt) {
+    return (
+      <div className="m-auto max-w-sm px-6 text-center">
+        <p className="text-4xl" aria-hidden>📵</p>
+        <h1 className="mt-3 font-display text-2xl font-bold text-white">This call has ended</h1>
+        <p className="mt-2 text-sm text-white/60">The call was declined, cancelled or is already over.</p>
+        <Link href="/calls" className="mt-6 inline-block rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white">
+          Back to calls
+        </Link>
+      </div>
+    );
+  }
+
   // Mon pays : le drapeau à côté de mon nom dans la vidéo
   const myProfile = await prisma.profile.findUnique({ where: { userId: user.id }, select: { country: true } });
   const [serverUrl, token] = await Promise.all([
@@ -51,6 +66,8 @@ async function Room({ callId }: { callId: string }) {
       leaveTo="/calls"
       callMinutes={CALL_MINUTES}
       onTimeUp={endCallForTime.bind(null, call.id)}
+      onCallStarted={startCallCountdown.bind(null, call.id)}
+      onHangUpEarly={hangUpBeforeStart.bind(null, call.id)}
     />
   );
 }

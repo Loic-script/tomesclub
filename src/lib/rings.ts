@@ -80,8 +80,10 @@ export async function listActiveRings(userId: string): Promise<ActiveRing[]> {
 }
 
 /** Décroché ou raccroché : l'appel ne sonne plus. */
-export async function answerRing(ringId: string, userId: string): Promise<void> {
+export async function answerRing(ringId: string, userId: string): Promise<string | null> {
+  const ring = await prisma.ring.findFirst({ where: { id: ringId, userId }, select: { link: true } });
   await prisma.ring.updateMany({ where: { id: ringId, userId, answeredAt: null }, data: { answeredAt: new Date() } });
   // On garde la table petite : les vieux appels (plus d'un jour) partent.
   await prisma.ring.deleteMany({ where: { userId, createdAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) } } });
+  return ring?.link ?? null;
 }

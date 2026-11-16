@@ -172,6 +172,10 @@ model Call {
   createdById  String
   createdBy    User              @relation("CallsCreated", fields: [createdById], references: [id], onDelete: Cascade)
   createdAt    DateTime          @default(now())
+  /// Le compte à rebours a démarré (les deux personnes étaient là). null = pas encore / jamais.
+  startedAt    DateTime?
+  /// Appel refusé, annulé ou fini.
+  endedAt      DateTime?
   participants CallParticipant[]
 
   @@index([createdById])

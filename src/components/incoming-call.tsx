@@ -44,8 +44,14 @@ export function IncomingCall() {
         const response = await fetch("/api/rings", { cache: "no-store" });
         if (!response.ok) return;
         const data = (await response.json()) as { rings?: Ring[] };
-        const next = (data.rings ?? []).find((item) => !handled.current.has(item.id)) ?? null;
-        if (alive) setRing((current) => (current && !handled.current.has(current.id) ? current : next));
+        const list = data.rings ?? [];
+        const next = list.find((item) => !handled.current.has(item.id)) ?? null;
+        // L'appelant a raccroché : l'appel n'est plus dans la liste → la fenêtre se ferme.
+        if (alive) {
+          setRing((current) =>
+            current && !handled.current.has(current.id) && list.some((item) => item.id === current.id) ? current : next,
+          );
+        }
       } catch {
         // Pas de réseau : on réessaie au prochain tour.
       }
@@ -108,7 +114,11 @@ export function IncomingCall() {
   function answer(accept: boolean) {
     if (!ring) return;
     handled.current.add(ring.id);
-    void fetch(`/api/rings/${ring.id}`, { method: "POST" }).catch(() => {});
+    void fetch(`/api/rings/${ring.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ decline: !accept }),
+    }).catch(() => {});
     setRing(null);
     if (accept) router.push(ring.link);
   }

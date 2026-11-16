@@ -45,7 +45,7 @@ export const DEFAULT_GUIDE: GuideStepData[] = [
   {
     icon: "phone",
     title: "Calls: talk one-to-one",
-    body: "Open Calls and tap Search to meet a random partner who is online, or choose a member and call them directly. A green dot means the person is online now. A call lasts 5 minutes. To avoid too many calls: after a call, wait 20 minutes before you call the same person again, and call the same person 5 times a day at most. You can call other members at any time.",
+    body: "Open Calls and tap Search to meet a random partner who is online, or choose a member and call them directly. A green dot means the person is online now. A call lasts 5 minutes. If the other person declines, or you hang up before the call starts, the call stops for both of you and you can call again right away. After a real call, you both wait 20 minutes before calling each other again, and you can have 5 calls a day with the same person at most. You can call other members at any time.",
   },
   {
     icon: "rooms",

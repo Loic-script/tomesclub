@@ -5,6 +5,7 @@ import { notifyAdmin } from "@/lib/admin-notifications";
 import { notifyMembers } from "@/lib/notifications";
 import { ringMembers } from "@/lib/rings";
 import { prisma } from "@/lib/prisma";
+import { pushToUsers } from "@/lib/push";
 
 // Tout ce qui concerne les appels vidéo dans la base de données + LiveKit.
 
@@ -30,7 +31,9 @@ function startOfTodayInMadagascar(now: Date): Date {
 
 /**
  * Peut-on appeler cette personne maintenant ? null = oui ; sinon le message à montrer.
- * La fin d'un appel = son début + 5 minutes au plus ; on attend ensuite 20 minutes.
+ * Seuls les VRAIS appels comptent (le compte à rebours a démarré) : un appel refusé,
+ * annulé ou sans réponse ne bloque rien. Et la règle marche dans les deux sens :
+ * après un appel entre A et B, ni A ni B ne peut rappeler l'autre pendant 5 + 20 minutes.
  */
 export async function callLimitMessage(callerId: string, targetId: string): Promise<string | null> {
   const now = new Date();
@@ -38,21 +41,24 @@ export async function callLimitMessage(callerId: string, targetId: string): Prom
   const waitMs = (CALL_MINUTES + RECALL_WAIT_MINUTES) * 60 * 1000;
   const since = new Date(Math.min(dayStart.getTime(), now.getTime() - waitMs));
   const calls = await prisma.call.findMany({
-    where: { createdById: callerId, createdAt: { gte: since }, participants: { some: { userId: targetId } } },
-    orderBy: { createdAt: "desc" },
-    select: { createdAt: true },
+    where: {
+      startedAt: { gte: since },
+      AND: [{ participants: { some: { userId: callerId } } }, { participants: { some: { userId: targetId } } }],
+    },
+    orderBy: { startedAt: "desc" },
+    select: { startedAt: true },
   });
 
-  const today = calls.filter((call) => call.createdAt >= dayStart).length;
+  const today = calls.filter((call) => call.startedAt && call.startedAt >= dayStart).length;
   if (today >= MAX_CALLS_PER_PERSON_PER_DAY) {
-    return `You already called this member ${MAX_CALLS_PER_PERSON_PER_DAY} times today. Try again tomorrow, or call someone else.`;
+    return `You already had ${MAX_CALLS_PER_PERSON_PER_DAY} calls with this member today. Try again tomorrow, or call someone else.`;
   }
   const last = calls[0];
-  if (last) {
-    const freeAt = last.createdAt.getTime() + waitMs;
+  if (last?.startedAt) {
+    const freeAt = last.startedAt.getTime() + waitMs;
     if (freeAt > now.getTime()) {
       const minutes = Math.ceil((freeAt - now.getTime()) / 60000);
-      return `Please wait ${minutes} min before calling this member again (${RECALL_WAIT_MINUTES} minutes after each call). You can call someone else now.`;
+      return `Please wait ${minutes} min before calling this member again (${RECALL_WAIT_MINUTES} minutes after each call, for both of you). You can call someone else now.`;
     }
   }
   return null;
@@ -204,8 +210,49 @@ export async function createCall(
 export function getCallForMember(callId: string, userId: string) {
   return prisma.call.findFirst({
     where: { id: callId, participants: { some: { userId } } },
-    select: { id: true },
+    select: { id: true, startedAt: true, endedAt: true },
   });
+}
+
+/** Le compte à rebours démarre (les deux sont là) : c'est un vrai appel, il compte dans les limites. */
+export async function markCallStarted(callId: string, userId: string): Promise<void> {
+  await prisma.call.updateMany({
+    where: { id: callId, startedAt: null, endedAt: null, participants: { some: { userId } } },
+    data: { startedAt: new Date() },
+  });
+}
+
+/**
+ * Appel pas encore commencé, et quelqu'un raccroche (l'appelé refuse, ou l'appelant annule) :
+ * l'appel se coupe chez tout le monde, ne sonne plus, et ne compte pas dans les limites.
+ * Ne fait rien si le compte à rebours a déjà démarré.
+ */
+export async function stopUnansweredCall(callId: string, userId: string): Promise<void> {
+  const call = await prisma.call.findFirst({
+    where: { id: callId, startedAt: null, endedAt: null, participants: { some: { userId } } },
+    select: { id: true, createdById: true, participants: { select: { userId: true } } },
+  });
+  if (!call) return;
+  // Un appel de groupe : un refus ne coupe pas tout (seul l'appelant peut annuler).
+  if (call.participants.length > 2 && userId !== call.createdById) return;
+
+  await prisma.call.update({ where: { id: call.id }, data: { endedAt: new Date() } });
+  const link = `/call/${call.id}`;
+  // Ceux chez qui ça sonnait encore : la sonnerie s'arrête ...
+  const ringing = await prisma.ring.findMany({
+    where: { link, answeredAt: null, userId: { not: userId } },
+    select: { userId: true },
+  });
+  await prisma.ring.updateMany({ where: { link, answeredAt: null }, data: { answeredAt: new Date() } });
+  // ... et la notification "appel" du téléphone devient "appel manqué" (même tag = elle la remplace).
+  if (userId === call.createdById && ringing.length > 0) {
+    const caller = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
+    pushToUsers(
+      ringing.map((row) => row.userId),
+      { kind: "notice", title: "Missed call", body: `${caller?.name ?? "A member"} called you`, url: "/calls", tag: link },
+    );
+  }
+  await endCallRoom(call.id);
 }
 
 /** Termine un appel : LiveKit fait sortir les deux personnes. */
