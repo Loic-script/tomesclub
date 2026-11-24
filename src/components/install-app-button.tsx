@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 /** L'événement du navigateur qui permet d'ouvrir la fenêtre "Installer" (Chrome, Edge, Android). */
@@ -25,7 +26,7 @@ function useInstalled() {
   );
 }
 
-const isApple = () =>
+export const isApple = () =>
   /iphone|ipad|ipod/i.test(navigator.userAgent) ||
   (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
@@ -35,11 +36,14 @@ const isApple = () =>
  * Chrome / Edge / Android : la fenêtre d'installation s'ouvre directement.
  * iPhone / autres : une petite aide explique comment faire.
  */
-export function InstallAppButton() {
+/**
+ * Tout ce qu'il faut pour installer l'application : déjà installée ? la fenêtre
+ * « Installer » du navigateur est-elle disponible ? et l'action d'installer.
+ */
+export function useInstallApp() {
   const installed = useInstalled();
   const [prompt, setPrompt] = useState<InstallPromptEvent | null>(null);
   const [done, setDone] = useState(false);
-  const [help, setHelp] = useState(false);
 
   useEffect(() => {
     // Le service worker rend l'application installable.
@@ -61,17 +65,28 @@ export function InstallAppButton() {
     };
   }, []);
 
-  if (installed || done) return null;
-
-  const install = async () => {
-    if (!prompt) {
-      setHelp((open) => !open);
-      return;
-    }
+  /** Ouvre la fenêtre « Installer ». false = pas possible ici (montrer l'aide à la place). */
+  const install = async (): Promise<boolean> => {
+    if (!prompt) return false;
     await prompt.prompt();
     const { outcome } = await prompt.userChoice;
     setPrompt(null);
     if (outcome === "accepted") setDone(true);
+    return true;
+  };
+
+  return { installed: installed || done, canPrompt: prompt !== null, install };
+}
+
+export function InstallAppButton() {
+  const { installed, install } = useInstallApp();
+  const [help, setHelp] = useState(false);
+  // La page /install a déjà son grand bouton.
+  const pathname = usePathname();
+  if (installed || pathname === "/install") return null;
+
+  const onClick = async () => {
+    if (!(await install())) setHelp((open) => !open);
   };
 
   return (
@@ -112,7 +127,7 @@ export function InstallAppButton() {
 
       <button
         type="button"
-        onClick={install}
+        onClick={onClick}
         aria-label="Install the Tomes Club app"
         title="Install the app"
         className="group flex items-center gap-2 rounded-full bg-[linear-gradient(135deg,#9c0b3b,#c2185b)] p-3 text-white shadow-[0_12px_30px_-8px_rgba(156,11,59,0.8)] ring-1 ring-white/25 transition hover:scale-105 hover:brightness-110 active:scale-95 sm:px-5 sm:py-3"
