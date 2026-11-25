@@ -21,7 +21,7 @@ const part = (date: Date, options: Intl.DateTimeFormatOptions) => new Intl.DateT
  * Le texte en dessous doit laisser de la place à droite (pr-24).
  * Sert sur la page Events et dans le carrousel de l'accueil.
  */
-export function EventCover({ event, className = "h-44" }: { event: EventCoverData; className?: string }) {
+export function EventCover({ event, className = "h-56 sm:h-64" }: { event: EventCoverData; className?: string }) {
   return (
     <div className={`group relative ${className}`}>
       {/* L'image et ses étiquettes, dans leur cadre */}
