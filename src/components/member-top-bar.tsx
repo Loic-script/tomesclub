@@ -21,7 +21,7 @@ export async function MemberTopBar() {
   return (
     <MemberTopBarShell>
       <Link href="/profile" aria-label="My profile" className="flex min-w-0 flex-1 items-center gap-3 rounded-full pr-2">
-        <span className="rounded-full bg-gradient-to-br from-accent to-brand p-[2px]">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-brand p-[2px]">
           <MemberAvatar userId={user.id} name={name} hasPhoto={Boolean(profile?.photoType)} size="size-10" />
         </span>
         {/* Le nom en entier (il passe à la ligne s'il est long, jamais coupé) */}

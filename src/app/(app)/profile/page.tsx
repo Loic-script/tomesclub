@@ -118,7 +118,7 @@ async function ProfileHome({ searchParams }: { searchParams: PageProps<"/profile
 
             {/* Nom, rôle, niveau */}
             <div className="relative z-10 mt-3 px-6 text-center">
-              <h2 className="truncate font-display text-2xl font-bold text-navy">
+              <h2 className="break-words font-display text-xl font-bold leading-tight text-navy sm:text-2xl">
                 {profile.firstName} {profile.lastName}
               </h2>
               <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-zinc-400">
@@ -204,9 +204,9 @@ function BadgeRow({
       <dt className="w-16 shrink-0 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">
         {label}
       </dt>
-      <dd className={`flex min-w-0 flex-1 items-center gap-1.5 text-zinc-800 ${mono ? "font-mono" : "font-medium"}`}>
+      <dd className={`flex min-w-0 flex-1 items-start gap-1.5 text-zinc-800 ${mono ? "font-mono" : "font-medium"}`}>
         {flag && <Flag country={flag} />}
-        <span className="truncate">{value}</span>
+        <span className="min-w-0 break-words">{value}</span>
       </dd>
     </div>
   );
