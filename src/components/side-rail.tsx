@@ -79,7 +79,7 @@ export function SideRail({ items, label, className = "" }: { items: RailItem[]; 
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
           aria-label={open ? "Close the menu" : "Open the menu"}
-          className="rail-handle relative flex h-16 w-10 shrink-0 items-center justify-center rounded-l-2xl border border-r-0 border-white/20 bg-gradient-to-br from-[#9c0b3b]/70 to-[#5a0622]/70 shadow-[-10px_0_30px_-12px_rgba(0,0,0,0.8)] backdrop-blur-md"
+          className="rail-handle relative flex h-16 w-10 shrink-0 items-center justify-center rounded-l-2xl border border-r-0 border-white/20 bg-gradient-to-br from-[#9c0b3b]/40 to-[#5a0622]/40 shadow-[-10px_0_30px_-12px_rgba(0,0,0,0.8)] backdrop-blur-md"
         >
           <span className={`transition-transform duration-500 ${open ? "rotate-180" : "rail-nudge"}`}>
             <PixelArrow />
