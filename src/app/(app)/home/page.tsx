@@ -63,6 +63,8 @@ async function HomeDashboard() {
         // La photo de profil en haut à droite ; les membres sont dans les tuiles plus bas.
         members={false}
         rightTop
+        // Téléphone : la photo et le guide sont dans la barre du haut.
+        rightOnPhone={false}
         right={
           <div className="flex items-center gap-2.5">
             {/* Le guide "How it works" (s'ouvre tout seul une fois pour un nouveau membre) */}

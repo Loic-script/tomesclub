@@ -47,7 +47,7 @@ async function ProfileHome({ searchParams }: { searchParams: PageProps<"/profile
 
   return (
     <>
-      <PageHeader eyebrow="Your member card" title="Profile" />
+      <PageHeader eyebrow="Your member card" title="Profile" keepOnPhone />
 
       <div className="space-y-6">
         {/* ----- Le badge de membre, comme une carte d'identité du club ----- */}

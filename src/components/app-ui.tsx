@@ -61,6 +61,8 @@ export function PageHeader({
   right,
   members = true,
   rightTop = false,
+  keepOnPhone = false,
+  rightOnPhone = true,
 }: {
   title: ReactNode;
   /** Le petit mot orange au-dessus du titre (ex : "Speaking practice"). */
@@ -73,11 +75,21 @@ export function PageHeader({
   members?: boolean;
   /** Les boutons de droite collés en haut (ex : la photo de profil de l accueil). */
   rightTop?: boolean;
+  /** Téléphone et tablette : garder le titre (sinon la barre du haut le remplace). */
+  keepOnPhone?: boolean;
+  /** Téléphone et tablette : garder les boutons de droite (ex : « Mark all read »). */
+  rightOnPhone?: boolean;
 }) {
+  // Sur téléphone, la barre du haut (photo, nom, guide) remplace le titre de la page.
+  const phoneHide = keepOnPhone ? "" : "max-lg:hidden";
+  const nothingOnPhone = !keepOnPhone && (!right || !rightOnPhone);
   return (
     // Téléphone : si les boutons ne tiennent pas à côté du titre, ils passent dessous (le titre n'est jamais coupé).
-    <header className="anim-rise mb-6 flex flex-wrap items-center gap-3" style={delay(50)}>
-      <div className="min-w-[min(100%,12rem)] flex-1">
+    <header
+      className={`anim-rise mb-6 flex flex-wrap items-center gap-3 ${nothingOnPhone ? "max-lg:hidden" : ""} ${keepOnPhone ? "" : "max-lg:justify-end"}`}
+      style={delay(50)}
+    >
+      <div className={`min-w-[min(100%,12rem)] flex-1 ${phoneHide}`}>
         {eyebrow && (
           <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
             <span aria-hidden className="h-px w-5 rounded-full bg-accent/70" />
@@ -95,8 +107,8 @@ export function PageHeader({
       </div>
       {(members || right) && (
         <div className={`flex shrink-0 items-center gap-3 ${rightTop ? "self-start" : ""}`}>
-          {members && <MembersLink />}
-          {right}
+          {members && <span className={phoneHide}><MembersLink /></span>}
+          {right && <span className={rightOnPhone ? "contents" : "contents max-lg:hidden"}>{right}</span>}
         </div>
       )}
     </header>

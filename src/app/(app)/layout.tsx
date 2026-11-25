@@ -2,6 +2,7 @@ import { Suspense, type ReactNode } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { CoachChat } from "@/components/coach-chat";
 import { IncomingCall } from "@/components/incoming-call";
+import { MemberTopBar } from "@/components/member-top-bar";
 import { PushPrompt } from "@/components/push-notifications";
 import { PresencePing } from "@/components/presence-ping";
 import { SideCalendar } from "@/components/side-calendar";
@@ -13,7 +14,7 @@ import { SideMembers, SideMembersFallback } from "@/components/side-members";
 // un calendrier à gauche et une montre à droite habillent les côtés.
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="on-dark relative flex flex-1 flex-col overflow-hidden bg-[linear-gradient(160deg,#1a1150,#45091f_45%,#7a082e)]">
+    <div className="on-dark relative flex flex-1 flex-col overflow-clip bg-[linear-gradient(160deg,#1a1150,#45091f_45%,#7a082e)]">
       {/* Lueurs douces dans les coins, comme sur la page de connexion */}
       <div
         aria-hidden
@@ -51,7 +52,13 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </Suspense>
 
       {/* Colonne centrale, largeur "téléphone" même sur grand écran */}
-      <div className="app-column relative z-10 mx-auto w-full max-w-lg flex-1 px-4 pb-32 pt-8">{children}</div>
+      <div className="app-column relative z-10 mx-auto w-full max-w-lg flex-1 px-4 pb-32 pt-8 max-lg:pt-0">
+        {/* Téléphone et tablette : la barre du haut (ma photo, mon nom, le guide) */}
+        <Suspense fallback={<div aria-hidden className="h-8 lg:hidden" />}>
+          <MemberTopBar />
+        </Suspense>
+        {children}
+      </div>
 
       {/* Les membres du club : qui est en ligne, et le bouton pour les suivre.
           La liste est lue au moment de la requête → <Suspense> obligatoire. */}
