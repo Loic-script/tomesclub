@@ -111,12 +111,12 @@ async function MemberProfile({ userId }: { userId: string }) {
       </Link>
 
       {/* ----- La carte d'identité ----- */}
-      <section className="neu anim-rise relative overflow-hidden rounded-[2rem] p-6 sm:p-8" style={delay(60)}>
+      <section className="neu anim-rise relative overflow-hidden rounded-[2rem] p-6 sm:p-8 max-sm:-mx-4 max-sm:!rounded-none max-sm:!border-x-0 max-sm:px-4" style={delay(60)}>
         <span
           aria-hidden
           className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-gradient-to-br from-accent/40 to-brand/30 blur-3xl"
         />
-        <div className="relative flex flex-wrap items-center gap-5">
+        <div className="relative flex flex-wrap items-center gap-5 max-sm:flex-col max-sm:items-start max-sm:gap-4">
           <span className="relative">
             <span className="block rounded-full bg-gradient-to-br from-accent to-brand p-[3px]">
               <MemberAvatar
@@ -134,11 +134,11 @@ async function MemberProfile({ userId }: { userId: string }) {
             )}
           </span>
 
-          <div className="min-w-0 flex-1">
-            <h1 className="text-headline truncate font-display text-3xl font-extrabold tracking-[-0.03em] sm:text-4xl">
+          <div className="min-w-0 flex-1 max-sm:w-full">
+            <h1 className="text-headline break-words font-display text-2xl font-extrabold leading-tight tracking-[-0.03em] sm:truncate sm:text-4xl">
               {displayName}
             </h1>
-            <p className="mt-1 truncate text-sm text-white/55">{member.email}</p>
+            <p className="mt-1 break-all text-sm text-white/55 sm:truncate">{member.email}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {member.online ? <Chip tone="good">● Online now</Chip> : <Chip>Offline</Chip>}
               <RoleStatus
@@ -172,12 +172,12 @@ async function MemberProfile({ userId }: { userId: string }) {
 
       {/* ----- Les informations ----- */}
       {!profile ? (
-        <Panel className="mt-5" style={delay(140)}>
+        <Panel className="mt-5 max-sm:-mx-4 max-sm:!rounded-none max-sm:!border-x-0" style={delay(140)}>
           <p className="text-white/55">This member has not filled in the form yet.</p>
         </Panel>
       ) : (
         <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <Panel style={delay(140)} title="Personal details" icon={<UsersIcon className="size-[18px]" />}>
+          <Panel className="max-sm:-mx-4 max-sm:!rounded-none max-sm:!border-x-0" style={delay(140)} title="Personal details" icon={<UsersIcon className="size-[18px]" />}>
             <dl className="space-y-4">
               <Field label="Date of birth" value={date(profile.birthDate)} />
               <Field label="Phone" value={profile.phone} />
@@ -193,7 +193,7 @@ async function MemberProfile({ userId }: { userId: string }) {
             </dl>
           </Panel>
 
-          <Panel style={delay(200)} title="Learning" icon={<RoomIcon className="size-[18px]" />}>
+          <Panel className="max-sm:-mx-4 max-sm:!rounded-none max-sm:!border-x-0" style={delay(200)} title="Learning" icon={<RoomIcon className="size-[18px]" />}>
             <dl className="space-y-4">
               <Field label="English level" value={level} />
               <Field label="Languages">

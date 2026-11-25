@@ -121,7 +121,7 @@ export function MembersBrowser({ members }: { members: AdminMemberRow[] }) {
           <p className="mt-1 text-sm text-white/50">Try another name or another filter.</p>
         </div>
       ) : (
-        <div className="neu overflow-hidden rounded-3xl">
+        <div className="neu overflow-hidden rounded-3xl max-sm:-mx-4 max-sm:!rounded-none max-sm:!border-x-0">
           {/* Les titres des colonnes (grand écran) */}
           <div className="hidden gap-4 border-b border-white/10 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.18em] text-white/40 xl:grid xl:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)_auto]">
             <span>Member</span>
@@ -150,7 +150,7 @@ export function MembersBrowser({ members }: { members: AdminMemberRow[] }) {
                       )}
                     </span>
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold text-white group-hover:text-accent">
+                      <span className="block break-words text-sm font-semibold leading-snug text-white group-hover:text-accent xl:truncate">
                         {member.name}
                       </span>
                       <span className="block truncate text-xs text-white/45">{member.email}</span>
