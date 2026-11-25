@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { SideRail, type RailItem } from "@/components/side-rail";
 import { adminSignOut } from "../(auth)/admin/login/actions";
 import { BellIcon, BookIcon, CalendarIcon, ChatIcon, GridIcon, LogoutIcon, RoomIcon, UsersIcon } from "./admin-icons";
 
@@ -75,10 +76,6 @@ export function AdminSideLinks({ badges }: { badges: AdminBadges }) {
   );
 }
 
-/** Les 4 onglets toujours visibles en bas ; les autres s'ouvrent avec le bouton "+". */
-const MAIN_TABS = TABS.slice(0, 4);
-const MORE_TABS = TABS.slice(4);
-
 const BOTTOM_ITEM =
   "relative flex flex-col items-center gap-0.5 rounded-full px-0.5 py-2 text-[10px] font-semibold leading-tight transition-all duration-300 sm:text-[11px]";
 
@@ -132,77 +129,53 @@ function Dot({ count }: { count: number }) {
 }
 
 /**
- * La barre du bas (téléphone et tablette), comme dans l'espace membre.
- * 4 onglets + un bouton "+" : il ouvre les autres onglets (Messages, Inbox) au-dessus,
- * et devient "×" pour tout refermer.
+ * Tablette : la barre du bas avec tous les onglets.
+ * Téléphone : un rail sur le côté droit (flèche ‹ pour l'ouvrir), avec tous les onglets et Log out.
  */
 export function AdminBottomLinks({ badges }: { badges: AdminBadges }) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-  const close = () => setOpen(false);
-  const moreActive = MORE_TABS.some((tab) => isActive(pathname, tab.href, tab.exact));
-  const moreUnread = MORE_TABS.reduce((total, tab) => total + (tab.badge ? badges[tab.badge] : 0), 0);
+  const railItems: RailItem[] = [
+    ...TABS.map((tab) => {
+      const Icon = tab.icon;
+      return {
+        key: tab.href,
+        label: tab.label,
+        href: tab.href,
+        icon: <Icon />,
+        active: isActive(pathname, tab.href, tab.exact),
+        badge: tab.badge ? badges[tab.badge] : 0,
+      };
+    }),
+    {
+      key: "logout",
+      label: "Log out",
+      icon: <LogoutIcon />,
+      onClick: () => {
+        void adminSignOut();
+      },
+    },
+  ];
 
   return (
-    <div className="admin-bottom-nav fixed inset-x-2 bottom-4 z-40 mx-auto max-w-md sm:inset-x-4 lg:hidden">
-      {/* Les autres onglets : sortent au-dessus du bouton "+" */}
-      <nav
-        aria-label="More admin sections"
-        inert={!open}
-        className={`neu nav-glass absolute bottom-full right-0 mb-3 flex w-80 sm:hidden gap-1 rounded-[1.75rem] p-1.5 transition-all duration-300 [transform-origin:bottom_right] ${
-          open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-2 scale-90 opacity-0"
-        }`}
-      >
-        {MORE_TABS.map((tab) => (
-          <div key={tab.href} className="flex-1">
-            <BottomTab tab={tab} pathname={pathname} badges={badges} onClick={close} />
-          </div>
-        ))}
-        <SignOutTab />
-      </nav>
-
-      <nav aria-label="Admin sections" className="neu nav-glass rounded-full p-1.5 sm:p-2">
-        <ul className="flex items-center">
-          {MAIN_TABS.map((tab) => (
-            <li key={tab.href} className="flex-1">
-              <BottomTab tab={tab} pathname={pathname} badges={badges} onClick={close} />
+    <>
+      <div className="admin-bottom-nav fixed inset-x-4 bottom-4 z-40 mx-auto max-w-xl max-sm:hidden lg:hidden">
+        <nav aria-label="Admin sections" className="neu nav-glass rounded-full p-2">
+          <ul className="flex items-center">
+            {TABS.map((tab) => (
+              <li key={tab.href} className="flex-1">
+                <BottomTab tab={tab} pathname={pathname} badges={badges} />
+              </li>
+            ))}
+            <li className="flex flex-1">
+              <SignOutTab />
             </li>
-          ))}
-          {/* Tablette : tous les onglets dans la barre (le "+" est pour le téléphone) */}
-          {MORE_TABS.map((tab) => (
-            <li key={tab.href} className="flex-1 max-sm:hidden">
-              <BottomTab tab={tab} pathname={pathname} badges={badges} />
-            </li>
-          ))}
-          <li className="flex flex-1 max-sm:hidden">
-            <SignOutTab />
-          </li>
-          <li className="flex-1 sm:hidden">
-            <button
-              type="button"
-              onClick={() => setOpen((value) => !value)}
-              aria-expanded={open}
-              aria-label={open ? "Hide the other menus" : "Show all menus"}
-              className={`${BOTTOM_ITEM} w-full ${
-                moreActive && !open ? "neu-inset text-accent" : open ? "text-accent" : "text-white/60 hover:text-white"
-              }`}
-            >
-              <PlusIcon className={`size-5 transition-transform duration-300 ${open ? "rotate-45" : ""}`} />
-              {open ? "Close" : "More"}
-              {!open && moreUnread > 0 && <Dot count={moreUnread} />}
-            </button>
-          </li>
-        </ul>
-      </nav>
-    </div>
-  );
-}
+          </ul>
+        </nav>
+      </div>
 
-function PlusIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className={className} aria-hidden>
-      <path d="M12 5v14M5 12h14" />
-    </svg>
+      {/* Téléphone : le rail (caché dans une discussion ouverte, comme la barre) */}
+      <SideRail className="admin-bottom-nav sm:hidden" label="Admin sections" items={railItems} />
+    </>
   );
 }
 

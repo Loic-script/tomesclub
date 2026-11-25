@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactElement } from "react";
+import { SideRail, type RailItem } from "@/components/side-rail";
 import { GuideDialog } from "@/components/guide-dialog";
 import { GuideQuestionIcon } from "@/components/guide-icons";
 import { authClient } from "@/lib/auth-client";
 import type { GuideStepData } from "@/lib/guide-defaults";
 
-// La barre de navigation en bas, style application mobile (pilule en verre).
+// La navigation : barre du bas (tablette, ordinateur) ; rail sur le côté droit (téléphone).
 const TABS = [
   { href: "/home", label: "Home", icon: HomeIcon },
   { href: "/calls", label: "Calls", icon: PhoneIcon },
@@ -20,15 +21,10 @@ const TABS = [
 
 export function BottomNav({ guideSteps = [] }: { guideSteps?: GuideStepData[] }) {
   const pathname = usePathname();
-  // Le guide « How it works » (ouvert depuis le menu « + » ou la barre de la tablette)
-  const [guideOpen, setGuideOpen] = useState(false);
-  const openGuide = () => {
-    setOpen(false);
-    setGuideOpen(true);
-  };
   const router = useRouter();
+  // Le guide « How it works »
+  const [guideOpen, setGuideOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const [open, setOpen] = useState(false);
   const { unread, tabs } = useUnreadCount(pathname);
 
   async function signOut() {
@@ -38,19 +34,19 @@ export function BottomNav({ guideSteps = [] }: { guideSteps?: GuideStepData[] })
     router.refresh();
   }
 
-  const close = () => setOpen(false);
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
-  const moreActive = MORE_TABS.some((tab) => isActive(tab.href));
+  /** La pastille d'un menu (Alerts = le total ; rien sur le menu ouvert). */
+  const badgeOf = (href: string) =>
+    href === "/notifications" ? unread : isActive(href) ? 0 : (tabs[TAB_KEY[href] ?? ""] ?? 0);
 
-  /** Un onglet : icône + nom + pastille (Alerts = le total ; rien sur le menu ouvert). */
+  /** Un onglet de la barre du bas : icône + nom + pastille. */
   const renderTab = (tab: { href: string; label: string; icon: () => ReactElement }) => {
     const active = isActive(tab.href);
     const Icon = tab.icon;
-    const count = tab.href === "/notifications" ? unread : active ? 0 : (tabs[TAB_KEY[tab.href] ?? ""] ?? 0);
+    const count = badgeOf(tab.href);
     return (
       <Link
         href={tab.href}
-        onClick={close}
         aria-current={active ? "page" : undefined}
         className={`${ITEM} ${active ? "neu-inset text-accent" : "text-white/60 hover:-translate-y-0.5 hover:text-white"}`}
       >
@@ -63,83 +59,63 @@ export function BottomNav({ guideSteps = [] }: { guideSteps?: GuideStepData[] })
     );
   };
 
-  return (
-    // Menu ouvert : la barre passe au-dessus du bouton message flottant (z-50).
-    <div className={`fixed inset-x-2 bottom-4 mx-auto max-w-md sm:inset-x-4 sm:max-w-xl ${open ? "z-[60]" : "z-20"}`}>
-      {/* Les autres menus (Members, Alerts, Profile, Guide) : sortent au-dessus du bouton "+" */}
-      <nav
-        aria-label="More"
-        inert={!open}
-        className={`neu nav-glass absolute bottom-full right-0 mb-3 flex w-[19rem] max-w-full sm:hidden gap-1 rounded-[1.75rem] p-1.5 transition-all duration-300 [transform-origin:bottom_right] ${
-          open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-2 scale-90 opacity-0"
-        }`}
-      >
-        {/* Members : seulement dans ce menu du téléphone */}
-        <div className="flex-1">{renderTab(MEMBERS_TAB)}</div>
-        {MORE_TABS.map((tab) => (
-          <div key={tab.href} className="flex-1">
-            {renderTab(tab)}
-          </div>
-        ))}
-        {/* Le guide (le bouton Logout est en haut, dans la barre bleue) */}
-        <div className="flex-1">
-          <GuideTab onClick={openGuide} />
-        </div>
-      </nav>
+  // Téléphone : tous les menus dans le rail de droite (le Logout est dans la barre bleue du haut).
+  const railItems: RailItem[] = [
+    ...ALL_TABS.map((tab) => {
+      const Icon = tab.icon;
+      return {
+        key: tab.href,
+        label: tab.label,
+        href: tab.href,
+        icon: <Icon />,
+        active: isActive(tab.href),
+        badge: badgeOf(tab.href),
+      };
+    }),
+    {
+      key: "guide",
+      label: "Guide",
+      icon: <GuideQuestionIcon className="size-5 text-accent" />,
+      onClick: () => setGuideOpen(true),
+    },
+  ];
 
-      <nav aria-label="Main" className="neu nav-glass rounded-full p-1.5 sm:p-2">
-        <ul className="flex items-center justify-between gap-0 sm:gap-1">
-          {MAIN_TABS.map((tab) => (
-            <li key={tab.href} className="flex-1">
-              {renderTab(tab)}
+  return (
+    <>
+      {/* Tablette et ordinateur : la barre du bas, avec tous les menus */}
+      <div className="fixed inset-x-4 bottom-4 z-20 mx-auto max-w-xl max-sm:hidden">
+        <nav aria-label="Main" className="neu nav-glass rounded-full p-2">
+          <ul className="flex items-center justify-between gap-1">
+            {ALL_TABS.map((tab) => (
+              <li key={tab.href} className="flex-1">
+                {renderTab(tab)}
+              </li>
+            ))}
+            {/* Tablette : le guide ici (Logout est dans la barre bleue du haut) */}
+            <li className="flex-1 lg:hidden">
+              <GuideTab onClick={() => setGuideOpen(true)} />
             </li>
-          ))}
-          {/* Tablette et ordinateur : tous les menus dans la barre (le "+" est pour le téléphone) */}
-          <li className="flex-1 max-sm:hidden">{renderTab(MEMBERS_TAB)}</li>
-          {MORE_TABS.map((tab) => (
-            <li key={tab.href} className="flex-1 max-sm:hidden">
-              {renderTab(tab)}
+            {/* Ordinateur : Logout (pas de barre bleue sur grand écran) */}
+            <li className="flex-1 max-lg:hidden">
+              <button
+                type="button"
+                onClick={signOut}
+                disabled={signingOut}
+                className={`${ITEM} w-full text-white/60 hover:-translate-y-0.5 hover:text-accent disabled:opacity-60`}
+              >
+                <LogoutIcon />
+                {signingOut ? "..." : "Logout"}
+              </button>
             </li>
-          ))}
-          {/* Tablette : le guide ici (Logout est dans la barre bleue du haut) */}
-          <li className="flex-1 max-sm:hidden lg:hidden">
-            <GuideTab onClick={openGuide} />
-          </li>
-          {/* Ordinateur : Logout (pas de barre bleue sur grand écran) */}
-          <li className="flex-1 max-lg:hidden">
-            <button
-              type="button"
-              onClick={signOut}
-              disabled={signingOut}
-              className={`${ITEM} w-full text-white/60 hover:-translate-y-0.5 hover:text-accent disabled:opacity-60`}
-            >
-              <LogoutIcon />
-              {signingOut ? "..." : "Logout"}
-            </button>
-          </li>
-          {/* Téléphone : "+" ouvre les autres menus, puis devient "×" pour tout refermer */}
-          <li className="flex-1 sm:hidden">
-            <button
-              type="button"
-              onClick={() => setOpen((value) => !value)}
-              aria-expanded={open}
-              aria-label={open ? "Hide the other menus" : "Show all menus"}
-              className={`${ITEM} w-full ${
-                moreActive && !open ? "neu-inset text-accent" : open ? "text-accent" : "text-white/60 hover:text-white"
-              }`}
-            >
-              <span className="relative">
-                <PlusIcon open={open} />
-                {!open && unread > 0 && <Badge count={unread} />}
-              </span>
-              {open ? "Close" : "More"}
-            </button>
-          </li>
-        </ul>
-      </nav>
+          </ul>
+        </nav>
+      </div>
+
+      {/* Téléphone : le rail sur le côté droit */}
+      <SideRail className="sm:hidden" label="Main" items={railItems} />
 
       <GuideDialog steps={guideSteps} open={guideOpen} onClose={() => setGuideOpen(false)} />
-    </div>
+    </>
   );
 }
 
@@ -160,14 +136,13 @@ function GuideTab({ onClick }: { onClick: () => void }) {
 
 /** Le style commun des boutons de la barre. */
 const ITEM =
-  "flex flex-col items-center gap-0.5 rounded-full px-0.5 py-2 text-[10px] font-semibold leading-tight transition-all duration-300 sm:px-2 sm:text-[11px]";
+  "flex flex-col items-center gap-0.5 rounded-full px-2 py-2 text-[11px] font-semibold leading-tight transition-all duration-300";
 
-/** 4 menus toujours visibles ; les autres s'ouvrent avec le "+". */
-const MAIN_TABS = TABS.slice(0, 4);
-const MORE_TABS = TABS.slice(4);
-
-/** La liste des membres : dans le menu "+" du téléphone. */
+/** La liste des membres. */
 const MEMBERS_TAB = { href: "/members", label: "Members", icon: MembersIcon } as const;
+
+/** Tous les menus, dans l'ordre (Members après Events). */
+const ALL_TABS = [...TABS.slice(0, 4), MEMBERS_TAB, ...TABS.slice(4)];
 
 function MembersIcon() {
   return (
@@ -190,14 +165,6 @@ function Badge({ count }: { count: number }) {
     >
       {count > 9 ? "9+" : count}
     </span>
-  );
-}
-
-function PlusIcon({ open }: { open: boolean }) {
-  return (
-    <svg {...iconProps} className={`size-5 transition-transform duration-300 ${open ? "rotate-45" : ""}`}>
-      <path d="M12 5v14M5 12h14" />
-    </svg>
   );
 }
 
