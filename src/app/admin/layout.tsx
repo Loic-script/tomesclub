@@ -69,7 +69,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             Admin
           </span>
         </div>
-        <div className="mx-auto w-full max-w-6xl px-4 pb-32 pt-6 sm:px-6 lg:px-8 lg:pb-12 lg:pt-10">
+        <div className="mx-auto w-full max-w-6xl px-4 pb-32 pt-6 max-sm:pb-4 sm:px-6 lg:px-8 lg:pb-12 lg:pt-10">
           {children}
         </div>
       </main>

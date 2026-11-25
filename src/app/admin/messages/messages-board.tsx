@@ -88,7 +88,7 @@ export function MessagesBoard({
 
   return (
     // Téléphone : la discussion prend tout l'écran (le haut de la page est caché, la barre du bas reste par-dessus).
-    <div data-chat-board className="neu anim-rise -mx-4 -mb-32 -mt-6 grid h-dvh min-h-[440px] overflow-hidden max-lg:!border-0 sm:-mx-6 lg:mx-0 lg:-mb-8 lg:mt-0 lg:h-[calc(100dvh-6.5rem)] lg:grid-cols-[320px_1fr] lg:rounded-3xl">
+    <div data-chat-board className="neu anim-rise -mx-4 -mb-32 -mt-6 max-sm:-mb-4 grid h-dvh min-h-[440px] overflow-hidden max-lg:!border-0 sm:-mx-6 lg:mx-0 lg:-mb-8 lg:mt-0 lg:h-[calc(100dvh-6.5rem)] lg:grid-cols-[320px_1fr] lg:rounded-3xl">
       {/* ----- La liste des membres ----- */}
       <aside className={`min-h-0 flex-col border-white/10 lg:flex lg:border-r ${selected ? "hidden" : "flex"}`}>
         <div className="p-3">
@@ -104,7 +104,7 @@ export function MessagesBoard({
             />
           </label>
         </div>
-        <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto px-2 pb-28 lg:pb-3">
+        <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto px-2 pb-28 max-sm:pb-3 lg:pb-3">
           {visible.length === 0 && <li className="px-3 py-8 text-center text-sm text-white/50">No member found.</li>}
           {visible.map((item) => {
             const active = item.userId === selectedId;

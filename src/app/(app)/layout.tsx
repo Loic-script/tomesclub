@@ -54,7 +54,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </Suspense>
 
       {/* Colonne centrale, largeur "téléphone" même sur grand écran */}
-      <div className="app-column relative z-10 mx-auto w-full max-w-lg flex-1 px-4 pb-32 pt-8 max-lg:pt-0">
+      <div className="app-column relative z-10 mx-auto w-full max-w-lg flex-1 px-4 pb-32 pt-8 max-lg:pt-0 max-sm:pb-4">
         {/* Téléphone et tablette : la barre du haut (ma photo, mon nom, le guide) */}
         <Suspense fallback={<div aria-hidden className="h-8 lg:hidden" />}>
           <MemberTopBar />
