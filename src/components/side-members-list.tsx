@@ -264,7 +264,7 @@ function FilterRow({ label, children }: { label: string; children: React.ReactNo
   return (
     <div className="flex items-center gap-2">
       <span className="w-10 shrink-0 text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">{label}</span>
-      <div className="-mr-4 flex min-w-0 flex-1 gap-1.5 overflow-x-auto pb-0.5 pr-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="-mr-4 flex min-w-0 flex-1 gap-1.5 overflow-x-auto pb-0.5 pr-4 no-scrollbar">
         {children}
       </div>
     </div>

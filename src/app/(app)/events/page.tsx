@@ -17,7 +17,8 @@ import { formatEventPrice } from "@/lib/event-price";
 import { getEventRegistrations, type EventPerson } from "@/lib/event-responses";
 import { requireMember } from "@/lib/session";
 import { RegisterButton } from "./event-response-buttons";
-import { EventDetailsButton, type EventDetails } from "./event-details-sheet";
+import { type EventDetails } from "./event-details-sheet";
+import { EventCover } from "@/components/event-cover";
 import { proposeEventAction } from "./actions";
 import { ScrollToEvent } from "./scroll-to-event";
 
@@ -126,59 +127,8 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                     style={delay(200 + index * 90)}
                   >
                     <article className="overflow-hidden rounded-3xl bg-white/5 shadow-[0_22px_45px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10">
-                      {/* Carte à image, comme un plan de voyage */}
-                      <div className="group relative h-44 overflow-hidden">
-                        {event.imageType ? (
-                          // eslint-disable-next-line @next/next/no-img-element -- image privée servie par notre API
-                          <img
-                            src={`/api/event/image/${event.id}`}
-                            alt=""
-                            className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          />
-                        ) : (
-                          <div className="absolute inset-0 bg-[linear-gradient(135deg,#2e3192,#7a082e_55%,#9c0b3b)]" />
-                        )}
-                        {/* Un voile très léger en bas : l'image reste bien visible */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
-
-                        {eventIsLive(event) ? (
-                          <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white shadow-lg">
-                            <span className="relative flex size-2">
-                              <span className="anim-ping absolute inset-0 rounded-full bg-white" />
-                              <span className="relative size-2 rounded-full bg-white" />
-                            </span>
-                            LIVE NOW
-                          </span>
-                        ) : null}
-
-                        {/* Le bloc date, comme un petit calendrier posé sur l'image */}
-                        {event.startsAt && (
-                          <span className="absolute bottom-3 right-3 flex w-[4.25rem] flex-col items-center rounded-2xl bg-[#1a1240]/75 py-1.5 text-white shadow-xl ring-1 ring-white/25 backdrop-blur-md">
-                            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-accent">
-                              {formatPart(event.startsAt, { weekday: "short" })}
-                            </span>
-                            <span className="font-display text-2xl font-extrabold leading-none">
-                              {formatPart(event.startsAt, { day: "2-digit" })}
-                            </span>
-                            <span className="text-[10px] font-semibold uppercase tracking-wider text-white/75">
-                              {formatPart(event.startsAt, { month: "short" })}
-                            </span>
-                            <span className="mt-1 rounded-full bg-white/15 px-1.5 text-[10px] font-bold tabular-nums">
-                              {formatPart(event.startsAt, { hour: "2-digit", minute: "2-digit" })}
-                            </span>
-                          </span>
-                        )}
-
-                        {/* Le prix : gratuit ou payant */}
-                        <span
-                          className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-bold shadow-lg ${
-                            event.isPaid ? "bg-accent text-navy" : "bg-emerald-500 text-white"
-                          }`}
-                        >
-                          {formatEventPrice(event)}
-                        </span>
-
-                      </div>
+                      {/* L'image, bien visible (date, prix, direct) */}
+                      <EventCover event={event} />
 
                       {/* Le titre sous l'image (jamais coupé), puis s'inscrire */}
                       <div className="space-y-3 p-4">
@@ -186,7 +136,11 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                           <h3 className="break-words font-display text-lg font-bold uppercase leading-snug tracking-wide text-white">
                             {event.title}
                           </h3>
-                          {event.description && <EventDetailsButton details={details} />}
+                          {event.description && (
+                            <p className="mt-1.5 whitespace-pre-line break-words text-sm leading-relaxed text-white/75">
+                              {event.description}
+                            </p>
+                          )}
                         </div>
                         {eventIsLive(event) && (
                           <Link
@@ -359,11 +313,6 @@ function formatLong(date: Date): string {
   const day = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }).format(date);
   const time = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(date);
   return `${day} · ${time}`;
-}
-
-/** Un morceau de la date (jour de la semaine, jour, mois ou heure). */
-function formatPart(date: Date, options: Intl.DateTimeFormatOptions): string {
-  return new Intl.DateTimeFormat("en-GB", options).format(date);
 }
 
 function formatChip(date: Date): string {

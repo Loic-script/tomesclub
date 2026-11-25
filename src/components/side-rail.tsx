@@ -95,7 +95,7 @@ export function SideRail({ items, label, className = "" }: { items: RailItem[]; 
         <nav
           aria-label={label}
           inert={!open}
-          className="nav-glass max-h-[calc(100dvh-2rem)] w-[5.5rem] overflow-y-auto rounded-l-[1.75rem] border border-r-0 border-white/15 py-2.5 shadow-[-18px_0_45px_-18px_rgba(0,0,0,0.85)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="nav-glass max-h-[calc(100dvh-2rem)] w-[5.5rem] overflow-y-auto rounded-l-[1.75rem] border border-r-0 border-white/15 py-2.5 shadow-[-18px_0_45px_-18px_rgba(0,0,0,0.85)] no-scrollbar"
         >
           <ul className="flex flex-col gap-1 px-1.5">
             {items.map((item, index) => (

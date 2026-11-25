@@ -399,3 +399,11 @@ html.admin-chat-open .admin-bottom-nav {
 @media (prefers-reduced-motion: reduce) {
   .rail-nudge, .rail-handle { animation: none; }
 }
+
+/* Défilement sans barre visible (carrousels, rails) : plus fort que la barre fine orange de tout le site. */
+.no-scrollbar {
+  scrollbar-width: none !important;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}

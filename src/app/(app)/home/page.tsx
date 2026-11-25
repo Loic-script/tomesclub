@@ -6,8 +6,10 @@ import { markGuideSeenAction } from "../guide-actions";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense, type ReactNode } from "react";
-import { delay, GlassCard, PageHeader } from "@/components/app-ui";
+import { delay, PageHeader } from "@/components/app-ui";
 import { MemberAvatar } from "@/components/member-avatar";
+import { EventCover } from "@/components/event-cover";
+import { EventsCarousel } from "./events-carousel";
 import { listActiveCalls } from "@/lib/calls";
 import { prisma } from "@/lib/prisma";
 import { listOpenRooms } from "@/lib/rooms";
@@ -33,10 +35,21 @@ async function loadHome(userId: string) {
     prisma.profile.findUnique({ where: { userId }, select: { photoType: true } }),
     listActiveCalls(userId),
     listOpenRooms(userId),
-    prisma.event.findFirst({
+    prisma.event.findMany({
       where: { kind: "event", status: "published", startsAt: { gte: soon } },
       orderBy: { startsAt: "asc" },
-      select: { title: true, startsAt: true },
+      take: 8,
+      select: {
+        id: true,
+        title: true,
+        startsAt: true,
+        imageType: true,
+        isPaid: true,
+        price: true,
+        currency: true,
+        liveStartedAt: true,
+        liveEndedAt: true,
+      },
     }),
     prisma.event.count({ where: { kind: "event", status: "published", startsAt: { gte: soon } } }),
     prisma.profile.count({ where: { completedAt: { not: null } } }),
@@ -47,7 +60,7 @@ async function HomeDashboard() {
   const user = await requireMember();
   // Ce menu est ouvert : sa pastille disparaît
   await markTabRead(user.id, "home");
-  const [[profile, activeCalls, rooms, nextEvent, upcomingCount, membersCount], unread, guideSteps, firstVisit] =
+  const [[profile, activeCalls, rooms, nextEvents, upcomingCount, membersCount], unread, guideSteps, firstVisit] =
     await Promise.all([loadHome(user.id), countUnread(user.id), getGuideSteps(), shouldShowGuide(user.id)]);
 
   return (
@@ -108,36 +121,32 @@ async function HomeDashboard() {
           </div>
         )}
 
-        {/* Le prochain cours */}
-        {nextEvent?.startsAt && (
-          <div className="anim-rise" style={delay(280)}>
-            <Link href="/events" className="block">
-              <GlassCard className="neu-btn flex items-center gap-4">
-                <span className="flex size-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark text-white shadow-md ring-1 ring-white/20">
-                  <span className="font-display text-xl font-bold leading-none">
-                    {new Intl.DateTimeFormat("en-GB", { day: "2-digit" }).format(nextEvent.startsAt)}
+        {/* Les prochains événements : on glisse de gauche à droite */}
+        {nextEvents.length > 0 && (
+          <section className="anim-rise" style={delay(280)}>
+            <div className="mb-2.5 flex items-center justify-between px-1">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+                {nextEvents.length > 1 ? "Next classes" : "Next class"}
+              </h2>
+              <Link href="/events" className="text-xs font-semibold text-white/60 transition hover:text-white">
+                See all ›
+              </Link>
+            </div>
+            <EventsCarousel>
+              {nextEvents.map((event) => (
+                <Link
+                  key={event.id}
+                  href={`/events?event=${event.id}`}
+                  className="block overflow-hidden rounded-3xl bg-white/5 shadow-[0_22px_45px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10"
+                >
+                  <EventCover event={event} className="h-40" />
+                  <span className="block px-4 py-3 font-display text-base font-bold uppercase leading-snug tracking-wide text-white">
+                    {event.title}
                   </span>
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-white/80">
-                    {new Intl.DateTimeFormat("en-GB", { month: "short" }).format(nextEvent.startsAt)}
-                  </span>
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-xs font-semibold uppercase tracking-wide text-accent">
-                    Next class
-                  </span>
-                  <span className="block break-words font-semibold text-white">{nextEvent.title}</span>
-                  <span className="block text-sm text-white/60">
-                    {new Intl.DateTimeFormat("en-GB", {
-                      weekday: "long",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }).format(nextEvent.startsAt)}
-                  </span>
-                </span>
-                <span aria-hidden className="text-white/40">→</span>
-              </GlassCard>
-            </Link>
-          </div>
+                </Link>
+              ))}
+            </EventsCarousel>
+          </section>
         )}
 
         {/* Les tuiles de couleur, en mosaïque (deux hautes, quatre normales) avec le chiffre du moment */}
