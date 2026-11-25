@@ -1,5 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 import { BottomNav } from "@/components/bottom-nav";
+import { getGuideSteps } from "@/lib/guide";
 import { CoachChat } from "@/components/coach-chat";
 import { IncomingCall } from "@/components/incoming-call";
 import { MemberTopBar } from "@/components/member-top-bar";
@@ -72,7 +73,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* La barre du bas lit l'adresse de la page : obligatoire dans un <Suspense>. */}
       <Suspense fallback={null}>
-        <BottomNav />
+        <BottomNavWithGuide />
       </Suspense>
 
       {/* Le bouton rond en bas à droite : discuter avec le coach. */}
@@ -87,4 +88,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <PresencePing />
     </div>
   );
+}
+
+/** La barre du bas, avec les étapes du guide (le « ? » du menu « + »). */
+async function BottomNavWithGuide() {
+  return <BottomNav guideSteps={await getGuideSteps()} />;
 }

@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactElement } from "react";
+import { GuideDialog } from "@/components/guide-dialog";
+import { GuideQuestionIcon } from "@/components/guide-icons";
 import { authClient } from "@/lib/auth-client";
+import type { GuideStepData } from "@/lib/guide-defaults";
 
 // La barre de navigation en bas, style application mobile (pilule en verre).
 const TABS = [
@@ -15,8 +18,14 @@ const TABS = [
   { href: "/profile", label: "Profile", icon: UserIcon },
 ] as const;
 
-export function BottomNav() {
+export function BottomNav({ guideSteps = [] }: { guideSteps?: GuideStepData[] }) {
   const pathname = usePathname();
+  // Le guide « How it works » (ouvert depuis le menu « + » ou la barre de la tablette)
+  const [guideOpen, setGuideOpen] = useState(false);
+  const openGuide = () => {
+    setOpen(false);
+    setGuideOpen(true);
+  };
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
   const [open, setOpen] = useState(false);
@@ -57,7 +66,7 @@ export function BottomNav() {
   return (
     // Menu ouvert : la barre passe au-dessus du bouton message flottant (z-50).
     <div className={`fixed inset-x-2 bottom-4 mx-auto max-w-md sm:inset-x-4 sm:max-w-xl ${open ? "z-[60]" : "z-20"}`}>
-      {/* Les autres menus (Members, Alerts, Profile, Logout) : sortent au-dessus du bouton "+" */}
+      {/* Les autres menus (Members, Alerts, Profile, Guide) : sortent au-dessus du bouton "+" */}
       <nav
         aria-label="More"
         inert={!open}
@@ -72,17 +81,9 @@ export function BottomNav() {
             {renderTab(tab)}
           </div>
         ))}
-        {/* Se déconnecter */}
+        {/* Le guide (le bouton Logout est en haut, dans la barre bleue) */}
         <div className="flex-1">
-          <button
-            type="button"
-            onClick={signOut}
-            disabled={signingOut}
-            className={`${ITEM} w-full text-white/60 hover:-translate-y-0.5 hover:text-accent disabled:opacity-60`}
-          >
-            <LogoutIcon />
-            {signingOut ? "..." : "Logout"}
-          </button>
+          <GuideTab onClick={openGuide} />
         </div>
       </nav>
 
@@ -100,7 +101,12 @@ export function BottomNav() {
               {renderTab(tab)}
             </li>
           ))}
-          <li className="flex-1 max-sm:hidden">
+          {/* Tablette : le guide ici (Logout est dans la barre bleue du haut) */}
+          <li className="flex-1 max-sm:hidden lg:hidden">
+            <GuideTab onClick={openGuide} />
+          </li>
+          {/* Ordinateur : Logout (pas de barre bleue sur grand écran) */}
+          <li className="flex-1 max-lg:hidden">
             <button
               type="button"
               onClick={signOut}
@@ -131,7 +137,24 @@ export function BottomNav() {
           </li>
         </ul>
       </nav>
+
+      <GuideDialog steps={guideSteps} open={guideOpen} onClose={() => setGuideOpen(false)} />
     </div>
+  );
+}
+
+/** L'onglet « Guide » (le ?) : ouvre la fenêtre « How it works ». */
+function GuideTab({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="How Tomes Club works"
+      className={`${ITEM} w-full text-white/60 hover:-translate-y-0.5 hover:text-accent`}
+    >
+      <GuideQuestionIcon className="size-5 text-accent" />
+      Guide
+    </button>
   );
 }
 
