@@ -57,7 +57,7 @@ export function CoachChat() {
         <section
           role="dialog"
           aria-label="Chat with the admin"
-          className="anim-pop fixed inset-x-3 bottom-24 z-50 flex h-[min(70dvh,520px)] flex-col overflow-hidden rounded-3xl border border-white/15 bg-[#22103a]/95 shadow-2xl shadow-black/50 backdrop-blur-xl sm:inset-x-auto sm:right-6 sm:w-[360px]"
+          className="anim-pop fixed inset-x-3 bottom-4 z-50 sm:bottom-24 flex h-[min(70dvh,520px)] flex-col overflow-hidden rounded-3xl border border-white/15 bg-[#22103a]/95 shadow-2xl shadow-black/50 backdrop-blur-xl sm:inset-x-auto sm:right-6 sm:w-[360px]"
         >
           <header className="flex items-center gap-3 border-b border-white/10 bg-white/[0.04] px-4 py-3">
             <Image src="/logo.png" alt="" width={38} height={38} className="rounded-full ring-2 ring-white/20" />
@@ -92,7 +92,7 @@ export function CoachChat() {
         onClick={toggle}
         aria-label={open ? "Close the chat" : unread > 0 ? `Messages: ${unread} new` : "Message the admin"}
         aria-expanded={open}
-        className={`fixed bottom-24 right-4 z-50 size-14 items-center justify-center rounded-full bg-gradient-to-br from-accent to-brand text-white shadow-xl shadow-black/40 ring-1 ring-white/25 transition duration-300 hover:scale-110 active:scale-95 sm:bottom-6 sm:right-6 ${
+        className={`fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-4 z-50 size-14 items-center justify-center rounded-full bg-gradient-to-br from-accent to-brand text-white shadow-xl shadow-black/40 ring-1 ring-white/25 transition duration-300 hover:scale-110 active:scale-95 sm:bottom-6 sm:right-6 ${
           open ? "hidden sm:flex" : "flex"
         }`}
       >
