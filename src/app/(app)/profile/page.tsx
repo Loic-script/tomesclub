@@ -50,7 +50,7 @@ async function ProfileHome({ searchParams }: { searchParams: PageProps<"/profile
 
   return (
     <>
-      <PageHeader eyebrow="Your member card" title="Profile" keepOnPhone />
+      <PageHeader eyebrow="Your member card" title="Profile" />
 
       {/* Qui me suit, et qui je suis : on touche pour voir la liste */}
       <div className="anim-rise mb-6 grid grid-cols-2 gap-3" style={delay(100)}>
