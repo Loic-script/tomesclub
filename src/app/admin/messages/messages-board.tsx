@@ -164,8 +164,18 @@ export function MessagesBoard({
                   <path d="m15 6-6 6 6 6" />
                 </svg>
               </button>
-              <MemberAvatar userId={selected.userId} name={selected.name} hasPhoto={selected.hasPhoto} size="size-10" />
-              <p className="min-w-0 flex-1 truncate font-display text-base font-bold text-white">{selected.name}</p>
+              {/* La photo et le nom ouvrent la fiche du membre */}
+              <Link
+                href={`/admin/members/${selected.userId}`}
+                aria-label={`Open the profile of ${selected.name}`}
+                className="group -my-1 flex min-w-0 flex-1 items-center gap-3 rounded-full py-1 pr-2 transition hover:bg-white/[0.06]"
+              >
+                <MemberAvatar userId={selected.userId} name={selected.name} hasPhoto={selected.hasPhoto} size="size-10" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-display text-base font-bold text-white group-hover:text-accent">{selected.name}</span>
+                  <span className="block text-[11px] text-white/45">Tap to see the profile</span>
+                </span>
+              </Link>
               <Link
                 href={`/admin/members/${selected.userId}`}
                 className="shrink-0 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/15"
