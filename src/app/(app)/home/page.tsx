@@ -10,6 +10,10 @@ import { delay, PageHeader } from "@/components/app-ui";
 import { MemberAvatar } from "@/components/member-avatar";
 import { EventCover } from "@/components/event-cover";
 import { EventsCarousel } from "./events-carousel";
+import { RegisterButton } from "../events/event-response-buttons";
+import { getEventRegistrations } from "@/lib/event-responses";
+import { formatEventPrice } from "@/lib/event-price";
+import { privateRoomPayment } from "@/lib/private-room-payment";
 import { listActiveCalls } from "@/lib/calls";
 import { prisma } from "@/lib/prisma";
 import { listOpenRooms } from "@/lib/rooms";
@@ -42,6 +46,7 @@ async function loadHome(userId: string) {
       select: {
         id: true,
         title: true,
+        description: true,
         startsAt: true,
         imageType: true,
         isPaid: true,
@@ -62,6 +67,9 @@ async function HomeDashboard() {
   await markTabRead(user.id, "home");
   const [[profile, activeCalls, rooms, nextEvents, upcomingCount, membersCount], unread, guideSteps, firstVisit] =
     await Promise.all([loadHome(user.id), countUnread(user.id), getGuideSteps(), shouldShowGuide(user.id)]);
+  // Mes inscriptions aux prochains événements (pour le bouton Register), et le numéro MVola de l'admin
+  const registrations = await getEventRegistrations(nextEvents.map((event) => event.id), user.id);
+  const account = privateRoomPayment();
 
   return (
     <>
@@ -133,18 +141,48 @@ async function HomeDashboard() {
               </Link>
             </div>
             <EventsCarousel>
-              {nextEvents.map((event) => (
-                <Link
-                  key={event.id}
-                  href={`/events?event=${event.id}`}
-                  className="block overflow-hidden rounded-3xl bg-white/5 shadow-[0_22px_45px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10"
-                >
-                  <EventCover event={event} className="h-40" />
-                  <span className="block px-4 py-3 font-display text-base font-bold uppercase leading-snug tracking-wide text-white">
-                    {event.title}
-                  </span>
-                </Link>
-              ))}
+              {nextEvents.map((event) => {
+                const mine = registrations.get(event.id);
+                return (
+                  <div
+                    key={event.id}
+                    className="overflow-hidden rounded-3xl bg-white/5 shadow-[0_22px_45px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10"
+                  >
+                    <Link href={`/events?event=${event.id}`} className="block">
+                      <EventCover event={event} className="h-40" />
+                      <span className="block px-4 pb-2 pt-3 pr-24 font-display text-base font-bold uppercase leading-snug tracking-wide text-white">
+                        {event.title}
+                      </span>
+                    </Link>
+                    {/* S'inscrire (la fenêtre montre d'abord la description complète) */}
+                    <div className="px-4 pb-4 pt-1">
+                      <RegisterButton
+                        eventId={event.id}
+                        registered={mine?.mine ?? false}
+                        locked={mine?.minePaid ?? false}
+                        details={{
+                          title: event.title,
+                          description: event.description,
+                          dateLabel: event.startsAt ? longDate(event.startsAt) : null,
+                          priceLabel: formatEventPrice(event),
+                          isPaid: event.isPaid,
+                          imageUrl: event.imageType ? `/api/event/image/${event.id}` : null,
+                        }}
+                        payment={
+                          event.isPaid
+                            ? {
+                                label: formatEventPrice(event),
+                                paid: mine?.minePaid ?? false,
+                                mvola: account.mvola,
+                                receiver: account.receiver,
+                              }
+                            : null
+                        }
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </EventsCarousel>
           </section>
         )}
@@ -379,4 +417,11 @@ function UserIcon({ className }: { className?: string }) {
       <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
     </svg>
   );
+}
+
+/** « Saturday 28 November · 20:30 » */
+function longDate(date: Date): string {
+  const day = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }).format(date);
+  const time = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(date);
+  return `${day} · ${time}`;
 }

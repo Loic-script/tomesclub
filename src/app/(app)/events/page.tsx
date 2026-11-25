@@ -133,7 +133,7 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                       {/* Le titre sous l'image (jamais coupé), puis s'inscrire */}
                       <div className="space-y-3 p-4">
                         <div>
-                          <h3 className="break-words font-display text-lg font-bold uppercase leading-snug tracking-wide text-white">
+                          <h3 className="break-words pr-20 font-display text-lg font-bold uppercase leading-snug tracking-wide text-white">
                             {event.title}
                           </h3>
                           {event.description && (
