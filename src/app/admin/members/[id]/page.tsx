@@ -10,6 +10,7 @@ import { ArrowIcon, CalendarIcon, PhoneIcon, RoomIcon, UsersIcon } from "../../a
 import { Chip, delay, Panel } from "../../admin-ui";
 import { DeleteMemberButton } from "../delete-member-button";
 import { RoleStatus } from "../role-status";
+import { FollowStat, type FollowPerson } from "./follow-stat";
 
 export const metadata: Metadata = { title: "Member profile · Admin" };
 
@@ -63,6 +64,17 @@ async function loadMember(userId: string) {
           eventResponses: { where: { status: "registered" } },
         },
       },
+      // Qui le suit, et qui il suit (les 200 plus récents).
+      followers: {
+        orderBy: { createdAt: "desc" },
+        take: 200,
+        select: { follower: { select: { id: true, name: true, profile: { select: { photoType: true } } } } },
+      },
+      following: {
+        orderBy: { createdAt: "desc" },
+        take: 200,
+        select: { following: { select: { id: true, name: true, profile: { select: { photoType: true } } } } },
+      },
     },
   });
   if (!member) return null;
@@ -93,10 +105,22 @@ async function MemberProfile({ userId }: { userId: string }) {
       ? new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(value)
       : null;
 
+  // Les listes « Followers » et « Following » (on les ouvre en touchant la case).
+  const followers: FollowPerson[] = member.followers.map(({ follower }) => ({
+    id: follower.id,
+    name: follower.name,
+    hasPhoto: Boolean(follower.profile?.photoType),
+  }));
+  const following: FollowPerson[] = member.following.map(({ following: person }) => ({
+    id: person.id,
+    name: person.name,
+    hasPhoto: Boolean(person.profile?.photoType),
+  }));
+
   const stats = [
     { label: "Video calls", value: member._count.callParticipation, icon: <PhoneIcon className="size-4" /> },
-    { label: "Followers", value: member._count.followers, icon: <UsersIcon className="size-4" /> },
-    { label: "Following", value: member._count.following, icon: <UsersIcon className="size-4" /> },
+    { label: "Followers", value: member._count.followers, icon: <UsersIcon className="size-4" />, people: followers },
+    { label: "Following", value: member._count.following, icon: <UsersIcon className="size-4" />, people: following },
     { label: "Events registered", value: member._count.eventResponses, icon: <CalendarIcon className="size-4" /> },
   ];
 
@@ -116,7 +140,7 @@ async function MemberProfile({ userId }: { userId: string }) {
           aria-hidden
           className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-gradient-to-br from-accent/40 to-brand/30 blur-3xl"
         />
-        <div className="relative flex flex-wrap items-center gap-5 max-sm:flex-col max-sm:items-start max-sm:gap-4">
+        <div className="relative flex flex-wrap items-center gap-5 max-sm:flex-col max-sm:gap-4 max-sm:text-center">
           <span className="relative">
             <span className="block rounded-full bg-gradient-to-br from-accent to-brand p-[3px]">
               <MemberAvatar
@@ -139,7 +163,7 @@ async function MemberProfile({ userId }: { userId: string }) {
               {displayName}
             </h1>
             <p className="mt-1 break-all text-sm text-white/55 sm:truncate">{member.email}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap gap-2 max-sm:justify-center">
               {member.online ? <Chip tone="good">● Online now</Chip> : <Chip>Offline</Chip>}
               <RoleStatus
                 userId={member.id}
@@ -158,15 +182,27 @@ async function MemberProfile({ userId }: { userId: string }) {
 
         {/* L'activité dans le club */}
         <dl className="relative mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {stats.map((stat) => (
-            <div key={stat.label} className="neu-inset rounded-2xl p-4">
-              <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/45">
+          {stats.map((stat) =>
+            stat.people ? (
+              <div key={stat.label}>
+                <FollowStat
+                  label={stat.label}
+                  icon={stat.icon}
+                  total={stat.value}
+                  people={stat.people}
+                  emptyText={stat.label === "Followers" ? "Nobody follows this member yet." : "This member follows nobody yet."}
+                />
+              </div>
+            ) : (
+            <div key={stat.label} className="neu-inset rounded-2xl p-4 max-sm:text-center">
+              <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/45 max-sm:justify-center">
                 {stat.icon}
                 {stat.label}
               </dt>
               <dd className="mt-1 font-display text-2xl font-extrabold tabular-nums text-white">{stat.value}</dd>
             </div>
-          ))}
+            ),
+          )}
         </dl>
       </section>
 
