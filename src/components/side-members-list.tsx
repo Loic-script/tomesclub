@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, type CSSProperties } from "react";
 import { FollowButton } from "@/components/follow-button";
 import { MemberAvatar } from "@/components/member-avatar";
+import { ENGLISH_LEVELS } from "@/lib/onboarding-options";
 
 export type SideMember = {
   id: string;
@@ -41,10 +42,17 @@ export function SideMembersList({
   feed?: boolean;
 }) {
   const [query, setQuery] = useState("");
+  // Page Members : les filtres (qui ? et quel niveau ?)
+  const [who, setWho] = useState<Who>("all");
+  const [level, setLevel] = useState<string>("all");
   const wanted = simplify(query);
-  const shown = wanted
-    ? members.filter((member) => simplify(`${member.firstName} ${member.lastName}`).includes(wanted))
-    : members;
+  const shown = members.filter(
+    (member) =>
+      (!wanted || simplify(`${member.firstName} ${member.lastName}`).includes(wanted)) &&
+      (!feed || WHO_TEST[who](member)) &&
+      (!feed || level === "all" || (level === "none" ? !member.englishLevel : member.englishLevel === level)),
+  );
+  const filtering = Boolean(wanted) || (feed && (who !== "all" || level !== "all"));
 
   if (members.length === 0) {
     return <p className="py-6 text-center text-sm text-white/55">No other members yet.</p>;
@@ -97,9 +105,45 @@ export function SideMembersList({
         )}
       </div>
 
+      {/* Page Members : les filtres */}
+      {feed && (
+        <div className="mb-3 space-y-2">
+          <FilterRow label="Show">
+            {WHO_OPTIONS.map((option) => (
+              <Chip
+                key={option.value}
+                active={who === option.value}
+                onClick={() => setWho(option.value)}
+                count={members.filter(WHO_TEST[option.value]).length}
+              >
+                {option.label}
+              </Chip>
+            ))}
+          </FilterRow>
+          <FilterRow label="Level">
+            <Chip active={level === "all"} onClick={() => setLevel("all")}>
+              All levels
+            </Chip>
+            {ENGLISH_LEVELS.map((option) => (
+              <Chip
+                key={option.value}
+                active={level === option.value}
+                onClick={() => setLevel(option.value)}
+                count={members.filter((member) => member.englishLevel === option.value).length}
+              >
+                {option.label}
+              </Chip>
+            ))}
+            <Chip active={level === "none"} onClick={() => setLevel("none")}>
+              No level
+            </Chip>
+          </FilterRow>
+        </div>
+      )}
+
       <div className="mb-2 flex items-center gap-2 px-1">
         <p aria-live="polite" className="text-[11px] text-white/60">
-          {wanted
+          {filtering
             ? `${shown.length} ${shown.length === 1 ? "member" : "members"} found`
             : `${members.length} ${members.length === 1 ? "member" : "members"}`}
         </p>
@@ -108,9 +152,24 @@ export function SideMembersList({
       </div>
 
       {shown.length === 0 ? (
-        <p className="py-6 text-center text-sm text-white/55">
-          No member called &ldquo;{query.trim()}&rdquo;.
-        </p>
+        <div className="py-8 text-center">
+          <p className="text-sm text-white/55">
+            {wanted ? <>No member called &ldquo;{query.trim()}&rdquo;.</> : "No member matches these filters."}
+          </p>
+          {filtering && (
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setWho("all");
+                setLevel("all");
+              }}
+              className="mt-3 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold text-white ring-1 ring-white/15 transition hover:bg-white/15"
+            >
+              Clear the filters
+            </button>
+          )}
+        </div>
       ) : (
         <ul
           className={
@@ -184,8 +243,67 @@ export function SideMembersList({
   );
 }
 
+type Who = "all" | "online" | "following" | "followsMe";
+
+const WHO_OPTIONS: { value: Who; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "online", label: "Online" },
+  { value: "following", label: "Following" },
+  { value: "followsMe", label: "Follows you" },
+];
+
+const WHO_TEST: Record<Who, (member: SideMember) => boolean> = {
+  all: () => true,
+  online: (member) => member.online,
+  following: (member) => member.following,
+  followsMe: (member) => member.followsMe,
+};
+
+/** Une ligne de filtres qui défile sur le côté si elle est trop longue. */
+function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-10 shrink-0 text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">{label}</span>
+      <div className="-mr-4 flex min-w-0 flex-1 gap-1.5 overflow-x-auto pb-0.5 pr-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** Un filtre : pilule claire quand il est choisi. */
+function Chip({
+  active,
+  onClick,
+  count,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  count?: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+        active
+          ? "bg-gradient-to-r from-accent to-brand text-white shadow-md shadow-black/20"
+          : "bg-white/[0.07] text-white/70 ring-1 ring-white/10 hover:bg-white/[0.12] hover:text-white"
+      }`}
+    >
+      {children}
+      {count !== undefined && (
+        <span className={`tabular-nums ${active ? "text-white/85" : "text-white/40"}`}>{count}</span>
+      )}
+    </button>
+  );
+}
+
 /**
- * Une ligne de la page Members (téléphone), comme une liste d'amis :
+ * Une ligne de la page Members, comme une liste d'amis :
  * grande photo à gauche, le nom, « en ligne » ou le pays · niveau, puis un grand bouton Follow.
  */
 function FeedRow({ member }: { member: SideMember }) {
