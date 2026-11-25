@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { delay, GlassCard, PageHeader } from "@/components/app-ui";
 import { FollowButton } from "@/components/follow-button";
+import { FollowIcon, FollowStat } from "@/components/follow-stat";
+import { listFollowPeople } from "@/lib/follows";
 import { MemberAvatar } from "@/components/member-avatar";
 import { getPublicMemberProfile } from "@/lib/members";
 import { ENGLISH_LEVELS, OCCUPATIONS } from "@/lib/onboarding-options";
@@ -39,7 +41,7 @@ async function MemberView({ params }: { params: Promise<{ id: string }> }) {
     );
   }
 
-  const member = await getPublicMemberProfile(id, me.id);
+  const [member, follows] = await Promise.all([getPublicMemberProfile(id, me.id), listFollowPeople(id)]);
   if (!member) notFound();
 
   const level = ENGLISH_LEVELS.find((entry) => entry.value === member.englishLevel)?.label;
@@ -55,7 +57,8 @@ async function MemberView({ params }: { params: Promise<{ id: string }> }) {
   return (
     <>
       <PageHeader
-        keepOnPhone
+        // Téléphone : la barre bleue du haut remplace cet en-tête.
+        rightOnPhone={false}
         eyebrow="Member"
         title={member.firstName}
         subtitle={member.online ? "Online now" : "Member of the club"}
@@ -107,9 +110,26 @@ async function MemberView({ params }: { params: Promise<{ id: string }> }) {
             </p>
           )}
 
-          <div className="mt-4 flex items-center justify-center gap-6">
-            <Count value={member.followerCount} label="Followers" />
-            <Count value={member.followingCount} label="Following" />
+          {/* Ses followers et following : on touche pour voir qui */}
+          <div className="mx-auto mt-4 grid max-w-xs grid-cols-2 gap-3 text-left">
+            <FollowStat
+              variant="pill"
+              hrefBase="/members/"
+              label="Followers"
+              icon={<FollowIcon />}
+              total={follows.followersCount}
+              people={follows.followers}
+              emptyText={`Nobody follows ${member.firstName} yet.`}
+            />
+            <FollowStat
+              variant="pill"
+              hrefBase="/members/"
+              label="Following"
+              icon={<FollowIcon />}
+              total={follows.followingCount}
+              people={follows.following}
+              emptyText={`${member.firstName} follows nobody yet.`}
+            />
           </div>
 
           <div className="mt-5 flex items-center justify-center gap-3">
@@ -151,15 +171,6 @@ async function MemberView({ params }: { params: Promise<{ id: string }> }) {
         </GlassCard>
       </div>
     </>
-  );
-}
-
-function Count({ value, label }: { value: number; label: string }) {
-  return (
-    <span className="text-center">
-      <span className="block font-display text-xl font-bold text-white">{value}</span>
-      <span className="block text-[11px] text-white/50">{label}</span>
-    </span>
   );
 }
 

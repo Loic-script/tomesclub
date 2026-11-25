@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Flag } from "@/components/flag";
 import { Suspense } from "react";
 import { delay, PageHeader } from "@/components/app-ui";
-import { FollowStat, type FollowPerson } from "@/components/follow-stat";
+import { FollowIcon, FollowStat } from "@/components/follow-stat";
 import { MemberAvatar } from "@/components/member-avatar";
-import { prisma } from "@/lib/prisma";
+import { listFollowPeople } from "@/lib/follows";
 import { OCCUPATIONS, userTypeLabel } from "@/lib/onboarding-options";
 import { getFullProfile, getProfileFormInitial } from "@/lib/profile";
 import { requireMember } from "@/lib/session";
@@ -28,7 +28,7 @@ async function ProfileHome({ searchParams }: { searchParams: PageProps<"/profile
     getFullProfile(user.id),
     getProfileFormInitial(user.id),
     searchParams,
-    loadFollows(user.id),
+    listFollowPeople(user.id),
   ]);
   if (!profile) return null; // impossible en pratique : requireMember vérifie déjà
 
@@ -228,38 +228,5 @@ function Barcode({ seed }: { seed: string }) {
         />
       ))}
     </div>
-  );
-}
-
-
-/** Mes « followers » (qui me suit) et mes « following » (qui je suis), les 200 plus récents. */
-async function loadFollows(userId: string) {
-  const person = { select: { id: true, name: true, profile: { select: { photoType: true } } } } as const;
-  const [followers, following, followersCount, followingCount] = await Promise.all([
-    prisma.follow.findMany({ where: { followingId: userId }, orderBy: { createdAt: "desc" }, take: 200, select: { follower: person } }),
-    prisma.follow.findMany({ where: { followerId: userId }, orderBy: { createdAt: "desc" }, take: 200, select: { following: person } }),
-    prisma.follow.count({ where: { followingId: userId } }),
-    prisma.follow.count({ where: { followerId: userId } }),
-  ]);
-  const toPerson = (user: { id: string; name: string; profile: { photoType: string | null } | null }): FollowPerson => ({
-    id: user.id,
-    name: user.name,
-    hasPhoto: Boolean(user.profile?.photoType),
-  });
-  return {
-    followers: followers.map((row) => toPerson(row.follower)),
-    following: following.map((row) => toPerson(row.following)),
-    followersCount,
-    followingCount,
-  };
-}
-
-function FollowIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-[18px]" aria-hidden>
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
   );
 }
