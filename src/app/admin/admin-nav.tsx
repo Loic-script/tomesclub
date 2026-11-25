@@ -131,7 +131,7 @@ export function AdminBottomLinks({ badges }: { badges: AdminBadges }) {
   const moreUnread = MORE_TABS.reduce((total, tab) => total + (tab.badge ? badges[tab.badge] : 0), 0);
 
   return (
-    <div className="fixed inset-x-2 bottom-4 z-40 mx-auto max-w-md sm:inset-x-4 lg:hidden">
+    <div className="admin-bottom-nav fixed inset-x-2 bottom-4 z-40 mx-auto max-w-md sm:inset-x-4 lg:hidden">
       {/* Les autres onglets : sortent au-dessus du bouton "+" */}
       <nav
         aria-label="More admin sections"

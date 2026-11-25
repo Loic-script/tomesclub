@@ -449,3 +449,8 @@ h3,
 .leave-locked .lk-disconnect-button {
   display: none !important;
 }
+
+/* Admin, téléphone : dans une conversation ouverte, pas de barre du bas (comme WhatsApp). */
+html.admin-chat-open .admin-bottom-nav {
+  display: none !important;
+}

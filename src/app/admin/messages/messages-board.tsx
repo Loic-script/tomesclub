@@ -56,6 +56,14 @@ export function MessagesBoard({
 
   const selected = conversations.find((item) => item.userId === selectedId) ?? null;
 
+  // Téléphone : une conversation ouverte prend tout l'écran (la barre du bas se cache).
+  const chatOpen = selected !== null;
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle("admin-chat-open", chatOpen);
+    return () => root.classList.remove("admin-chat-open");
+  }, [chatOpen]);
+
   const visible = useMemo(() => {
     const query = search.trim().toLowerCase();
     return query ? conversations.filter((item) => item.name.toLowerCase().includes(query)) : conversations;
@@ -142,7 +150,7 @@ export function MessagesBoard({
       </aside>
 
       {/* ----- La discussion ----- */}
-      <section className={`min-h-0 min-w-0 flex-col max-lg:pb-24 lg:flex ${selected ? "flex" : "hidden"}`}>
+      <section className={`min-h-0 min-w-0 flex-col max-lg:pb-[env(safe-area-inset-bottom)] lg:flex ${selected ? "flex" : "hidden"}`}>
         {selected ? (
           <>
             <header className="flex items-center gap-3 border-b border-white/10 bg-white/[0.04] px-3 py-3 sm:px-4">
