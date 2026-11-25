@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BellIcon, BookIcon, CalendarIcon, ChatIcon, GridIcon, RoomIcon, UsersIcon } from "./admin-icons";
+import { adminSignOut } from "../(auth)/admin/login/actions";
+import { BellIcon, BookIcon, CalendarIcon, ChatIcon, GridIcon, LogoutIcon, RoomIcon, UsersIcon } from "./admin-icons";
 
 /** Les pastilles : notifications pas lues + messages pas lus. */
 export type AdminBadges = {
@@ -110,6 +111,18 @@ function BottomTab({
   );
 }
 
+/** Se déconnecter de l'espace admin (dans la barre du bas, téléphone et tablette). */
+function SignOutTab() {
+  return (
+    <form action={adminSignOut} className="flex-1">
+      <button type="submit" className={`${BOTTOM_ITEM} w-full text-white/60 hover:-translate-y-0.5 hover:text-red-300`}>
+        <LogoutIcon />
+        Log out
+      </button>
+    </form>
+  );
+}
+
 function Dot({ count }: { count: number }) {
   return (
     <span className="absolute right-[18%] top-1 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold leading-4 text-navy">
@@ -136,7 +149,7 @@ export function AdminBottomLinks({ badges }: { badges: AdminBadges }) {
       <nav
         aria-label="More admin sections"
         inert={!open}
-        className={`neu nav-glass absolute bottom-full right-0 mb-3 flex w-60 sm:hidden gap-1 rounded-[1.75rem] p-1.5 transition-all duration-300 [transform-origin:bottom_right] ${
+        className={`neu nav-glass absolute bottom-full right-0 mb-3 flex w-80 sm:hidden gap-1 rounded-[1.75rem] p-1.5 transition-all duration-300 [transform-origin:bottom_right] ${
           open ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-2 scale-90 opacity-0"
         }`}
       >
@@ -145,6 +158,7 @@ export function AdminBottomLinks({ badges }: { badges: AdminBadges }) {
             <BottomTab tab={tab} pathname={pathname} badges={badges} onClick={close} />
           </div>
         ))}
+        <SignOutTab />
       </nav>
 
       <nav aria-label="Admin sections" className="neu nav-glass rounded-full p-1.5 sm:p-2">
@@ -160,6 +174,9 @@ export function AdminBottomLinks({ badges }: { badges: AdminBadges }) {
               <BottomTab tab={tab} pathname={pathname} badges={badges} />
             </li>
           ))}
+          <li className="flex flex-1 max-sm:hidden">
+            <SignOutTab />
+          </li>
           <li className="flex-1 sm:hidden">
             <button
               type="button"
