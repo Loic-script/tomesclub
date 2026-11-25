@@ -79,13 +79,13 @@ export function SideRail({ items, label, className = "" }: { items: RailItem[]; 
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
           aria-label={open ? "Close the menu" : "Open the menu"}
-          className="rail-handle relative flex h-16 w-10 shrink-0 items-center justify-center rounded-l-2xl border border-r-0 border-white/15 bg-[#1a1240]/90 shadow-[-10px_0_30px_-12px_rgba(0,0,0,0.8)] backdrop-blur-md"
+          className="rail-handle relative flex h-16 w-10 shrink-0 items-center justify-center rounded-l-2xl border border-r-0 border-white/20 bg-gradient-to-br from-[#9c0b3b] to-[#5a0622] shadow-[-10px_0_30px_-12px_rgba(0,0,0,0.8)] backdrop-blur-md"
         >
           <span className={`transition-transform duration-500 ${open ? "rotate-180" : "rail-nudge"}`}>
             <PixelArrow />
           </span>
           {!open && totalBadge > 0 && (
-            <span className="absolute -left-1.5 -top-1.5 flex min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold leading-5 text-navy ring-2 ring-[#1a1240]">
+            <span className="absolute -left-1.5 -top-1.5 flex min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold leading-5 text-navy ring-2 ring-[#7a082e]">
               {totalBadge > 9 ? "9+" : totalBadge}
             </span>
           )}
@@ -155,7 +155,7 @@ function RailEntry({ item, onPick }: { item: RailItem; onPick: () => void }) {
   );
 }
 
-/** La flèche ‹ faite de petits carrés, en dégradé (rose → violet → bleu). */
+/** La flèche ‹ faite de petits carrés, en dégradé (couleurs du club : crème → orange → rose). */
 function PixelArrow() {
   // Les carrés : la pointe à gauche, la tige au milieu.
   const cells: [number, number][] = [
@@ -164,12 +164,12 @@ function PixelArrow() {
     [1, 4], [2, 5], [3, 6],
   ];
   return (
-    <svg viewBox="-0.3 -0.3 7.6 7.6" className="size-7 drop-shadow-[0_0_6px_rgba(166,107,255,0.6)]" aria-hidden>
+    <svg viewBox="-0.3 -0.3 7.6 7.6" className="size-7 drop-shadow-[0_0_6px_rgba(247,148,74,0.65)]" aria-hidden>
       <defs>
         <linearGradient id="rail-arrow" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="7" y2="7">
-          <stop offset="0%" stopColor="#ff5a8a" />
-          <stop offset="50%" stopColor="#a66bff" />
-          <stop offset="100%" stopColor="#4fb3ff" />
+          <stop offset="0%" stopColor="#ffd2a8" />
+          <stop offset="50%" stopColor="#f7944a" />
+          <stop offset="100%" stopColor="#ff6f91" />
         </linearGradient>
       </defs>
       {cells.map(([x, y]) => (
