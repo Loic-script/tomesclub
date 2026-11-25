@@ -3,12 +3,12 @@
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
-/** Les pages sans barre du haut : elles gardent leur propre en-tête. */
+/** Les pages sans barre du haut : Profile, et la fiche d'un membre (elles gardent leur propre en-tête). */
 function hiddenOn(pathname: string): boolean {
-  return pathname.startsWith("/profile") || pathname.startsWith("/members");
+  return pathname.startsWith("/profile") || pathname.startsWith("/members/");
 }
 
-/** L'enveloppe de la barre du haut : bleue, collée en haut ; absente sur Profile et Members. */
+/** L'enveloppe de la barre du haut : bleue, collée en haut ; absente sur Profile et sur la fiche d'un membre. */
 export function MemberTopBarShell({ children }: { children?: ReactNode }) {
   const pathname = usePathname();
   // Pas de barre : on garde juste l'espace du haut habituel.

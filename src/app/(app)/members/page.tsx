@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { delay, GlassCard } from "@/components/app-ui";
+import { delay } from "@/components/app-ui";
 import { SideMembersList } from "@/components/side-members-list";
 import { listMembers } from "@/lib/members";
 import { requireMember } from "@/lib/session";
@@ -31,11 +31,9 @@ async function MembersHome() {
         <MembersBoard members={members} />
       </div>
 
-      {/* Téléphone et tablette : la liste simple */}
-      <div className="lg:hidden">
-        <GlassCard className="card-accent-phone anim-rise flex flex-col" style={delay(120)}>
-          <SideMembersList members={members} showOnline feed />
-        </GlassCard>
+      {/* Téléphone et tablette : la liste, posée directement sur le fond (pas de carte autour) */}
+      <div className="anim-rise lg:hidden" style={delay(120)}>
+        <SideMembersList members={members} showOnline feed />
       </div>
     </>
   );
