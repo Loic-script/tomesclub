@@ -29,10 +29,8 @@ export async function MemberTopBar() {
         <span className="rounded-full bg-gradient-to-br from-accent to-brand p-[2px]">
           <MemberAvatar userId={user.id} name={name} hasPhoto={Boolean(profile?.photoType)} size="size-10" />
         </span>
-        <span className="min-w-0">
-          <span className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">Welcome back</span>
-          <span className="block truncate font-display text-base font-bold leading-tight text-white">{name}</span>
-        </span>
+        {/* Le nom en entier (il passe à la ligne s'il est long, jamais coupé) */}
+        <span className="min-w-0 break-words font-display text-[15px] font-bold leading-snug text-white">{name}</span>
       </Link>
       <GuideButton steps={steps} />
     </MemberTopBarShell>
