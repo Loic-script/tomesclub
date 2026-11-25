@@ -72,7 +72,21 @@ async function CallsHome() {
         )}
 
         <GlassCard className="anim-rise" style={delay(350)}>
-          <h2 className="font-display text-lg font-bold text-white">Members</h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-display text-lg font-bold text-white">Members</h2>
+            {/* Plus d'une ligne de membres : un lien vers la page Members */}
+            {nearby.length > 4 && (
+              <Link
+                href="/members"
+                className="flex shrink-0 items-center gap-1 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white ring-1 ring-white/15 transition hover:bg-white/15 hover:text-accent"
+              >
+                See all
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" className="size-3.5" aria-hidden>
+                  <path d="m9 6 6 6-6 6" />
+                </svg>
+              </Link>
+            )}
+          </div>
           <p className="mb-2 text-sm text-white/60">
             Online now and people you follow. Pick someone and start a video call.
           </p>

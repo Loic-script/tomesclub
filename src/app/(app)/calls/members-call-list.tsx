@@ -44,10 +44,12 @@ export function MembersCallList({
   return (
     <div>
       <ul className="grid grid-cols-4 gap-x-2 gap-y-5 pt-2 sm:grid-cols-5">
-        {members.map((member) => {
+        {members.map((member, index) => {
           const calling = callingId === member.id;
+          // 2 lignes au plus : 8 sur téléphone (4 par ligne), 10 sur tablette (5 par ligne).
+          const beyond = index >= 10 ? "hidden" : index >= 8 ? "max-sm:hidden" : "";
           return (
-            <li key={member.id} className="flex flex-col items-center gap-1.5">
+            <li key={member.id} className={`flex flex-col items-center gap-1.5 ${beyond}`}>
               <button
                 type="button"
                 onClick={() => call(member.id)}

@@ -5,7 +5,26 @@ import { listAdminNotifications, type AdminNotificationItem } from "@/lib/admin-
 import { ENGLISH_LEVELS } from "@/lib/onboarding-options";
 import { prisma } from "@/lib/prisma";
 import { getActivityMap } from "@/lib/activities";
-import { roomEndsAt, roomIsOver } from "@/lib/rooms";
+import { createRoomServiceClient } from "@/lib/livekit";
+import { ROOM_PREFIX, roomEndsAt, roomIsOver } from "@/lib/rooms";
+
+/**
+ * Les salles vraiment en direct : ouvertes sur le serveur vidéo ET avec au moins une personne dedans.
+ * (id de la salle → nombre de personnes). null = serveur vidéo injoignable.
+ */
+async function liveRoomPeople(): Promise<Map<string, number> | null> {
+  try {
+    const rooms = await createRoomServiceClient().listRooms();
+    return new Map(
+      rooms
+        .filter((room) => room.name.startsWith(ROOM_PREFIX) && Number(room.numParticipants) > 0)
+        .map((room) => [room.name.slice(ROOM_PREFIX.length), Number(room.numParticipants)]),
+    );
+  } catch (error) {
+    console.warn("[admin-stats] serveur vidéo injoignable", error);
+    return null;
+  }
+}
 
 // Les chiffres du tableau de bord admin (tout est lu au moment de la requête).
 
@@ -50,6 +69,9 @@ export async function loadDashboard(): Promise<DashboardData> {
   const chartStart = new Date(now - (SIGNUP_DAYS - 1) * DAY_MS);
   chartStart.setUTCHours(0, 0, 0, 0);
 
+  // D'abord : quelles salles ont vraiment du monde en ce moment ?
+  const live = await liveRoomPeople();
+
   const [
     members,
     newThisWeek,
@@ -77,8 +99,10 @@ export async function loadDashboard(): Promise<DashboardData> {
       _count: { _all: true },
     }),
     prisma.room.findMany({
+      // Seulement les salles en direct (si le serveur vidéo ne répond pas : les plus récentes).
+      where: live ? { id: { in: [...live.keys()] } } : {},
       orderBy: { createdAt: "desc" },
-      take: 12,
+      take: live ? 100 : 12,
       select: {
         id: true,
         name: true,
@@ -137,7 +161,8 @@ export async function loadDashboard(): Promise<DashboardData> {
     count: levelGroups.find((group) => group.englishLevel === level.value)?._count._all ?? 0,
   }));
 
-  const liveRooms = roomRows.filter((room) => !roomIsOver(room));
+  // En direct = du monde dedans maintenant, et le temps n'est pas fini.
+  const liveRooms = roomRows.filter((room) => !roomIsOver(room) && (!live || live.has(room.id)));
   const activities = await getActivityMap(liveRooms.map((room) => room.activity));
   const rooms = liveRooms
     .slice(0, 5)
