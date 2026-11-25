@@ -70,7 +70,7 @@ export const DEFAULT_GUIDE: GuideStepData[] = [
   {
     icon: "users",
     title: "Members: meet the club",
-    body: "See everyone in the club, with their country and English level. Tap Follow to keep your favourite partners close: they appear on your Calls page. Tap a name to see the profile.",
+    body: "See everyone in the club, with their country and English level. Tap Follow to keep your favourite partners close: they appear on your Calls page. Tap a name to see the profile. On your Profile page, tap Followers or Following to see who follows you and who you follow.",
   },
   {
     icon: "bell",

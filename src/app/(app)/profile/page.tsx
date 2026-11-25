@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Flag } from "@/components/flag";
 import { Suspense } from "react";
 import { delay, PageHeader } from "@/components/app-ui";
+import { FollowStat, type FollowPerson } from "@/components/follow-stat";
 import { MemberAvatar } from "@/components/member-avatar";
+import { prisma } from "@/lib/prisma";
 import { OCCUPATIONS, userTypeLabel } from "@/lib/onboarding-options";
 import { getFullProfile, getProfileFormInitial } from "@/lib/profile";
 import { requireMember } from "@/lib/session";
@@ -22,10 +24,11 @@ export default function ProfilePage({ searchParams }: PageProps<"/profile">) {
 
 async function ProfileHome({ searchParams }: { searchParams: PageProps<"/profile">["searchParams"] }) {
   const user = await requireMember();
-  const [profile, formInitial, params] = await Promise.all([
+  const [profile, formInitial, params, follows] = await Promise.all([
     getFullProfile(user.id),
     getProfileFormInitial(user.id),
     searchParams,
+    loadFollows(user.id),
   ]);
   if (!profile) return null; // impossible en pratique : requireMember vérifie déjà
 
@@ -48,6 +51,28 @@ async function ProfileHome({ searchParams }: { searchParams: PageProps<"/profile
   return (
     <>
       <PageHeader eyebrow="Your member card" title="Profile" keepOnPhone />
+
+      {/* Qui me suit, et qui je suis : on touche pour voir la liste */}
+      <div className="anim-rise mb-6 grid grid-cols-2 gap-3" style={delay(100)}>
+        <FollowStat
+          variant="pill"
+          hrefBase="/members/"
+          label="Followers"
+          icon={<FollowIcon />}
+          total={follows.followersCount}
+          people={follows.followers}
+          emptyText="Nobody follows you yet. Call members and say hello!"
+        />
+        <FollowStat
+          variant="pill"
+          hrefBase="/members/"
+          label="Following"
+          icon={<FollowIcon />}
+          total={follows.followingCount}
+          people={follows.following}
+          emptyText="You follow nobody yet. Open Members and tap Follow."
+        />
+      </div>
 
       <div className="space-y-6">
         {/* ----- Le badge de membre, comme une carte d'identité du club ----- */}
@@ -206,3 +231,35 @@ function Barcode({ seed }: { seed: string }) {
   );
 }
 
+
+/** Mes « followers » (qui me suit) et mes « following » (qui je suis), les 200 plus récents. */
+async function loadFollows(userId: string) {
+  const person = { select: { id: true, name: true, profile: { select: { photoType: true } } } } as const;
+  const [followers, following, followersCount, followingCount] = await Promise.all([
+    prisma.follow.findMany({ where: { followingId: userId }, orderBy: { createdAt: "desc" }, take: 200, select: { follower: person } }),
+    prisma.follow.findMany({ where: { followerId: userId }, orderBy: { createdAt: "desc" }, take: 200, select: { following: person } }),
+    prisma.follow.count({ where: { followingId: userId } }),
+    prisma.follow.count({ where: { followerId: userId } }),
+  ]);
+  const toPerson = (user: { id: string; name: string; profile: { photoType: string | null } | null }): FollowPerson => ({
+    id: user.id,
+    name: user.name,
+    hasPhoto: Boolean(user.profile?.photoType),
+  });
+  return {
+    followers: followers.map((row) => toPerson(row.follower)),
+    following: following.map((row) => toPerson(row.following)),
+    followersCount,
+    followingCount,
+  };
+}
+
+function FollowIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-[18px]" aria-hidden>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}

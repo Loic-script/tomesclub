@@ -13,6 +13,7 @@ const useClient = () => useSyncExternalStore(() => () => {}, () => true, () => f
 /**
  * Une case « Followers » ou « Following » : on la touche → la liste des personnes s'ouvre
  * (fenêtre en bas sur téléphone, au centre sur ordinateur).
+ * Sert dans l'admin (fiche d'un membre) et sur ma page Profile.
  */
 export function FollowStat({
   label,
@@ -20,12 +21,18 @@ export function FollowStat({
   people,
   total,
   emptyText,
+  hrefBase = "/admin/members/",
+  variant = "card",
 }: {
   label: string;
   icon: ReactNode;
   people: FollowPerson[];
   total: number;
   emptyText: string;
+  /** Le début du lien vers la fiche d'une personne (admin ou espace membre). */
+  hrefBase?: string;
+  /** card = grande case (admin) ; pill = petit bouton (page Profile). */
+  variant?: "card" | "pill";
 }) {
   const client = useClient();
   const [open, setOpen] = useState(false);
@@ -40,6 +47,17 @@ export function FollowStat({
 
   return (
     <>
+      {variant === "pill" ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-haspopup="dialog"
+          className="neu-btn group flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-white"
+        >
+          <span className="font-display text-xl font-extrabold tabular-nums">{total}</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-white/60 group-hover:text-accent">{label}</span>
+        </button>
+      ) : (
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -53,6 +71,7 @@ export function FollowStat({
         <span className="mt-1 block font-display text-2xl font-extrabold tabular-nums text-white">{total}</span>
         <span className="mt-1 block text-[10px] font-semibold text-accent/80 group-hover:text-accent">See the list →</span>
       </button>
+      )}
 
       {open &&
         client &&
@@ -90,7 +109,7 @@ export function FollowStat({
                   {people.map((person) => (
                     <li key={person.id}>
                       <Link
-                        href={`/admin/members/${person.id}`}
+                        href={`${hrefBase}${person.id}`}
                         onClick={() => setOpen(false)}
                         className="flex items-center gap-3 px-5 py-3 transition hover:bg-white/[0.06]"
                       >

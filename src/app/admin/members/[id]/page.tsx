@@ -10,7 +10,7 @@ import { ArrowIcon, CalendarIcon, PhoneIcon, RoomIcon, UsersIcon } from "../../a
 import { Chip, delay, Panel } from "../../admin-ui";
 import { DeleteMemberButton } from "../delete-member-button";
 import { RoleStatus } from "../role-status";
-import { FollowStat, type FollowPerson } from "./follow-stat";
+import { FollowStat, type FollowPerson } from "@/components/follow-stat";
 
 export const metadata: Metadata = { title: "Member profile · Admin" };
 
