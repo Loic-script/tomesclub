@@ -126,13 +126,13 @@ export function MessagesBoard({
                   <MemberAvatar userId={item.userId} name={item.name} hasPhoto={item.hasPhoto} size="size-11" />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline gap-2">
-                      <span className={`min-w-0 flex-1 truncate text-sm text-white ${item.unread ? "font-bold" : "font-semibold"}`}>
+                      <span className={`min-w-0 flex-1 break-words text-sm text-white ${item.unread ? "font-bold" : "font-semibold"}`}>
                         {item.name}
                       </span>
                       {item.lastAt && <span className="shrink-0 text-[10px] text-white/40">{shortTime(item.lastAt)}</span>}
                     </span>
                     <span className="mt-0.5 flex items-center gap-2">
-                      <span className={`min-w-0 flex-1 truncate text-xs ${item.unread ? "font-semibold text-white" : "text-white/50"}`}>
+                      <span className={`min-w-0 flex-1 break-words text-xs ${item.unread ? "font-semibold text-white" : "text-white/50"}`}>
                         {item.lastBody ? `${item.lastFromCoach ? "You: " : ""}${item.lastBody}` : "No message yet"}
                       </span>
                       {item.unread > 0 && (
@@ -172,7 +172,7 @@ export function MessagesBoard({
               >
                 <MemberAvatar userId={selected.userId} name={selected.name} hasPhoto={selected.hasPhoto} size="size-10" />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate font-display text-base font-bold text-white group-hover:text-accent">{selected.name}</span>
+                  <span className="block break-words font-display text-base font-bold text-white group-hover:text-accent">{selected.name}</span>
                   <span className="block text-[11px] text-white/45">Tap to see the profile</span>
                 </span>
               </Link>

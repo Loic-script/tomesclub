@@ -148,7 +148,7 @@ export function IncomingCall() {
           </span>
         </div>
 
-        <h2 className="mt-5 truncate font-display text-2xl font-extrabold">{ring.title}</h2>
+        <h2 className="mt-5 break-words font-display text-2xl font-extrabold">{ring.title}</h2>
         {ring.body && <p className="mt-1 text-sm text-white/65">{ring.body}</p>}
 
         {/* Raccrocher (rouge) / Décrocher (vert) */}

@@ -39,7 +39,7 @@ function RequestRow({ request }: { request: EventRequestView }) {
           <p className="mt-1 text-xs text-white/50">
             {[request.whenLabel, request.priceLabel, request.details].filter(Boolean).join(" · ")}
           </p>
-          {request.description && <p className="mt-2 line-clamp-3 text-xs text-white/60">{request.description}</p>}
+          {request.description && <p className="mt-2 text-xs text-white/60">{request.description}</p>}
         </div>
         <div className="flex w-full gap-2 sm:w-auto">
           <button

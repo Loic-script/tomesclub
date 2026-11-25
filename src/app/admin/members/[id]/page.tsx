@@ -159,10 +159,10 @@ async function MemberProfile({ userId }: { userId: string }) {
           </span>
 
           <div className="min-w-0 flex-1 max-sm:w-full">
-            <h1 className="text-headline break-words font-display text-2xl font-extrabold leading-tight tracking-[-0.03em] sm:truncate sm:text-4xl">
+            <h1 className="text-headline break-words font-display text-2xl font-extrabold leading-tight tracking-[-0.03em] sm:text-4xl">
               {displayName}
             </h1>
-            <p className="mt-1 break-all text-sm text-white/55 sm:truncate">{member.email}</p>
+            <p className="mt-1 break-all text-sm text-white/55">{member.email}</p>
             <div className="mt-3 flex flex-wrap gap-2 max-sm:justify-center">
               {member.online ? <Chip tone="good">● Online now</Chip> : <Chip>Offline</Chip>}
               <RoleStatus

@@ -140,7 +140,7 @@ export function ActivityFilesDialog({
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent">Activity files</p>
-            <p className="truncate font-display text-lg font-bold text-white">{activity.name}</p>
+            <p className="break-words font-display text-lg font-bold text-white">{activity.name}</p>
           </div>
           <button
             type="button"
@@ -208,7 +208,7 @@ export function ActivityFilesDialog({
               {uploads.map((upload) => (
                 <li key={upload.localId} className="rounded-2xl bg-black/25 p-3 ring-1 ring-white/10">
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="min-w-0 flex-1 truncate font-semibold text-white">{upload.name}</span>
+                    <span className="min-w-0 flex-1 break-words font-semibold text-white">{upload.name}</span>
                     <span className="shrink-0 text-white/45">{formatSize(upload.size)}</span>
                     <span
                       className={`shrink-0 font-bold ${
@@ -285,7 +285,7 @@ function FileRow({ file }: { file: ActivityFileView }) {
           href={`/api/activity-files/${file.id}`}
           target="_blank"
           rel="noreferrer"
-          className="block truncate text-sm font-semibold text-white hover:text-accent"
+          className="block break-words text-sm font-semibold text-white hover:text-accent"
         >
           {file.name}
         </a>

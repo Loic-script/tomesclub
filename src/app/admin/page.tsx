@@ -148,8 +148,8 @@ async function AdminHome() {
                     size="size-11 xl:size-14"
                   />
                   <span className="min-w-0 flex-1 xl:w-full">
-                    <span className="block truncate text-sm font-semibold text-white">{member.name}</span>
-                    <span className="block truncate text-[11px] text-white/45">
+                    <span className="block break-words text-sm font-semibold text-white">{member.name}</span>
+                    <span className="block break-words text-[11px] text-white/45">
                       Joined {timeAgo(member.createdAt)}
                     </span>
                   </span>
@@ -317,10 +317,10 @@ function LiveRooms({ data }: { data: DashboardData }) {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1.5">
-                  <span className="truncate text-sm font-semibold text-white">{room.topic ?? room.name}</span>
+                  <span className="break-words text-sm font-semibold text-white">{room.topic ?? room.name}</span>
                   {room.isPrivate && <Chip>Private</Chip>}
                 </span>
-                <span className="block truncate text-[11px] text-white/45">
+                <span className="block break-words text-[11px] text-white/45">
                   {room.activity ? `${room.activity} · ` : ""}by {room.host}
                 </span>
               </span>
@@ -360,7 +360,7 @@ function UpcomingEvents({ data }: { data: DashboardData }) {
                 <span className="text-[9px] font-bold uppercase">{month.format(event.startsAt)}</span>
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold text-white">{event.title}</span>
+                <span className="block break-words text-sm font-semibold text-white">{event.title}</span>
                 <span className="block text-[11px] text-white/45">{time.format(event.startsAt)}</span>
               </span>
               <span className="flex shrink-0 flex-col items-end gap-1 text-[11px]">
@@ -398,11 +398,11 @@ function RecentActivity({ data }: { data: DashboardData }) {
               </span>
               <span className="min-w-0 flex-1 pt-0.5">
                 <span
-                  className={`block truncate text-sm font-semibold ${item.read ? "text-white/70" : "text-white"}`}
+                  className={`block break-words text-sm font-semibold ${item.read ? "text-white/70" : "text-white"}`}
                 >
                   {item.title}
                 </span>
-                <span className="block truncate text-[11px] text-white/45">
+                <span className="block break-words text-[11px] text-white/45">
                   {item.body ? `${item.body} · ` : ""}
                   {timeAgo(item.createdAt)}
                 </span>

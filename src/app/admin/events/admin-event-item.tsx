@@ -124,10 +124,10 @@ export function AdminEventItem({
               </span>
             )}
           </span>
-          <span className="mt-1 block truncate text-sm font-semibold text-white">
+          <span className="mt-1 block break-words text-sm font-semibold text-white">
             {event.title}
           </span>
-          <span className="block truncate text-[11px] text-white/45">
+          <span className="block break-words text-[11px] text-white/45">
             {event.whenLabel}
           </span>
           {event.kind === "event" && (
@@ -412,11 +412,11 @@ function RegisteredRow({
           size="size-8"
         />
         <span className="min-w-0">
-          <span className="block truncate text-sm font-semibold text-white/90 group-hover:text-white">
+          <span className="block break-words text-sm font-semibold text-white/90 group-hover:text-white">
             {person.name}
           </span>
           {event.isPaid && (
-            <span className="flex items-center gap-1.5 truncate text-[11px] text-white/45">
+            <span className="flex items-center gap-1.5 break-words text-[11px] text-white/45">
               {hasProof ? (
                 <>
                   <MvolaLogo size={13} />

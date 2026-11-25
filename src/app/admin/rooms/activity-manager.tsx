@@ -169,7 +169,7 @@ function ActivityCard({
         </div>
       </div>
 
-      <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-white/55">{activity.description}</p>
+      <p className="mt-3 text-xs leading-relaxed text-white/55">{activity.description}</p>
 
       <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
         <span className="rounded-full bg-white/[0.07] px-2.5 py-1 text-white/70">{themes} themes</span>
@@ -332,7 +332,7 @@ function ActivityForm({ activity, onDone }: { activity?: ManagedActivity; onDone
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent">
             {activity ? "Edit activity" : "New activity"}
           </p>
-          <p className="truncate font-display text-xl font-bold text-white">{name || "Your activity"}</p>
+          <p className="break-words font-display text-xl font-bold text-white">{name || "Your activity"}</p>
           <p className="text-[11px] text-white/45">
             {categories.length} {categories.length === 1 ? "category" : "categories"} · {themeCount} themes
           </p>

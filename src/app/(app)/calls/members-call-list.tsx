@@ -98,7 +98,7 @@ export function MembersCallList({
               {/* Le prénom ouvre la fiche du membre */}
               <Link
                 href={`/members/${member.id}`}
-                className={`max-w-16 truncate text-xs font-medium transition hover:text-accent ${
+                className={`max-w-16 break-words text-xs font-medium transition hover:text-accent ${
                   calling ? "text-accent" : "text-white/80"
                 }`}
               >

@@ -102,10 +102,10 @@ export function AdminBellMenu({ unread, items }: { unread: number; items: BellIt
                       <KindIcon kind={item.kind} className="size-4" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className={`block truncate text-sm font-semibold ${item.read ? "text-white/65" : "text-white"}`}>
+                      <span className={`block break-words text-sm font-semibold ${item.read ? "text-white/65" : "text-white"}`}>
                         {item.title}
                       </span>
-                      {item.body && <span className="block truncate text-xs text-white/45">{item.body}</span>}
+                      {item.body && <span className="block break-words text-xs text-white/45">{item.body}</span>}
                     </span>
                     <span className="flex shrink-0 flex-col items-end gap-1">
                       <span className="text-[10px] text-white/40">{item.ago}</span>

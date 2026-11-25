@@ -150,10 +150,10 @@ export function MembersBrowser({ members }: { members: AdminMemberRow[] }) {
                       )}
                     </span>
                     <span className="min-w-0">
-                      <span className="block break-words text-sm font-semibold leading-snug text-white group-hover:text-accent xl:truncate">
+                      <span className="block break-words text-sm font-semibold leading-snug text-white group-hover:text-accent">
                         {member.name}
                       </span>
-                      <span className="block truncate text-xs text-white/45">{member.email}</span>
+                      <span className="block break-words text-xs text-white/45">{member.email}</span>
                     </span>
                   </Link>
 
@@ -168,7 +168,7 @@ export function MembersBrowser({ members }: { members: AdminMemberRow[] }) {
                   )}
                   </span>
                   <span className="hidden min-w-0 xl:block">
-                    <span className="block truncate text-xs text-white/65">{member.place ?? "—"}</span>
+                    <span className="block break-words text-xs text-white/65">{member.place ?? "—"}</span>
                     <span className="block text-[11px] text-white/35">Joined {member.joined}</span>
                   </span>
                   <span className="hidden text-xs xl:block">
@@ -195,7 +195,7 @@ export function MembersBrowser({ members }: { members: AdminMemberRow[] }) {
                     </span>
                   ) : null}
                   <RoleStatus userId={member.id} role={member.role} roleRequest={member.roleRequest} completed={member.completed} />
-                  {member.place && <span className="truncate text-white/45">· {member.place}</span>}
+                  {member.place && <span className="break-words text-white/45">· {member.place}</span>}
                 </div>
               </li>
             ))}

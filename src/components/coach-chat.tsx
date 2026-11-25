@@ -62,8 +62,8 @@ export function CoachChat() {
           <header className="flex items-center gap-3 border-b border-white/10 bg-white/[0.04] px-4 py-3">
             <Image src="/logo.png" alt="" width={38} height={38} className="rounded-full ring-2 ring-white/20" />
             <div className="min-w-0 flex-1">
-              <p className="truncate font-display text-base font-bold text-white">Admin</p>
-              <p className="truncate text-[11px] text-white/50">Tomes Club · ask anything</p>
+              <p className="break-words font-display text-base font-bold text-white">Admin</p>
+              <p className="break-words text-[11px] text-white/50">Tomes Club · ask anything</p>
             </div>
             <button
               type="button"

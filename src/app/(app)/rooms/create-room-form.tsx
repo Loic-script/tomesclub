@@ -625,7 +625,7 @@ function RoomOptions({
                       }`}
                     >
                       <MemberAvatar userId={member.id} name={member.name} hasPhoto={member.hasPhoto} size="size-7" />
-                      <span className="min-w-0 flex-1 truncate">{member.name}</span>
+                      <span className="min-w-0 flex-1 break-words">{member.name}</span>
                       <span
                         aria-hidden
                         className={`flex size-5 items-center justify-center rounded-md text-[11px] font-bold ${

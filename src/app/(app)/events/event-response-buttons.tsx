@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { PaymentDialog } from "@/components/payment-dialog";
+import { EventDetailsSheet, type EventDetails } from "./event-details-sheet";
 import { registerToEvent } from "./actions";
 
 // Le bouton "Register" d'un événement.
@@ -12,6 +13,7 @@ export function RegisterButton({
   registered,
   locked = false,
   payment = null,
+  details,
 }: {
   eventId: string;
   registered: boolean;
@@ -24,11 +26,14 @@ export function RegisterButton({
     mvola: string | null;
     receiver: string | null;
   } | null;
+  /** Les détails de l'événement : montrés (description complète) avant de s'inscrire. */
+  details?: EventDetails;
 }) {
   const router = useRouter();
   const [current, setCurrent] = useState(registered);
   const [pending, startTransition] = useTransition();
   const [paying, setPaying] = useState(false);
+  const [showing, setShowing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function set(on: boolean, proof?: { ref: string; proofId: string | null }) {
@@ -46,6 +51,7 @@ export function RegisterButton({
 
   /** Register : un événement payant ouvre d'abord la fenêtre MVola. */
   function register() {
+    setShowing(false);
     if (payment && !payment.paid) setPaying(true);
     else set(true);
   }
@@ -155,9 +161,26 @@ export function RegisterButton({
           {error}
         </p>
       )}
+      {/* Les détails (description complète), puis on confirme l'inscription */}
+      {showing && details && (
+        <EventDetailsSheet
+          details={details}
+          onClose={() => setShowing(false)}
+          action={
+            <button
+              type="button"
+              onClick={register}
+              disabled={pending}
+              className="neu-btn flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-accent to-brand px-4 py-3 text-sm font-bold text-white shadow-lg shadow-brand/30 transition active:scale-[0.98] disabled:opacity-70"
+            >
+              {payment ? `Register · ${payment.label}` : "Confirm my registration"}
+            </button>
+          }
+        />
+      )}
       <button
         type="button"
-        onClick={register}
+        onClick={() => (details ? setShowing(true) : register())}
         disabled={pending}
         className="neu-btn flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-accent to-brand px-4 py-3 text-sm font-bold text-white shadow-lg shadow-brand/30 transition active:scale-[0.98] disabled:opacity-70"
       >

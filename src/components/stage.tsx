@@ -139,7 +139,7 @@ export function StageView({
           {fileEmoji(file.kind, file.name)}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold text-white">{file.name}</span>
+          <span className="block break-words text-sm font-semibold text-white">{file.name}</span>
           <span className="block text-[11px] text-white/45">
             {isHost ? "You control what everyone sees" : `Shown by ${current.by}`}
           </span>
@@ -420,7 +420,7 @@ function MediaViewer({
           <span className="text-6xl" aria-hidden>
             🎧
           </span>
-          <p className="max-w-sm truncate text-sm font-semibold text-white">{name}</p>
+          <p className="max-w-sm break-words text-sm font-semibold text-white">{name}</p>
           <audio ref={audio} src={url} controls={isHost} preload="auto" className="w-full max-w-md" />
           {!isHost && <p className="text-xs text-white/50">{playing ? "Playing…" : "Paused by the host"}</p>}
         </>
@@ -485,7 +485,7 @@ export function FilesDrawer({
         <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Show to everyone</p>
-            <p className="truncate font-display text-base font-bold text-white">
+            <p className="break-words font-display text-base font-bold text-white">
               {activityName ? `${activityName} files` : "Activity files"}
             </p>
           </div>
@@ -520,7 +520,7 @@ export function FilesDrawer({
                       {fileEmoji(file.kind, file.name)}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-white">{file.name}</span>
+                      <span className="block break-words text-sm font-semibold text-white">{file.name}</span>
                       <span className="block text-[11px] text-white/45">
                         {preparing
                           ? "Preparing slides…"

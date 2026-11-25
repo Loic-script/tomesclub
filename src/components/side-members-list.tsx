@@ -220,10 +220,10 @@ export function SideMembersList({
                 </Link>
 
                 <Link href={`/members/${member.id}`} className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold text-white">
+                  <span className="block break-words text-sm font-semibold text-white">
                     {member.firstName} {member.lastName}
                   </span>
-                  <span className="block truncate text-[11px] text-white/50">
+                  <span className="block break-words text-[11px] text-white/50">
                     {member.online ? "Online now" : (member.country ?? member.englishLevel ?? "Member")}
                   </span>
                 </Link>

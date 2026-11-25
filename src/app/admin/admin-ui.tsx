@@ -39,7 +39,7 @@ export function AdminHeader({
       <div className="flex items-center gap-3">
         <p className="flex min-w-0 flex-1 items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
           <span aria-hidden className="h-px w-5 shrink-0 rounded-full bg-accent/70" />
-          <span className="truncate">{eyebrow}</span>
+          <span className="break-words">{eyebrow}</span>
         </p>
         {bell && (
           <Suspense fallback={<AdminBellFallback />}>
@@ -151,7 +151,7 @@ export function StatTile({
       <p className="relative mt-3 font-display text-3xl font-extrabold tabular-nums tracking-tight text-white sm:mt-4 sm:text-4xl">
         {value}
       </p>
-      <p className="relative mt-1 truncate text-sm font-semibold text-white/70">{label}</p>
+      <p className="relative mt-1 break-words text-sm font-semibold text-white/70">{label}</p>
       {hint && <p className="relative mt-2 text-xs text-white/45">{hint}</p>}
     </div>
   );

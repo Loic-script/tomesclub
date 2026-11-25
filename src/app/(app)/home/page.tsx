@@ -94,7 +94,7 @@ async function HomeDashboard() {
                 <PhoneIcon className="relative size-5" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-semibold">
+                <span className="block break-words font-semibold">
                   {activeCalls[0].startedByMe
                     ? "Your call is in progress"
                     : `${activeCalls[0].startedByName} is calling you`}
@@ -125,7 +125,7 @@ async function HomeDashboard() {
                   <span className="block text-xs font-semibold uppercase tracking-wide text-accent">
                     Next class
                   </span>
-                  <span className="block truncate font-semibold text-white">{nextEvent.title}</span>
+                  <span className="block break-words font-semibold text-white">{nextEvent.title}</span>
                   <span className="block text-sm text-white/60">
                     {new Intl.DateTimeFormat("en-GB", {
                       weekday: "long",
@@ -267,7 +267,7 @@ function Tile({
 
       <span className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-white/85">
         <span className="flex size-6 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm">{icon}</span>
-        <span className="truncate">{hint}</span>
+        <span className="break-words">{hint}</span>
       </span>
     </Link>
   );

@@ -134,7 +134,7 @@ async function RoomsHome({ searchParams }: { searchParams: PageProps<"/rooms">["
                             {room.name}
                           </h3>
                           {room.topic && (
-                            <p className="mt-1 line-clamp-2 text-sm leading-5 text-white/80">
+                            <p className="mt-1 text-sm leading-5 text-white/80">
                               <span aria-hidden className="text-accent">“</span>
                               {room.topic}
                               <span aria-hidden className="text-accent">”</span>
@@ -178,7 +178,7 @@ async function RoomsHome({ searchParams }: { searchParams: PageProps<"/rooms">["
                             <span className="text-xs text-white/50">No time limit</span>
                           )}
                           {room.isPrivate && room.isMine && (
-                            <p className="mt-1 truncate text-[11px] text-white/45">
+                            <p className="mt-1 break-words text-[11px] text-white/45">
                               Share the room link to invite people.
                             </p>
                           )}

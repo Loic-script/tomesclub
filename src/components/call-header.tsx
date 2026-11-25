@@ -68,11 +68,11 @@ export function CallHeader({
                 <ActivityIcon icon={room.activityIcon} className="size-6 shrink-0 text-accent sm:size-7" />
               )}
               <span className="min-w-0">
-                <span className="block truncate text-[11px] font-bold uppercase leading-tight tracking-[0.16em] text-accent sm:text-xs">
+                <span className="block break-words text-[11px] font-bold uppercase leading-tight tracking-[0.16em] text-accent sm:text-xs">
                   {room.activityName}
                 </span>
                 {room.theme && (
-                  <span className="block truncate font-display text-[15px] font-semibold leading-snug text-white sm:text-lg">
+                  <span className="block break-words font-display text-[15px] font-semibold leading-snug text-white sm:text-lg">
                     {room.theme}
                   </span>
                 )}

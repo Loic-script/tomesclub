@@ -73,7 +73,7 @@ export function PaymentCheckDialog({
           <MvolaLogo size={36} />
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">Payment check</p>
-            <p className="truncate text-sm font-extrabold">{check.context}</p>
+            <p className="break-words text-sm font-extrabold">{check.context}</p>
           </div>
           <button
             type="button"
@@ -94,7 +94,7 @@ export function PaymentCheckDialog({
               <MemberAvatar userId={check.memberId} name={check.memberName} hasPhoto={check.hasPhoto} size="size-11" />
             ) : null}
             <div className="min-w-0 flex-1">
-              <p className="truncate font-semibold">{check.memberName}</p>
+              <p className="break-words font-semibold">{check.memberName}</p>
               <span
                 className={`mt-0.5 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-bold ${
                   check.confirmed ? "bg-emerald-400/15 text-emerald-300" : "bg-amber-400/15 text-amber-300"
@@ -115,7 +115,7 @@ export function PaymentCheckDialog({
             <p className="text-[10px] font-semibold uppercase tracking-wider text-white/40">MVola reference</p>
             {check.reference ? (
               <div className="mt-1 flex items-center gap-2">
-                <code className="min-w-0 flex-1 truncate font-mono text-base font-bold tracking-wide">{check.reference}</code>
+                <code className="min-w-0 flex-1 break-words font-mono text-base font-bold tracking-wide">{check.reference}</code>
                 <button
                   type="button"
                   onClick={copyReference}

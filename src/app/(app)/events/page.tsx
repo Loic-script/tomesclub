@@ -17,6 +17,7 @@ import { formatEventPrice } from "@/lib/event-price";
 import { getEventRegistrations, type EventPerson } from "@/lib/event-responses";
 import { requireMember } from "@/lib/session";
 import { RegisterButton } from "./event-response-buttons";
+import { EventDetailsButton, type EventDetails } from "./event-details-sheet";
 import { proposeEventAction } from "./actions";
 import { ScrollToEvent } from "./scroll-to-event";
 
@@ -106,6 +107,15 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
               {upcoming.map((event, index) => {
                 const registrations = registrationsById.get(event.id);
                 const people = registrations?.people ?? [];
+                // La fenêtre des détails (description complète)
+                const details: EventDetails = {
+                  title: event.title,
+                  description: event.description,
+                  dateLabel: event.startsAt ? formatLong(event.startsAt) : null,
+                  priceLabel: formatEventPrice(event),
+                  isPaid: event.isPaid,
+                  imageUrl: event.imageType ? `/api/event/image/${event.id}` : null,
+                };
                 return (
                   <li
                     key={event.id}
@@ -128,8 +138,8 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                         ) : (
                           <div className="absolute inset-0 bg-[linear-gradient(135deg,#2e3192,#7a082e_55%,#9c0b3b)]" />
                         )}
-                        {/* Voile sombre pour lire le texte */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/5" />
+                        {/* Un voile très léger en bas : l'image reste bien visible */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
 
                         {eventIsLive(event) ? (
                           <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white shadow-lg">
@@ -139,9 +149,23 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                             </span>
                             LIVE NOW
                           </span>
-                        ) : event.startsAt && (
-                          <span className="absolute left-4 top-4 rounded-full bg-black/45 px-3 py-1 text-xs font-bold text-white ring-1 ring-white/25 backdrop-blur-sm">
-                            {formatChip(event.startsAt)}
+                        ) : null}
+
+                        {/* Le bloc date, comme un petit calendrier posé sur l'image */}
+                        {event.startsAt && (
+                          <span className="absolute bottom-3 right-3 flex w-[4.25rem] flex-col items-center rounded-2xl bg-[#1a1240]/75 py-1.5 text-white shadow-xl ring-1 ring-white/25 backdrop-blur-md">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-accent">
+                              {formatPart(event.startsAt, { weekday: "short" })}
+                            </span>
+                            <span className="font-display text-2xl font-extrabold leading-none">
+                              {formatPart(event.startsAt, { day: "2-digit" })}
+                            </span>
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-white/75">
+                              {formatPart(event.startsAt, { month: "short" })}
+                            </span>
+                            <span className="mt-1 rounded-full bg-white/15 px-1.5 text-[10px] font-bold tabular-nums">
+                              {formatPart(event.startsAt, { hour: "2-digit", minute: "2-digit" })}
+                            </span>
                           </span>
                         )}
 
@@ -154,20 +178,16 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                           {formatEventPrice(event)}
                         </span>
 
-                        <div className="absolute inset-x-4 bottom-4">
-                          <h3 className="font-display text-xl font-bold uppercase tracking-wide text-white drop-shadow">
-                            {event.title}
-                          </h3>
-                          {event.description && (
-                            <p className="mt-0.5 line-clamp-2 text-sm text-white/80">
-                              {event.description}
-                            </p>
-                          )}
-                        </div>
                       </div>
 
-                      {/* Participer / intéressé, et qui */}
+                      {/* Le titre sous l'image (jamais coupé), puis s'inscrire */}
                       <div className="space-y-3 p-4">
+                        <div>
+                          <h3 className="break-words font-display text-lg font-bold uppercase leading-snug tracking-wide text-white">
+                            {event.title}
+                          </h3>
+                          {event.description && <EventDetailsButton details={details} />}
+                        </div>
                         {eventIsLive(event) && (
                           <Link
                             href={`/live/${event.id}`}
@@ -178,6 +198,7 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                           </Link>
                         )}
                         <RegisterButton
+                          details={details}
                           eventId={event.id}
                           registered={registrations?.mine ?? false}
                           locked={registrations?.minePaid ?? false}
@@ -279,7 +300,7 @@ function PeopleList({ title, people }: { title: string; people: EventPerson[] })
                   hasPhoto={person.hasPhoto}
                   size="size-7"
                 />
-                <span className="truncate">{person.name}</span>
+                <span className="break-words">{person.name}</span>
               </Link>
             </li>
           ))}
@@ -333,6 +354,18 @@ async function loadEvents() {
 }
 
 /** La pastille de la carte : "16 Nov · 18:00". */
+/** « Saturday 28 November · 20:30 » */
+function formatLong(date: Date): string {
+  const day = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }).format(date);
+  const time = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(date);
+  return `${day} · ${time}`;
+}
+
+/** Un morceau de la date (jour de la semaine, jour, mois ou heure). */
+function formatPart(date: Date, options: Intl.DateTimeFormatOptions): string {
+  return new Intl.DateTimeFormat("en-GB", options).format(date);
+}
+
 function formatChip(date: Date): string {
   const day = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(date);
   const time = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(date);

@@ -57,7 +57,7 @@ async function CallsHome() {
                     <p className="font-semibold text-white">
                       {call.startedByMe ? "Started by you" : `${call.startedByName} is calling you`}
                     </p>
-                    <p className="truncate text-white/60">With {call.otherNames.join(", ")}</p>
+                    <p className="break-words text-white/60">With {call.otherNames.join(", ")}</p>
                   </div>
                   <Link
                     href={`/call/${call.id}`}

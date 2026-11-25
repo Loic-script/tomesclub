@@ -161,7 +161,7 @@ function NotificationCard({ notification }: { notification: MemberNotification }
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2">
           <span
-            className={`truncate text-sm font-semibold ${
+            className={`break-words text-sm font-semibold ${
               notification.read ? "text-white/70" : "text-white"
             }`}
           >

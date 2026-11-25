@@ -138,12 +138,12 @@ export function CountrySelect({
         {selected ? (
           <>
             <CodeChip code={selected.code} />
-            <span className="min-w-0 flex-1 truncate text-zinc-900">
+            <span className="min-w-0 flex-1 break-words text-zinc-900">
               {selected.name}
             </span>
           </>
         ) : (
-          <span className="min-w-0 flex-1 truncate text-zinc-400">
+          <span className="min-w-0 flex-1 break-words text-zinc-400">
             {value || "Select your country"}
           </span>
         )}
@@ -232,7 +232,7 @@ export function CountrySelect({
                     } ${isSelected ? "font-semibold text-brand" : "text-zinc-700"}`}
                   >
                     <CodeChip code={country.code} active={isSelected} />
-                    <span className="min-w-0 flex-1 truncate">
+                    <span className="min-w-0 flex-1 break-words">
                       {country.name}
                     </span>
                     {isSelected && <CheckIcon />}

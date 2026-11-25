@@ -272,7 +272,7 @@ export function ChatThread({
         {uploads.map((upload) => (
           <div key={upload.id} className="flex justify-end">
             <div className="w-56 max-w-[80%] rounded-2xl rounded-br-md bg-white/10 px-3.5 py-2.5 text-sm text-white">
-              <p className="truncate font-medium">📎 {upload.name}</p>
+              <p className="break-words font-medium">📎 {upload.name}</p>
               {upload.error ? (
                 <div className="mt-1 flex items-center gap-2">
                   <p className="flex-1 text-xs text-red-300">{upload.error}</p>
@@ -372,7 +372,7 @@ function Attachment({ file, mine }: { file: ChatFile; mine: boolean }) {
       >
         <span className="text-2xl">{fileEmoji(file.kind, file.name)}</span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold">{file.name}</span>
+          <span className="block break-words font-semibold">{file.name}</span>
           <span className={`block text-[11px] ${mine ? "text-white/75" : "text-white/50"}`}>
             {formatSize(file.size)} · Download
           </span>

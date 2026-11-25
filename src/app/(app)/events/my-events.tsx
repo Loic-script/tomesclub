@@ -43,7 +43,7 @@ function MyEventRow({ event }: { event: MyEvent }) {
     <li className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
       <div className="flex flex-wrap items-start gap-2">
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-white">{event.title}</p>
+          <p className="break-words font-semibold text-white">{event.title}</p>
           <p className="text-xs text-white/50">
             {[event.whenLabel, event.priceLabel].filter(Boolean).join(" · ")}
           </p>

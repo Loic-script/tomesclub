@@ -124,10 +124,10 @@ async function AdminRooms() {
                         <ActivityIcon icon={activity?.icon} className="size-6" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[11px] font-bold uppercase tracking-wider text-accent">
+                        <p className="break-words text-[11px] font-bold uppercase tracking-wider text-accent">
                           {activity?.name ?? room.name}
                         </p>
-                        <p className="truncate text-sm font-semibold text-white">{room.topic ?? room.name}</p>
+                        <p className="break-words text-sm font-semibold text-white">{room.topic ?? room.name}</p>
                         <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-white/50">
                           <span>by {room.hostName}</span>
                           <span className="flex items-center gap-1">
