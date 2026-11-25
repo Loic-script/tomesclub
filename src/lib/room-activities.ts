@@ -90,11 +90,6 @@ export const ROOM_ACTIVITIES: RoomActivity[] = BASE.map(([icon, name, descriptio
   formats,
 }));
 
-/** L'activité qui a cette clé (ou undefined). */
-export function findActivity(key: string | null | undefined): RoomActivity | undefined {
-  return key ? ROOM_ACTIVITIES.find((activity) => activity.key === key) : undefined;
-}
-
 /** Le nom lisible d'un niveau ("intermediate" → "Intermediate"). */
 export function levelLabel(value: string | null | undefined): string | null {
   return ROOM_LEVELS.find((level) => level.value === value)?.label ?? null;

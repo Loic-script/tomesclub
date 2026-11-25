@@ -88,44 +88,6 @@ export type ActiveCall = {
   otherNames: string[];
 };
 
-/** Tous les membres (fiche terminée) sauf moi, triés par prénom. */
-export async function listCallableMembers(currentUserId: string): Promise<CallableMember[]> {
-  const rows = await prisma.user.findMany({
-    where: { id: { not: currentUserId }, profile: { completedAt: { not: null } } },
-    select: {
-      id: true,
-      profile: {
-        select: {
-          firstName: true,
-          lastName: true,
-          englishLevel: true,
-          city: true,
-          country: true,
-          photoType: true,
-        },
-      },
-    },
-  });
-
-  return rows
-    .flatMap((row) =>
-      row.profile
-        ? [
-            {
-              id: row.id,
-              firstName: row.profile.firstName,
-              lastName: row.profile.lastName,
-              englishLevel: row.profile.englishLevel,
-              city: row.profile.city,
-              country: row.profile.country,
-              hasPhoto: Boolean(row.profile.photoType),
-            },
-          ]
-        : [],
-    )
-    .sort((a, b) => a.firstName.localeCompare(b.firstName));
-}
-
 /**
  * Crée un appel : on l'enregistre dans la base, puis on ouvre la salle dans LiveKit.
  * Renvoie null si aucune personne invitée n'est valide.
