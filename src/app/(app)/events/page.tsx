@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AnnouncementCard } from "@/components/announcement-card";
 import { markTabRead } from "@/lib/notifications";
 import { MyEvents } from "./my-events";
 import { canProposeEvents, formatMoney, listMyEvents } from "@/lib/member-events";
@@ -239,18 +240,12 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
             <ul className="space-y-4">
               {announcements.map((event) => (
                 <li key={event.id}>
-                  <GlassCard className="flex gap-3.5">
-                    <span className="neu-inset flex size-10 shrink-0 items-center justify-center rounded-xl text-accent">
-                      <MegaphoneIcon />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-white">{event.title}</p>
-                      {event.description && (
-                        <p className="mt-0.5 text-sm leading-5 text-white/70">{event.description}</p>
-                      )}
-                      <p className="mt-1 text-xs text-white/45">{formatDay(event.createdAt)}</p>
-                    </div>
-                  </GlassCard>
+                  <AnnouncementCard
+                    title={event.title}
+                    body={event.description}
+                    dateLabel={formatDay(event.createdAt)}
+                    fresh={isFresh(event.createdAt)}
+                  />
                 </li>
               ))}
             </ul>
@@ -348,19 +343,8 @@ function formatDay(date: Date): string {
   return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(date);
 }
 
-function MegaphoneIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="size-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3 11v3a1 1 0 0 0 1 1h2l3.5 4a1 1 0 0 0 1.5-.8V6.8a1 1 0 0 0-1.5-.8L6 10H4a1 1 0 0 0-1 1Z" />
-      <path d="M14 8.5a5 5 0 0 1 0 7M17.5 6a9 9 0 0 1 0 12" />
-    </svg>
-  );
+
+/** Une annonce de moins de 3 jours : badge « New » et petite animation. */
+function isFresh(createdAt: Date): boolean {
+  return Date.now() - createdAt.getTime() < 3 * 24 * 60 * 60 * 1000;
 }

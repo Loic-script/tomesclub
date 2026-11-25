@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { AnnouncementCard as SharedAnnouncementCard } from "@/components/announcement-card";
 import { delay, GlassCard, PageHeader } from "@/components/app-ui";
 import {
   getNotificationSettings,
@@ -137,6 +138,9 @@ async function NotificationsHome() {
 
 /** Une carte de notification (cliquable si elle a un lien). */
 function NotificationCard({ notification }: { notification: MemberNotification }) {
+  // Une annonce du club : sa propre carte, bien visible.
+  if (notification.kind === "announcement") return <AnnouncementCard notification={notification} />;
+
   const date = new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
     month: "short",
@@ -185,6 +189,19 @@ function NotificationCard({ notification }: { notification: MemberNotification }
     </Link>
   ) : (
     <div className={shell}>{inside}</div>
+  );
+}
+
+/** Une annonce du club (carte partagée avec la page Events). */
+function AnnouncementCard({ notification }: { notification: MemberNotification }) {
+  return (
+    <SharedAnnouncementCard
+      title={notification.title}
+      body={notification.body}
+      dateLabel={new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(notification.createdAt)}
+      fresh={!notification.read}
+      href={notification.link}
+    />
   );
 }
 

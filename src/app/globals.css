@@ -454,3 +454,31 @@ h3,
 html.admin-chat-open .admin-bottom-nav {
   display: none !important;
 }
+
+/* Carte « Annonce » : le mégaphone bouge, des étoiles scintillent, un reflet passe. */
+@keyframes tc-wiggle {
+  0%, 60%, 100% { transform: rotate(0deg); }
+  10%, 30% { transform: rotate(-14deg) scale(1.08); }
+  20%, 40% { transform: rotate(12deg) scale(1.08); }
+}
+.anim-wiggle { display: inline-flex; animation: tc-wiggle 2.6s ease-in-out infinite; transform-origin: 60% 60%; }
+@keyframes tc-twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+.anim-twinkle { animation: tc-twinkle 2.2s ease-in-out infinite; }
+@keyframes tc-shine {
+  0% { transform: translateX(-120%) skewX(-18deg); }
+  55%, 100% { transform: translateX(220%) skewX(-18deg); }
+}
+.anim-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  animation: tc-shine 4.5s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-wiggle, .anim-twinkle, .anim-shine::after { animation: none; }
+}
