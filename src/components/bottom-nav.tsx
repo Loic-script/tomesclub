@@ -56,7 +56,7 @@ export function BottomNav() {
 
   return (
     // Menu ouvert : la barre passe au-dessus du bouton message flottant (z-50).
-    <div className={`fixed inset-x-2 bottom-4 mx-auto max-w-md sm:inset-x-4 ${open ? "z-[60]" : "z-20"}`}>
+    <div className={`fixed inset-x-2 bottom-4 mx-auto max-w-md sm:inset-x-4 sm:max-w-xl ${open ? "z-[60]" : "z-20"}`}>
       {/* Les autres menus (Members, Alerts, Profile, Logout) : sortent au-dessus du bouton "+" */}
       <nav
         aria-label="More"
@@ -94,6 +94,7 @@ export function BottomNav() {
             </li>
           ))}
           {/* Tablette et ordinateur : tous les menus dans la barre (le "+" est pour le téléphone) */}
+          <li className="flex-1 max-sm:hidden">{renderTab(MEMBERS_TAB)}</li>
           {MORE_TABS.map((tab) => (
             <li key={tab.href} className="flex-1 max-sm:hidden">
               {renderTab(tab)}
@@ -136,7 +137,7 @@ export function BottomNav() {
 
 /** Le style commun des boutons de la barre. */
 const ITEM =
-  "flex flex-col items-center gap-0.5 rounded-full px-0.5 py-2 text-[10px] font-semibold leading-tight transition-all duration-300 sm:px-3 sm:text-[11px]";
+  "flex flex-col items-center gap-0.5 rounded-full px-0.5 py-2 text-[10px] font-semibold leading-tight transition-all duration-300 sm:px-2 sm:text-[11px]";
 
 /** 4 menus toujours visibles ; les autres s'ouvrent avec le "+". */
 const MAIN_TABS = TABS.slice(0, 4);
