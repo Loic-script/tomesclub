@@ -34,7 +34,7 @@ async function MembersHome() {
       {/* Téléphone et tablette : la liste simple */}
       <div className="lg:hidden">
         <GlassCard className="card-accent-phone anim-rise flex flex-col" style={delay(120)}>
-          <SideMembersList members={members} showOnline />
+          <SideMembersList members={members} showOnline feed />
         </GlassCard>
       </div>
     </>

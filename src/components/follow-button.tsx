@@ -17,7 +17,8 @@ export function FollowButton({
   memberId: string;
   following: boolean;
   followsMe: boolean;
-  size?: "sm" | "lg";
+  /** wide = grand bouton sur toute la largeur (liste de la page Members sur téléphone). */
+  size?: "sm" | "lg" | "wide";
 }) {
   const router = useRouter();
   const [isFollowing, setIsFollowing] = useState(following);
@@ -33,7 +34,12 @@ export function FollowButton({
   }
 
   const label = isFollowing ? "Following" : followsMe ? "Follow back" : "Follow";
-  const padding = size === "lg" ? "px-6 py-2.5 text-sm" : "px-3 py-1.5 text-[11px]";
+  const padding =
+    size === "wide"
+      ? "w-full !rounded-xl px-4 py-2 text-sm"
+      : size === "lg"
+        ? "px-6 py-2.5 text-sm"
+        : "px-3 py-1.5 text-[11px]";
 
   return (
     <button

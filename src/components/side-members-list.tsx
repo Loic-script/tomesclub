@@ -30,12 +30,15 @@ export function SideMembersList({
   members,
   showOnline = false,
   grid = false,
+  feed = false,
 }: {
   members: SideMember[];
   /** Affiche "● N online" à côté du nombre de membres. */
   showOnline?: boolean;
   /** Page Members : sur ordinateur, des lignes plus grandes (photo, nom, Follow). */
   grid?: boolean;
+  /** Page Members sur téléphone : grandes photos, et un grand bouton Follow sous le nom. */
+  feed?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const wanted = simplify(query);
@@ -117,7 +120,16 @@ export function SideMembersList({
               : "-mr-2 min-h-0 flex-1 space-y-2 overflow-y-auto pr-2"
           }
         >
-          {shown.map((member, index) => (
+          {shown.map((member, index) =>
+            feed ? (
+              <li
+                key={member.id}
+                className="anim-rise"
+                style={{ "--d": `${Math.min(index, 8) * 40}ms` } as CSSProperties}
+              >
+                <FeedRow member={member} />
+              </li>
+            ) : (
             <li
               key={member.id}
               className="anim-rise"
@@ -164,10 +176,56 @@ export function SideMembersList({
                 />
               </div>
             </li>
-          ))}
+            ),
+          )}
         </ul>
       )}
     </>
+  );
+}
+
+/**
+ * Une ligne de la page Members (téléphone), comme une liste d'amis :
+ * grande photo à gauche, le nom, « en ligne » ou le pays · niveau, puis un grand bouton Follow.
+ */
+function FeedRow({ member }: { member: SideMember }) {
+  const name = `${member.firstName} ${member.lastName}`;
+  const details = [member.country, member.englishLevel].filter(Boolean).join(" · ");
+  return (
+    <div className="flex items-center gap-4 py-2.5">
+      <Link
+        href={`/members/${member.id}`}
+        aria-label={`See the profile of ${member.firstName}`}
+        className="relative shrink-0 transition-transform duration-200 active:scale-95"
+      >
+        <span className="block rounded-full bg-gradient-to-br from-accent/80 to-brand p-[2px]">
+          <MemberAvatar userId={member.id} name={name} hasPhoto={member.hasPhoto} size="size-[4.5rem]" />
+        </span>
+        <span
+          aria-label={member.online ? "Online" : "Offline"}
+          className={`absolute bottom-1 right-1 size-3.5 rounded-full border-2 border-[#2b1538] ${
+            member.online ? "bg-emerald-400" : "bg-white/30"
+          }`}
+        />
+      </Link>
+
+      <div className="min-w-0 flex-1">
+        <Link href={`/members/${member.id}`} className="block">
+          <span className="block break-words text-[15px] font-semibold leading-snug text-white">{name}</span>
+          <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-white/55">
+            {member.online ? (
+              <span className="font-semibold text-emerald-300">Online now</span>
+            ) : (
+              <span>{details || "Member"}</span>
+            )}
+            {member.followsMe && !member.following && <span className="font-semibold text-accent">· Follows you</span>}
+          </span>
+        </Link>
+        <div className="mt-2 max-w-[15rem]">
+          <FollowButton memberId={member.id} following={member.following} followsMe={member.followsMe} size="wide" />
+        </div>
+      </div>
+    </div>
   );
 }
 
