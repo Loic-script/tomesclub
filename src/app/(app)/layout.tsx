@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { getGuideSteps } from "@/lib/guide";
+import { connection } from "next/server";
 import { CoachChat } from "@/components/coach-chat";
 import { IncomingCall } from "@/components/incoming-call";
 import { MemberTopBar } from "@/components/member-top-bar";
@@ -92,5 +93,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
 /** La barre du bas, avec les étapes du guide (le « ? » du menu « + »). */
 async function BottomNavWithGuide() {
+  // Lu au moment de la requête (pas pendant le build : la base n'est pas là).
+  await connection();
   return <BottomNav guideSteps={await getGuideSteps()} />;
 }
