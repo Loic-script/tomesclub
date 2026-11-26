@@ -21,17 +21,31 @@ const part = (date: Date, options: Intl.DateTimeFormatOptions) => new Intl.DateT
  * Le texte en dessous doit laisser de la place à droite (pr-24).
  * Sert sur la page Events et dans le carrousel de l'accueil.
  */
-export function EventCover({ event, className = "h-56 sm:h-64" }: { event: EventCoverData; className?: string }) {
+export function EventCover({
+  event,
+  className = "h-56 sm:h-64",
+  natural = false,
+}: {
+  event: EventCoverData;
+  className?: string;
+  /** true = l'image garde sa forme : elle est visible en entier (la hauteur suit l'image). */
+  natural?: boolean;
+}) {
+  const flow = natural && Boolean(event.imageType);
   return (
-    <div className={`group relative ${className}`}>
+    <div className={`group relative ${flow ? "" : natural ? "h-44" : className}`}>
       {/* L'image et ses étiquettes, dans leur cadre */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className={flow ? "relative overflow-hidden" : "absolute inset-0 overflow-hidden"}>
       {event.imageType ? (
         // eslint-disable-next-line @next/next/no-img-element -- image privée servie par notre API
         <img
           src={`/api/event/image/${event.id}`}
           alt=""
-          className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className={
+            flow
+              ? "block h-auto max-h-[75vh] w-full bg-black/20 object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+              : "absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
+          }
         />
       ) : (
         <div className="absolute inset-0 bg-[linear-gradient(135deg,#2e3192,#7a082e_55%,#9c0b3b)]" />

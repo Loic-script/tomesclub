@@ -128,7 +128,7 @@ async function EventsHome({ searchParams }: { searchParams: PageProps<"/events">
                   >
                     <article className="overflow-hidden rounded-3xl bg-white/5 shadow-[0_22px_45px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10">
                       {/* L'image, bien visible (date, prix, direct) */}
-                      <EventCover event={event} />
+                      <EventCover event={event} natural />
 
                       {/* Le titre sous l'image (jamais coupé), puis s'inscrire */}
                       <div className="space-y-3 p-4">
