@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { delay, PageHeader } from "@/components/app-ui";
 import { FollowIcon, FollowStat } from "@/components/follow-stat";
 import { MemberAvatar } from "@/components/member-avatar";
+import { PhotoViewer } from "@/components/photo-viewer";
 import { listFollowPeople } from "@/lib/follows";
 import { OCCUPATIONS, userTypeLabel } from "@/lib/onboarding-options";
 import { getFullProfile, getProfileFormInitial } from "@/lib/profile";
@@ -100,14 +101,16 @@ async function ProfileHome({ searchParams }: { searchParams: PageProps<"/profile
 
             {/* La photo */}
             <div className="relative z-10 mt-10 flex justify-center">
-              <span className="rounded-full bg-white p-1.5 shadow-lg">
-                <MemberAvatar
-                  userId={user.id}
-                  name={`${profile.firstName} ${profile.lastName}`}
-                  hasPhoto={Boolean(profile.photoType)}
-                  size="size-28"
-                />
-              </span>
+              <PhotoViewer userId={user.id} name={`${profile.firstName} ${profile.lastName}`} hasPhoto={Boolean(profile.photoType)}>
+                <span className="block rounded-full bg-white p-1.5 shadow-lg">
+                  <MemberAvatar
+                    userId={user.id}
+                    name={`${profile.firstName} ${profile.lastName}`}
+                    hasPhoto={Boolean(profile.photoType)}
+                    size="size-28"
+                  />
+                </span>
+              </PhotoViewer>
               {/* Le drapeau du pays, comme un autocollant sur la photo */}
               {profile.country && (
                 <span className="absolute bottom-1 left-1/2 ml-9 flex rounded-md bg-white p-0.5 shadow-md">

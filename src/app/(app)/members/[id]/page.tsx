@@ -8,6 +8,7 @@ import { FollowButton } from "@/components/follow-button";
 import { FollowIcon, FollowStat } from "@/components/follow-stat";
 import { listFollowPeople } from "@/lib/follows";
 import { MemberAvatar } from "@/components/member-avatar";
+import { PhotoViewer } from "@/components/photo-viewer";
 import { getPublicMemberProfile } from "@/lib/members";
 import { ENGLISH_LEVELS, OCCUPATIONS } from "@/lib/onboarding-options";
 import { requireMember } from "@/lib/session";
@@ -77,14 +78,16 @@ async function MemberView({ params }: { params: Promise<{ id: string }> }) {
         {/* ----- La carte du membre ----- */}
         <GlassCard className="anim-pop text-center" style={delay(120)}>
           <div className="relative mx-auto w-fit">
-            <span className="neu-sm block rounded-full p-1.5">
-              <MemberAvatar
-                userId={member.id}
-                name={`${member.firstName} ${member.lastName}`}
-                hasPhoto={member.hasPhoto}
-                size="size-24"
-              />
-            </span>
+            <PhotoViewer userId={member.id} name={`${member.firstName} ${member.lastName}`} hasPhoto={member.hasPhoto}>
+              <span className="neu-sm block rounded-full p-1.5">
+                <MemberAvatar
+                  userId={member.id}
+                  name={`${member.firstName} ${member.lastName}`}
+                  hasPhoto={member.hasPhoto}
+                  size="size-24"
+                />
+              </span>
+            </PhotoViewer>
             <span
               aria-label={member.online ? "Online" : "Offline"}
               className={`absolute bottom-1.5 right-1.5 size-5 rounded-full border-4 border-[#2b1538] ${

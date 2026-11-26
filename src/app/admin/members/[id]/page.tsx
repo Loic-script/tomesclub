@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { MemberAvatar } from "@/components/member-avatar";
+import { PhotoViewer } from "@/components/photo-viewer";
 import { requireAdmin } from "@/lib/admin";
 import { ENGLISH_LEVELS, OCCUPATIONS } from "@/lib/onboarding-options";
 import { prisma } from "@/lib/prisma";
@@ -142,14 +143,16 @@ async function MemberProfile({ userId }: { userId: string }) {
         />
         <div className="relative flex flex-wrap items-center gap-5 max-sm:flex-col max-sm:gap-4 max-sm:text-center">
           <span className="relative">
-            <span className="block rounded-full bg-gradient-to-br from-accent to-brand p-[3px]">
-              <MemberAvatar
-                userId={member.id}
-                name={displayName}
-                hasPhoto={Boolean(profile?.photoType)}
-                size="size-24"
-              />
-            </span>
+            <PhotoViewer userId={member.id} name={displayName} hasPhoto={Boolean(profile?.photoType)}>
+              <span className="block rounded-full bg-gradient-to-br from-accent to-brand p-[3px]">
+                <MemberAvatar
+                  userId={member.id}
+                  name={displayName}
+                  hasPhoto={Boolean(profile?.photoType)}
+                  size="size-24"
+                />
+              </span>
+            </PhotoViewer>
             {member.online && (
               <span
                 aria-label="Online"
